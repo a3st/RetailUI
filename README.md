@@ -15,6 +15,7 @@ Retail UI ported to the old version of the client.
 ## Quick Start
 
 Type ``/dfui edit`` for open addon's grid layout.
+
 Type ``/dfui default`` for reset addon's settings.
 
 ## Support
