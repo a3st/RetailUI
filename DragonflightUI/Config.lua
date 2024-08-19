@@ -11,7 +11,6 @@ DFUI.optionsSlash = {
             order = 0,
             func = function()
                 local EditorMode = DFUI:GetModule('EditorMode')
-
                 if EditorMode:IsShown() then
                     EditorMode:Hide()
                 else
@@ -32,6 +31,10 @@ DFUI.optionsSlash = {
                 local UnitFrame = DFUI:GetModule('UnitFrame')
                 UnitFrame:LoadDefaultSettings()
                 UnitFrame:UpdateWidgets()
+
+                local CastBar = DFUI:GetModule('CastBar')
+                CastBar:LoadDefaultSettings()
+                CastBar:UpdateWidgets()
             end,
             dialogHidden = true
         }

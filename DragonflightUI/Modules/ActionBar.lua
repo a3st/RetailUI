@@ -8,21 +8,42 @@ Module.bagsBar = nil
 Module.microMenuBar = nil
 
 function Module:OnEnable()
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", function()
-        self:RemoveBlizzardActionFrames()
-        self:CreateActionBars()
-
-        if DFUI.DB.profile.widgets.actionBar == nil or DFUI.DB.profile.widgets.bagsBar == nil or DFUI.DB.profile.widgets.expBar == nil or
-            DFUI.DB.profile.widgets.microMenuBar == nil or DFUI.DB.profile.widgets.repBar == nil then
-            self:LoadDefaultSettings()
-        end
-
-        self:UpdateWidgets()
-    end)
+    self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("UPDATE_EXHAUSTION")
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    self:UnregisterEvent("UPDATE_EXHAUSTION")
+end
+
+function Module:PLAYER_ENTERING_WORLD()
+    self:RemoveBlizzardActionFrames()
+    self:CreateActionBars()
+
+    if DFUI.DB.profile.widgets.actionBar == nil or DFUI.DB.profile.widgets.bagsBar == nil or DFUI.DB.profile.widgets.expBar == nil or
+        DFUI.DB.profile.widgets.microMenuBar == nil or DFUI.DB.profile.widgets.repBar == nil then
+        self:LoadDefaultSettings()
+    end
+
+    self:UpdateWidgets()
+end
+
+function Module:UPDATE_EXHAUSTION()
+    local restStateID = GetRestState();
+
+    restLevelBar = ExhaustionLevelFillBar
+    restLevelBar:SetAllPoints(MainMenuExpBar)
+    restLevelBar:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    restLevelBar:SetTexCoord(574 / 2048, 1136 / 2048, 1 / 64, 10 / 64)
+
+    if restStateID == 1 then
+        restLevelBar:SetVertexColor(0.0, 0, 1, 0.45)
+    elseif restStateID == 2 then
+        restLevelBar:SetVertexColor(0.58, 0.0, 0.55, 0.45)
+    end
+
+    ExhaustionTick:Hide()
 end
 
 local blizzActionBars = {
@@ -33,13 +54,21 @@ local blizzActionBars = {
     'MultiBarLeftButton'
 };
 
-local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
+local function CreateActionBar(barID, buttonCount, buttonSize, gap, vertical)
     if buttonCount > 12 then
         assert(nil, "The Action Bar cannot contain more than 12 buttons")
     end
 
-    local width = gap * (buttonCount - 1) + ((buttonSize - 2) * buttonCount) + 8
-    local height = (buttonSize - 2) + 8
+    local width
+    local height
+
+    if vertical then
+        width = (buttonSize - 2) + 8
+        height = gap * (buttonCount - 1) + ((buttonSize - 2) * buttonCount) + 8
+    else
+        width = gap * (buttonCount - 1) + ((buttonSize - 2) * buttonCount) + 8
+        height = (buttonSize - 2) + 8
+    end
 
     local actionBar = CreateFrame("Frame", 'DFUI_ActionBar' .. barID, UIParent)
     actionBar:SetSize(width, height)
@@ -70,7 +99,7 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
         actionBar.editorText = fontString
     end
 
-    if barID == 1 then
+    if barID == 1 and not vertical then
         local nineSliceFrame = CreateFrame("Frame", nil, actionBar)
         nineSliceFrame:SetAllPoints(actionBar)
 
@@ -82,8 +111,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexCoord(0, 32 / 512, 145 / 2048, 177 / 2048)
             texture:SetHorizTile(true)
             texture:SetSize(width, 20)
-
-            actionBar.dividerTop = texture
         end
 
         do
@@ -94,8 +121,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexCoord(0, 32 / 512, 97 / 2048, 143 / 2048)
             texture:SetHorizTile(true)
             texture:SetSize(width, 20)
-
-            actionBar.dividerBottom = texture
         end
 
         do
@@ -104,8 +129,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
             texture:SetTexCoord(463 / 512, 497 / 512, 475 / 2048, 507 / 2048)
             texture:SetSize(20, 20)
-
-            actionBar.dividerTopLeft = texture
         end
 
         do
@@ -114,8 +137,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
             texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 405 / 2048)
             texture:SetSize(20, height / 2)
-
-            actionBar.dividerLeft = texture
         end
 
         do
@@ -124,8 +145,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
             texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 429 / 2048)
             texture:SetSize(20, 20)
-
-            actionBar.dividerBottomLeft = texture
         end
 
         do
@@ -134,8 +153,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
             texture:SetTexCoord(463 / 512, 507 / 512, 441 / 2048, 473 / 2048)
             texture:SetSize(20, 20)
-
-            actionBar.dividerTopRight = texture
         end
 
         do
@@ -144,8 +161,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
             texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 359 / 2048)
             texture:SetSize(20, height / 2)
-
-            actionBar.dividerRight = texture
         end
 
         do
@@ -154,8 +169,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
             texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 381 / 2048)
             texture:SetSize(20, 20)
-
-            actionBar.dividerBottomRight = texture
         end
 
         actionBar.nineSliceFrame = nineSliceFrame
@@ -233,9 +246,17 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
         button:ClearAllPoints()
 
         if index > 1 then
-            button:SetPoint("LEFT", _G[blizzActionBars[barID] .. index - 1], "RIGHT", gap, 0)
+            if vertical then
+                button:SetPoint("TOP", _G[blizzActionBars[barID] .. index - 1], "BOTTOM", 0, -gap)
+            else
+                button:SetPoint("LEFT", _G[blizzActionBars[barID] .. index - 1], "RIGHT", gap, 0)
+            end
         else
-            button:SetPoint("LEFT", actionBar, "LEFT", 4, 0)
+            if vertical then
+                button:SetPoint("TOP", actionBar, "TOP", 0, -4)
+            else
+                button:SetPoint("LEFT", actionBar, "LEFT", 4, 0)
+            end
         end
 
         button:SetSize(buttonSize - 2, buttonSize - 2)
@@ -315,8 +336,6 @@ local function CreateHorizontalActionBar(barID, buttonCount, buttonSize, gap)
             texture:SetPoint("BOTTOMRIGHT", 2, -2)
             texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
             texture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
-
-            button.border = texture
         end
 
         tinsert(actionBar.buttons, button)
@@ -697,8 +716,8 @@ local function CreateBagsBar(gap)
         local icon = _G[button:GetName() .. 'IconTexture']
         if icon then
             icon:ClearAllPoints()
-            icon:SetPoint('TOPLEFT', 5, -5)
-            icon:SetPoint('BOTTOMRIGHT', -6, 6)
+            icon:SetPoint('TOPLEFT', 6, -5)
+            icon:SetPoint('BOTTOMRIGHT', -7, 7)
             icon:SetTexCoord(.08, .92, .08, .92)
         end
 
@@ -993,7 +1012,7 @@ function Module:DisableEditorPreviewForRepExpBar()
 end
 
 function Module:CreateActionBars()
-    tinsert(self.actionBars, CreateHorizontalActionBar(1, 12, 42, 4))
+    tinsert(self.actionBars, CreateActionBar(1, 12, 42, 4, false))
 
     self:SecureHook('ActionButton_ShowGrid', ActionButton_ShowGrid)
 
@@ -1003,7 +1022,11 @@ function Module:CreateActionBars()
     end
 
     for index = 2, 3 do
-        tinsert(self.actionBars, CreateHorizontalActionBar(index, 12, 42, 4))
+        tinsert(self.actionBars, CreateActionBar(index, 12, 42, 4, false))
+    end
+
+    for index = 4, 5 do
+        tinsert(self.actionBars, CreateActionBar(index, 12, 42, 6, true))
     end
 
     self.repExpBar = CreateRepExpBar(self.actionBars[1]:GetWidth() - 10)
@@ -1018,18 +1041,26 @@ end
 function Module:LoadDefaultSettings()
     DFUI.DB.profile.widgets.actionBar = {}
 
-    for index, _ in pairs(self.actionBars) do
+    for index = 1, 3 do
         DFUI.DB.profile.widgets.actionBar[index] = {
             anchor = "BOTTOM",
             posX = 0,
-            posY = 60 + 12 * (index - 1) +
+            posY = 60 + 4 * (index - 1) +
                 42 * (index - 1)
+        }
+    end
+
+    for index = 4, 5 do
+        DFUI.DB.profile.widgets.actionBar[index] = {
+            anchor = "RIGHT",
+            posX = -4 * (index - 4) - 42 * (index - 4),
+            posY = -40
         }
     end
 
     DFUI.DB.profile.widgets.microMenuBar = { anchor = "BOTTOMRIGHT", posX = -5, posY = 5 }
     DFUI.DB.profile.widgets.bagsBar = { anchor = "BOTTOMRIGHT", posX = -5, posY = 45 }
-    DFUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 30 }
+    DFUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 20 }
 end
 
 function Module:UpdateWidgets()

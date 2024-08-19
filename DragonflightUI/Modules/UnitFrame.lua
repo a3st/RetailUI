@@ -8,21 +8,23 @@ Module.targetOfTargetFrameBar = nil
 Module.focusFrameBar = nil
 
 function Module:OnEnable()
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", function()
-        self:RemoveBlizzardUnitFrames()
-        self:CreateUnitFrames()
-
-        if DFUI.DB.profile.widgets.playerFrame == nil or DFUI.DB.profile.widgets.targetFrame == nil or
-            DFUI.DB.profile.widgets.targetOfTargetFrame == nil or DFUI.DB.profile.widgets.focusFrame == nil then
-            self:LoadDefaultSettings()
-        end
-
-        self:UpdateWidgets()
-    end)
+    self:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+end
+
+function Module:PLAYER_ENTERING_WORLD()
+    self:RemoveBlizzardUnitFrames()
+    self:CreateUnitFrames()
+
+    if DFUI.DB.profile.widgets.playerFrame == nil or DFUI.DB.profile.widgets.targetFrame == nil or
+        DFUI.DB.profile.widgets.targetOfTargetFrame == nil or DFUI.DB.profile.widgets.focusFrame == nil then
+        self:LoadDefaultSettings()
+    end
+
+    self:UpdateWidgets()
 end
 
 local blizzUnitFrames = {
@@ -95,8 +97,6 @@ local function CreatePlayerUnitFrame()
         texture:SetAllPoints(playerFrame)
         texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
         texture:SetTexCoord(812 / 1024, 1002 / 1024, 3 / 512, 67 / 512)
-
-        playerFrame.background = texture
     end
 
     local healthBar = PlayerFrameHealthBar
@@ -216,8 +216,6 @@ local function CreateTargetUnitFrame()
         texture:SetAllPoints(targetFrame)
         texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
         texture:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
-
-        targetFrame.background = texture
     end
 
     local healthBar = TargetFrameHealthBar
@@ -316,8 +314,6 @@ local function CreateTargetOfTargetFrame()
         texture:SetAllPoints(targetFrameToT)
         texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
         texture:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
-
-        targetFrameToT.background = texture
     end
 
     local healthBar = TargetFrameToTHealthBar
@@ -396,8 +392,6 @@ local function CreateFocusFrame()
         texture:SetAllPoints(focusFrame)
         texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
         texture:SetTexCoord(590 / 1024, 774 / 1024, 87 / 512, 150 / 512)
-
-        focusFrame.background = texture
     end
 
     local healthBar = FocusFrameHealthBar
@@ -464,16 +458,9 @@ end
 
 function Module:CreateUnitFrames()
     self.playerFrameBar = CreatePlayerUnitFrame()
-    self.playerFrameBar:SetPoint("CENTER", -200, 0)
-
     self.targetFrameBar = CreateTargetUnitFrame()
-    self.targetFrameBar:SetPoint("CENTER", 200, 0)
-
     self.targetOfTargetFrameBar = CreateTargetOfTargetFrame()
-    self.targetOfTargetFrameBar:SetPoint('CENTER', self.targetFrameBar, "BOTTOMRIGHT", -5, -25)
-
     self.focusFrameBar = CreateFocusFrame()
-    self.focusFrameBar:SetPoint('CENTER', self.playerFrameBar, "BOTTOM", 0, -25)
 
     self:SecureHook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
 end
@@ -531,6 +518,11 @@ function Module:DisableEditorPreviewForPlayerFrame()
 
     PlayerFrame:SetAlpha(1)
     PlayerFrame:EnableMouse(true)
+
+    local _, _, relativePoint, posX, posY = playerFrameBar:GetPoint('CENTER')
+    DFUI.DB.profile.widgets.playerFrame.anchor = relativePoint
+    DFUI.DB.profile.widgets.playerFrame.posX = posX
+    DFUI.DB.profile.widgets.playerFrame.posY = posY
 end
 
 function Module:EnableEditorPreviewForTargetFrame()
@@ -557,6 +549,11 @@ function Module:DisableEditorPreviewForTargetFrame()
 
     TargetFrame:SetAlpha(1)
     TargetFrame:EnableMouse(true)
+
+    local _, _, relativePoint, posX, posY = targetFrameBar:GetPoint('CENTER')
+    DFUI.DB.profile.widgets.targetFrame.anchor = relativePoint
+    DFUI.DB.profile.widgets.targetFrame.posX = posX
+    DFUI.DB.profile.widgets.targetFrame.posY = posY
 end
 
 function Module:EnableEditorPreviewForTargetOfTargetFrame()
@@ -583,6 +580,11 @@ function Module:DisableEditorPreviewForTargetOfTargetFrame()
 
     TargetFrameToT:SetAlpha(1)
     TargetFrameToT:EnableMouse(true)
+
+    local _, _, relativePoint, posX, posY = targetOfTargetFrameBar:GetPoint('CENTER')
+    DFUI.DB.profile.widgets.targetOfTargetFrame.anchor = relativePoint
+    DFUI.DB.profile.widgets.targetOfTargetFrame.posX = posX
+    DFUI.DB.profile.widgets.targetOfTargetFrame.posY = posY
 end
 
 function Module:EnableEditorPreviewForFocusFrame()
@@ -609,4 +611,9 @@ function Module:DisableEditorPreviewForFocusFrame()
 
     FocusFrame:SetAlpha(1)
     FocusFrame:EnableMouse(true)
+
+    local _, _, relativePoint, posX, posY = focusFrameBar:GetPoint('CENTER')
+    DFUI.DB.profile.widgets.focusFrame.anchor = relativePoint
+    DFUI.DB.profile.widgets.focusFrame.posX = posX
+    DFUI.DB.profile.widgets.focusFrame.posY = posY
 end

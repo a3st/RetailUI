@@ -13,3 +13,4 @@ Config.lua
 Modules\ActionBar.lua
 Modules\UnitFrame.lua
 Modules\EditorMode.lua
+Modules\CastBar.lua

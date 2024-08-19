@@ -19,8 +19,6 @@ local function CreateEditModeFrame()
         texture:SetHorizTile(true)
         texture:SetSize(32, 32)
         texture:SetAlpha(0.4)
-
-        editorFrame.grid = texture
     end
 
     editorFrame:Hide()
@@ -28,13 +26,15 @@ local function CreateEditModeFrame()
 end
 
 function Module:OnEnable()
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", function(self)
-        Module.editorFrame = CreateEditModeFrame()
-    end)
+    self:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+end
+
+function Module:PLAYER_ENTERING_WORLD()
+    self.editorFrame = CreateEditModeFrame()
 end
 
 function Module:Show()
@@ -51,6 +51,9 @@ function Module:Show()
     UnitFrame:EnableEditorPreviewForTargetFrame()
     UnitFrame:EnableEditorPreviewForTargetOfTargetFrame()
     UnitFrame:EnableEditorPreviewForFocusFrame()
+
+    local CastBar = DFUI:GetModule("CastBar")
+    CastBar:EnableEditorPreviewForCastBar()
 end
 
 function Module:Hide()
@@ -67,6 +70,9 @@ function Module:Hide()
     UnitFrame:DisableEditorPreviewForTargetFrame()
     UnitFrame:DisableEditorPreviewForTargetOfTargetFrame()
     UnitFrame:DisableEditorPreviewForFocusFrame()
+
+    local CastBar = DFUI:GetModule("CastBar")
+    CastBar:DisableEditorPreviewForCastBar()
 end
 
 function Module:IsShown()
