@@ -15,7 +15,7 @@ function Module:OnEnable()
         local currentTime, value, remainingTime = GetTime(), 0, 0
         if Module.channeling or Module.casting then
             if Module.casting then
-                remainingTime = currentTime - Module.startTime
+                remainingTime = min(currentTime, Module.endTime) - Module.startTime
                 value = remainingTime / (Module.endTime - Module.startTime)
             elseif Module.channeling then
                 remainingTime = Module.endTime - currentTime
@@ -30,7 +30,7 @@ function Module:OnEnable()
             local spark = _G[CastingBarFrame:GetName() .. "Spark"]
             if spark then
                 spark:ClearAllPoints()
-                spark:SetPoint("CENTER", CastingBarFrame, "LEFT", 6 + value * 228, 0)
+                spark:SetPoint("CENTER", CastingBarFrame, "LEFT", value * 228, 0)
             end
 
             if currentTime > Module.endTime then
@@ -54,9 +54,11 @@ function Module:OnEnable()
     self:RegisterEvent("UNIT_SPELLCAST_STOP")
     self:RegisterEvent("UNIT_SPELLCAST_FAILED")
     self:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+    self:RegisterEvent("UNIT_SPELLCAST_DELAYED")
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_INTERRUPTED")
+    self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 end
 
 function Module:OnDisable()
@@ -65,14 +67,16 @@ function Module:OnDisable()
     self:UnregisterEvent("UNIT_SPELLCAST_STOP")
     self:UnregisterEvent("UNIT_SPELLCAST_FAILED")
     self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+    self:UnregisterEvent("UNIT_SPELLCAST_DELAYED")
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_INTERRUPTED")
+    self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 end
 
 local function CreateCastBar()
     local width = 228 + 8
-    local height = 10 + 8
+    local height = 18 + 8
 
     local castBar = CreateFrame("Frame", 'DFUI_CastBar', UIParent)
     castBar:SetSize(width, height)
@@ -107,7 +111,7 @@ local function CreateCastBar()
     local statusBar = CastingBarFrame
     statusBar:ClearAllPoints()
 
-    statusBar:SetSize(228, 8)
+    statusBar:SetSize(228, 16)
     statusBar:SetMinMaxValues(0.0, 1.0)
 
     local border = _G[statusBar:GetName() .. "Border"]
@@ -116,7 +120,7 @@ local function CreateCastBar()
         border:SetPoint("TOPLEFT", -2, 2)
         border:SetPoint("BOTTOMRIGHT", 2, -2)
         border:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uicastingbar2x.blp")
-        border:SetTexCoord(423 / 1024, 846 / 1024, 2 / 512, 30 / 512)
+        border:SetTexCoord(423 / 1024, 847 / 1024, 2 / 512, 30 / 512)
     end
 
     for _, region in pairs { statusBar:GetRegions() } do
@@ -184,7 +188,9 @@ function Module:UNIT_SPELLCAST_START(eventName, unit)
     if unit ~= 'player' then return end
 
     local statusBar = CastingBarFrame
-    statusBar:SetAllPoints(self.castBar)
+    statusBar:ClearAllPoints()
+    statusBar:SetPoint("LEFT", self.castBar, "LEFT", 4)
+    statusBar:SetSize(228, 16)
 
     local castText = _G[statusBar:GetName() .. "Text"]
 
@@ -243,9 +249,9 @@ function Module:UNIT_SPELLCAST_FAILED(eventName, unit)
     end
 
     self.casting, self.channeling = false, false
-    self.fadeOut = true
 
-    UIFrameFadeOut(statusBar, 1, 1.0, 0.0)
+    -- self.fadeOut = true
+    -- UIFrameFadeOut(statusBar, 1, 1.0, 0.0)
 end
 
 function Module:UNIT_SPELLCAST_INTERRUPTED(eventName, unit)
@@ -269,8 +275,27 @@ end
 
 Module.UNIT_SPELLCAST_CHANNEL_INTERRUPTED = Module.UNIT_SPELLCAST_INTERRUPTED
 
+function Module:UNIT_SPELLCAST_DELAYED(eventName, unit)
+    if unit ~= 'player' then return end
+
+    local spell, rank, displayName, icon, startTime, endTime
+    if self.casting then
+        spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(unit)
+    else
+        spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(unit)
+    end
+
+    startTime = startTime / 1000
+    endTime = endTime / 1000
+
+    self.startTime = startTime
+    self.endTime = endTime
+end
+
+Module.UNIT_SPELLCAST_CHANNEL_UPDATE = Module.UNIT_SPELLCAST_DELAYED
+
 function Module:LoadDefaultSettings()
-    DFUI.DB.profile.widgets.castBar = { anchor = "BOTTOM", posX = 0, posY = 250 }
+    DFUI.DB.profile.widgets.castBar = { anchor = "BOTTOM", posX = 0, posY = 270 }
 end
 
 function Module:UpdateWidgets()

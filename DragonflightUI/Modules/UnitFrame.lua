@@ -6,13 +6,37 @@ Module.playerFrameBar = nil
 Module.targetFrameBar = nil
 Module.targetOfTargetFrameBar = nil
 Module.focusFrameBar = nil
+Module.petFrameBar = nil
+
+local function TargetFrame_UpdateAuras()
+    local targetFrameBuffs = _G["TargetFrameBuff1"]
+    if targetFrameBuffs then
+        targetFrameBuffs:ClearAllPoints()
+        targetFrameBuffs:SetPoint("BOTTOMLEFT", 3, -13)
+    end
+
+    local targetFrameDebuffs = _G["TargetFrameDebuff1"]
+    if targetFrameDebuffs then
+        targetFrameDebuffs:ClearAllPoints()
+        targetFrameDebuffs:SetPoint("BOTTOMLEFT", 3, -13)
+    end
+
+    local frameFlash = TargetFrameFlash
+    frameFlash:SetAllPoints(TargetFrame)
+    frameFlash:SetPoint("TOPLEFT", 2, 0)
+    frameFlash:SetTexCoord(1 / 1024, 185 / 1024, 300 / 512, 364 / 512)
+end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+    self:SecureHook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+
+    self:Unhook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
 end
 
 function Module:PLAYER_ENTERING_WORLD()
@@ -20,7 +44,8 @@ function Module:PLAYER_ENTERING_WORLD()
     self:CreateUnitFrames()
 
     if DFUI.DB.profile.widgets.playerFrame == nil or DFUI.DB.profile.widgets.targetFrame == nil or
-        DFUI.DB.profile.widgets.targetOfTargetFrame == nil or DFUI.DB.profile.widgets.focusFrame == nil then
+        DFUI.DB.profile.widgets.targetOfTargetFrame == nil or DFUI.DB.profile.widgets.focusFrame == nil or
+        DFUI.DB.profile.widgets.petFrame == nil then
         self:LoadDefaultSettings()
     end
 
@@ -37,7 +62,8 @@ local blizzUnitFrames = {
     FocusFrameTextureFrameTexture,
     FocusFrameBackground,
     TargetFrameToTTextureFrameTexture,
-    TargetFrameToTBackground
+    TargetFrameToTBackground,
+    PetFrameTexture
 };
 
 function Module:RemoveBlizzardUnitFrames()
@@ -162,6 +188,10 @@ local function CreatePlayerUnitFrame()
     frameFlash:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
     frameFlash:SetDrawLayer("ARTWORK")
 
+    -- DK Runes
+    RuneButtonIndividual1:ClearAllPoints()
+    RuneButtonIndividual1:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -20, -6)
+
     return playerFrameBar
 end
 
@@ -267,6 +297,100 @@ local function CreateTargetUnitFrame()
     frameFlash:SetDrawLayer("ARTWORK")
 
     return targetFrameBar
+end
+
+local function CreatePetFrame()
+    local width = 113 + 8
+    local height = 42 + 8
+
+    local petFrameBar = CreateFrame("Frame", 'DFUI_PetFrame', UIParent)
+    petFrameBar:SetSize(width, height)
+
+    petFrameBar:RegisterForDrag("LeftButton")
+    petFrameBar:EnableMouse(false)
+    petFrameBar:SetMovable(false)
+    petFrameBar:SetScript("OnDragStart", function(self, button)
+        self:StartMoving()
+    end)
+    petFrameBar:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+    end)
+
+    do
+        local texture = petFrameBar:CreateTexture(nil, 'BACKGROUND')
+        texture:SetAllPoints(PetFrame)
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
+        texture:Hide()
+
+        petFrameBar.editorTexture = texture
+
+        local fontString = petFrameBar:CreateFontString(nil, "BORDER", 'GameFontNormal')
+        fontString:SetAllPoints(texture)
+        fontString:SetText("Pet Frame")
+        fontString:Hide()
+
+        petFrameBar.editorText = fontString
+    end
+
+    local petFrame = PetFrame
+    petFrame:ClearAllPoints()
+    petFrame:SetPoint("CENTER", petFrameBar, "LEFT", 4)
+
+    petFrame:SetSize(113, 42)
+
+    local portrait = PetPortrait
+    portrait:ClearAllPoints()
+    portrait:SetPoint("LEFT", 2, 0)
+    portrait:SetSize(portrait:GetWidth() - 2, portrait:GetHeight() - 2)
+    portrait:SetDrawLayer("BACKGROUND")
+
+    do
+        local texture = petFrame:CreateTexture(nil, "BORDER")
+        texture:SetAllPoints(petFrame)
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+        texture:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
+    end
+
+    local healthBar = PetFrameHealthBar
+    healthBar:ClearAllPoints()
+    healthBar:SetPoint("TOPLEFT", 40, -15)
+    healthBar:SetPoint("BOTTOMRIGHT", -2, 17)
+
+    local statusBarTexture = healthBar:GetStatusBarTexture()
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexCoord(940 / 1024, 1014 / 1024, 72 / 512, 83 / 512)
+
+    local manaBar = PetFrameManaBar
+    manaBar:ClearAllPoints()
+    manaBar:SetPoint("TOPLEFT", 41, -25)
+    manaBar:SetPoint("BOTTOMRIGHT", -3, 8)
+
+    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexCoord(398 / 1024, 470 / 1024, 246 / 512, 254 / 512)
+
+    local happiness = PetFrameHappiness
+    happiness:ClearAllPoints()
+    happiness:SetPoint("LEFT", petFrame, "RIGHT", 5, -5)
+
+    local nameText = PetName
+    nameText:ClearAllPoints()
+    nameText:SetPoint("TOP", 12, -2)
+    nameText:SetJustifyH("LEFT")
+    nameText:SetDrawLayer("OVERLAY")
+
+    local healthBarText = PetFrameHealthBarText
+    healthBarText:ClearAllPoints()
+    healthBarText:SetPoint("CENTER", 20, 1)
+    healthBarText:SetDrawLayer("OVERLAY")
+
+    local manaBarText = PetFrameManaBarText
+    manaBarText:ClearAllPoints()
+    manaBarText:SetPoint("CENTER", 19, -9)
+    manaBarText:SetDrawLayer("OVERLAY")
+
+    return petFrameBar
 end
 
 local function CreateTargetOfTargetFrame()
@@ -437,45 +561,31 @@ local function CreateFocusFrame()
     return focusFrameBar
 end
 
-local function TargetFrame_UpdateAuras()
-    local targetFrameBuffs = _G["TargetFrameBuff1"]
-    if targetFrameBuffs then
-        targetFrameBuffs:ClearAllPoints()
-        targetFrameBuffs:SetPoint("BOTTOMLEFT", 3, -13)
-    end
-
-    local targetFrameDebuffs = _G["TargetFrameDebuff1"]
-    if targetFrameDebuffs then
-        targetFrameDebuffs:ClearAllPoints()
-        targetFrameDebuffs:SetPoint("BOTTOMLEFT", 3, -13)
-    end
-
-    local frameFlash = TargetFrameFlash
-    frameFlash:SetAllPoints(TargetFrame)
-    frameFlash:SetPoint("TOPLEFT", 2, 0)
-    frameFlash:SetTexCoord(1 / 1024, 185 / 1024, 300 / 512, 364 / 512)
-end
-
 function Module:CreateUnitFrames()
     self.playerFrameBar = CreatePlayerUnitFrame()
     self.targetFrameBar = CreateTargetUnitFrame()
     self.targetOfTargetFrameBar = CreateTargetOfTargetFrame()
     self.focusFrameBar = CreateFocusFrame()
-
-    self:SecureHook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
+    self.petFrameBar = CreatePetFrame()
 end
 
 function Module:LoadDefaultSettings()
     DFUI.DB.profile.widgets.playerFrame = { anchor = "TOPLEFT", posX = 105, posY = -15 }
+    DFUI.DB.profile.widgets.petFrame = { anchor = "TOPLEFT", posX = 145, posY = -105 }
     DFUI.DB.profile.widgets.targetFrame = { anchor = "TOPLEFT", posX = 300, posY = -15 }
     DFUI.DB.profile.widgets.targetOfTargetFrame = { anchor = "TOPLEFT", posX = 370, posY = -85 }
-    DFUI.DB.profile.widgets.focusFrame = { anchor = "TOPLEFT", posX = 105, posY = -85 }
+    DFUI.DB.profile.widgets.focusFrame = { anchor = "TOPLEFT", posX = 105, posY = -140 }
 end
 
 function Module:UpdateWidgets()
     do
         local widgetOptions = DFUI.DB.profile.widgets.playerFrame
         self.playerFrameBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    end
+
+    do
+        local widgetOptions = DFUI.DB.profile.widgets.petFrame
+        self.petFrameBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
     end
 
     do
@@ -505,6 +615,13 @@ function Module:EnableEditorPreviewForPlayerFrame()
 
     PlayerFrame:SetAlpha(0)
     PlayerFrame:EnableMouse(false)
+
+    -- DK Runes
+    for index = 1, 6 do
+        local runeButton = _G['RuneButtonIndividual' .. index]
+        runeButton:SetAlpha(0)
+        runeButton:EnableMouse(false)
+    end
 end
 
 function Module:DisableEditorPreviewForPlayerFrame()
@@ -518,6 +635,13 @@ function Module:DisableEditorPreviewForPlayerFrame()
 
     PlayerFrame:SetAlpha(1)
     PlayerFrame:EnableMouse(true)
+
+    -- DK Runes
+    for index = 1, 6 do
+        local runeButton = _G['RuneButtonIndividual' .. index]
+        runeButton:SetAlpha(1)
+        runeButton:EnableMouse(true)
+    end
 
     local _, _, relativePoint, posX, posY = playerFrameBar:GetPoint('CENTER')
     DFUI.DB.profile.widgets.playerFrame.anchor = relativePoint
@@ -616,4 +740,35 @@ function Module:DisableEditorPreviewForFocusFrame()
     DFUI.DB.profile.widgets.focusFrame.anchor = relativePoint
     DFUI.DB.profile.widgets.focusFrame.posX = posX
     DFUI.DB.profile.widgets.focusFrame.posY = posY
+end
+
+function Module:EnableEditorPreviewForPetFrame()
+    local petFrameBar = self.petFrameBar
+
+    petFrameBar:SetMovable(true)
+    petFrameBar:EnableMouse(true)
+
+    petFrameBar.editorTexture:Show()
+    petFrameBar.editorText:Show()
+
+    PetFrame:SetAlpha(0)
+    PetFrame:EnableMouse(false)
+end
+
+function Module:DisableEditorPreviewForPetFrame()
+    local petFrameBar = self.petFrameBar
+
+    petFrameBar:SetMovable(false)
+    petFrameBar:EnableMouse(false)
+
+    petFrameBar.editorTexture:Hide()
+    petFrameBar.editorText:Hide()
+
+    PetFrame:SetAlpha(1)
+    PetFrame:EnableMouse(true)
+
+    local _, _, relativePoint, posX, posY = petFrameBar:GetPoint('CENTER')
+    DFUI.DB.profile.widgets.petFrame.anchor = relativePoint
+    DFUI.DB.profile.widgets.petFrame.posX = posX
+    DFUI.DB.profile.widgets.petFrame.posY = posY
 end
