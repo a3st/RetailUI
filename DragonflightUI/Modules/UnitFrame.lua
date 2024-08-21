@@ -21,27 +21,70 @@ local function TargetFrame_UpdateAuras()
         targetFrameDebuffs:SetPoint("BOTTOMLEFT", 3, -13)
     end
 
-    local frameFlash = TargetFrameFlash
-    frameFlash:SetAllPoints(TargetFrame)
-    frameFlash:SetPoint("TOPLEFT", 2, 0)
-    frameFlash:SetTexCoord(1 / 1024, 185 / 1024, 300 / 512, 364 / 512)
+    local targetFrameFlash = TargetFrameFlash
+    targetFrameFlash:SetAllPoints(TargetFrame)
+    targetFrameFlash:SetPoint("TOPLEFT", 2, 0)
+    targetFrameFlash:SetTexCoord(1 / 1024, 185 / 1024, 300 / 512, 364 / 512)
+end
+
+local function PlayerFrame_OnUpdate(self, elapsed)
+    AnimateTexCoords(PlayerRestIcon, 512, 512, 64, 64, 42, elapsed, 1)
+end
+
+local function PetFrame_Update()
+    local frameBorder = _G[PetFrame:GetName() .. 'Texture']
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
 end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("RUNE_TYPE_UPDATE")
 
     self:SecureHook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
+    PlayerFrame:HookScript('OnUpdate', PlayerFrame_OnUpdate)
+    self:SecureHook('PetFrame_Update', PetFrame_Update)
+
+    self:CreateUnitFrames()
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    self:UnregisterEvent("RUNE_TYPE_UPDATE")
 
     self:Unhook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
+    PlayerFrame:Unhook('OnUpdate', PlayerFrame_OnUpdate)
+    self:Unhook('PetFrame_Update', PetFrame_Update)
+end
+
+local function UpdateRune(button)
+    local rune = button:GetID()
+    local runeType = GetRuneType(rune)
+
+    if runeType then
+        local runeTexture = _G[button:GetName() .. "Rune"]
+        if runeTexture then
+            runeTexture:SetTexture(
+                'Interface\\AddOns\\DragonflightUI\\Textures\\PlayerFrame\\ClassOverlayDeathKnightRunes.BLP')
+            if runeType == 1 then     -- Blood
+                runeTexture:SetTexCoord(0 / 128, 34 / 128, 0 / 128, 34 / 128)
+            elseif runeType == 2 then -- Unholy
+                runeTexture:SetTexCoord(0 / 128, 34 / 128, 68 / 128, 102 / 128)
+            elseif runeType == 3 then -- Frost
+                runeTexture:SetTexCoord(34 / 128, 68 / 128, 0 / 128, 34 / 128)
+            elseif runeType == 4 then -- Death
+                runeTexture:SetTexCoord(68 / 128, 102 / 128, 0 / 128, 34 / 128)
+            end
+        end
+    end
+end
+
+function Module:RUNE_TYPE_UPDATE(eventName, rune)
+    UpdateRune(_G['RuneButtonIndividual' .. rune])
 end
 
 function Module:PLAYER_ENTERING_WORLD()
     self:RemoveBlizzardUnitFrames()
-    self:CreateUnitFrames()
+    self:ReplaceBlizzardUnitFrames()
 
     if DFUI.DB.profile.widgets.playerFrame == nil or DFUI.DB.profile.widgets.targetFrame == nil or
         DFUI.DB.profile.widgets.targetOfTargetFrame == nil or DFUI.DB.profile.widgets.focusFrame == nil or
@@ -53,17 +96,11 @@ function Module:PLAYER_ENTERING_WORLD()
 end
 
 local blizzUnitFrames = {
-    PlayerFrameTexture,
-    PlayerFrameBackground,
     PlayerAttackBackground,
     PlayerAttackIcon,
     TargetFrameTextureFrameTexture,
-    TargetFrameBackground,
     FocusFrameTextureFrameTexture,
-    FocusFrameBackground,
-    TargetFrameToTTextureFrameTexture,
-    TargetFrameToTBackground,
-    PetFrameTexture
+    TargetFrameToTTextureFrameTexture
 };
 
 function Module:RemoveBlizzardUnitFrames()
@@ -72,501 +109,412 @@ function Module:RemoveBlizzardUnitFrames()
     end
 end
 
-local function CreatePlayerUnitFrame()
-    local width = 191 + 8
-    local height = 65 + 8
-
-    local playerFrameBar = CreateFrame("Frame", 'DFUI_PlayerFrame', UIParent)
-    playerFrameBar:SetSize(width, height)
-
-    playerFrameBar:RegisterForDrag("LeftButton")
-    playerFrameBar:EnableMouse(false)
-    playerFrameBar:SetMovable(false)
-    playerFrameBar:SetScript("OnDragStart", function(self, button)
-        self:StartMoving()
-    end)
-    playerFrameBar:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-    end)
-
-    do
-        local texture = playerFrameBar:CreateTexture(nil, 'BACKGROUND')
-        texture:SetAllPoints(PlayerFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
-        texture:Hide()
-
-        playerFrameBar.editorTexture = texture
-
-        local fontString = playerFrameBar:CreateFontString(nil, "BORDER", 'GameFontNormal')
-        fontString:SetAllPoints(texture)
-        fontString:SetText("Player Frame")
-        fontString:Hide()
-
-        playerFrameBar.editorText = fontString
-    end
-
+function Module:ReplaceBlizzardPlayerFrame()
     local playerFrame = PlayerFrame
     playerFrame:ClearAllPoints()
-    playerFrame:SetPoint("CENTER", playerFrameBar, "LEFT", 4)
+    playerFrame:SetPoint("LEFT", self.playerFrameBar, "LEFT", 0)
 
-    playerFrame:SetSize(191, 65)
+    playerFrame:SetSize(self.playerFrameBar:GetWidth(), self.playerFrameBar:GetHeight())
 
-    local portrait = PlayerPortrait
-    portrait:ClearAllPoints()
-    portrait:SetPoint("LEFT", 1, -1)
-    portrait:SetSize(portrait:GetWidth() - 3, portrait:GetHeight() - 3)
-    portrait:SetDrawLayer("BACKGROUND")
+    -- Main
+    local playerPortrait = PlayerPortrait
+    playerPortrait:ClearAllPoints()
+    playerPortrait:SetPoint("LEFT", 1, -1)
+    playerPortrait:SetSize(58, 58)
+    playerPortrait:SetDrawLayer("BACKGROUND")
 
-    do
-        local texture = playerFrame:CreateTexture(nil, "BORDER")
-        texture:SetAllPoints(playerFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-        texture:SetTexCoord(812 / 1024, 1002 / 1024, 3 / 512, 67 / 512)
-    end
+    local frameBorder = _G[playerFrame:GetName() .. 'Texture']
+    frameBorder:GetParent():SetFrameLevel(playerFrame:GetFrameLevel())
+    frameBorder:SetAllPoints(playerFrame)
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexCoord(812 / 1024, 1002 / 1024, 3 / 512, 67 / 512)
+    frameBorder:SetDrawLayer('BORDER')
 
-    local healthBar = PlayerFrameHealthBar
-    healthBar:ClearAllPoints()
-    healthBar:SetPoint("TOPLEFT", 65, -26)
-    healthBar:SetPoint("BOTTOMRIGHT", -2, 22)
+    -- Health Bar
+    local playerHealthBar = PlayerFrameHealthBar
+    playerHealthBar:SetFrameLevel(playerFrame:GetFrameLevel())
+    playerHealthBar:ClearAllPoints()
+    playerHealthBar:SetPoint("TOPLEFT", 65, -26)
+    playerHealthBar:SetPoint("BOTTOMRIGHT", -2, 22)
 
-    local statusBarTexture = healthBar:GetStatusBarTexture()
+    local statusBarTexture = playerHealthBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(561 / 1024, 685 / 1024, 183 / 512, 200 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local manaBar = PlayerFrameManaBar
-    manaBar:ClearAllPoints()
-    manaBar:SetPoint("TOPLEFT", 65, -46)
-    manaBar:SetPoint("BOTTOMRIGHT", -2, 10)
+    -- Mana Bar
+    local playerManaBar = PlayerFrameManaBar
+    playerManaBar:SetFrameLevel(playerFrame:GetFrameLevel())
+    playerManaBar:ClearAllPoints()
+    playerManaBar:SetPoint("TOPLEFT", 65, -46)
+    playerManaBar:SetPoint("BOTTOMRIGHT", -2, 10)
 
-    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture = playerManaBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(573 / 1024, 696 / 1024, 238 / 512, 244 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    PlayerName:SetPoint("TOP", 14, -9)
-    PlayerLevelText:SetPoint("TOPRIGHT", -8, -10)
-    PlayerFrameHealthBarText:SetPoint("CENTER", 30, -1)
-    PlayerFrameManaBarText:SetPoint("CENTER", 30, -17)
+    -- Font Strings
+    local playerNameText = PlayerName
+    playerNameText:ClearAllPoints()
+    playerNameText:SetPoint("TOP", 14, -9)
+    playerNameText:SetDrawLayer('OVERLAY')
 
-    local restIcon = PlayerRestIcon
-    restIcon:ClearAllPoints()
-    restIcon:SetPoint("TOPLEFT", 50, 20)
-    restIcon:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframerestingflipbook.blp")
+    local playerLevelText = PlayerLevelText
+    playerLevelText:ClearAllPoints()
+    playerLevelText:SetPoint("TOPRIGHT", -8, -10)
+    playerLevelText:SetDrawLayer('OVERLAY')
 
-    local statusGlow = PlayerStatusGlow
-    statusGlow:ClearAllPoints()
-    statusGlow:SetFrameLevel(0)
-    statusGlow:SetPoint("CENTER", 0, -3)
+    local playerHealthText = PlayerFrameHealthBarText
+    playerHealthText:ClearAllPoints()
+    playerHealthText:SetPoint("CENTER", 30, -1)
+    playerHealthText:SetDrawLayer('OVERLAY')
 
-    local statusTexture = PlayerStatusTexture
-    statusTexture:SetAllPoints(playerFrame)
-    statusTexture:SetPoint("BOTTOM", 0, -1)
-    statusTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-    statusTexture:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
-    statusTexture:SetDrawLayer("ARTWORK")
+    local playerManaText = PlayerFrameManaBarText
+    playerManaText:ClearAllPoints()
+    playerManaText:SetPoint("CENTER", 30, -17)
+    playerManaText:SetDrawLayer('OVERLAY')
 
-    playerFrame:HookScript('OnUpdate', function(self, elapsed)
-        AnimateTexCoords(PlayerRestIcon, 512, 512, 64, 64, 42, elapsed, 0.1)
-    end)
+    -- Rest Animation Icon
+    local playerRestIcon = PlayerRestIcon
+    playerRestIcon:ClearAllPoints()
+    playerRestIcon:SetPoint("TOPLEFT", 40, 10)
+    playerRestIcon:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframerestingflipbook.blp")
+    playerRestIcon:SetDrawLayer('ARTWORK')
 
-    local arrowTexture = playerFrame:CreateTexture(nil, "BORDER")
-    arrowTexture:SetPoint("LEFT", 48, -22)
-    arrowTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-    arrowTexture:SetTexCoord(986 / 1024, 997 / 1024, 144 / 512, 154 / 512)
-    arrowTexture:SetSize(12, 12)
+    local playerStatusGlow = PlayerStatusGlow
+    playerStatusGlow:ClearAllPoints()
+    playerStatusGlow:SetFrameLevel(0)
+    playerStatusGlow:SetPoint("CENTER", 0, -3)
 
-    local pvpIcon = PlayerPVPIcon
-    pvpIcon:ClearAllPoints()
-    pvpIcon:SetPoint("LEFT", -16, -12)
+    local playerStatusTexture = PlayerStatusTexture
+    playerStatusTexture:SetAllPoints(playerFrame)
+    playerStatusTexture:SetPoint("BOTTOM", 0, -1)
+    playerStatusTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    playerStatusTexture:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
+    playerStatusTexture:SetDrawLayer("ARTWORK")
+
+    -- Reuse Blizzard Textures
+    local arrowElement = PlayerFrameBackground
+    arrowElement:ClearAllPoints()
+    arrowElement:SetPoint("LEFT", 48, -22)
+    arrowElement:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    arrowElement:SetTexCoord(986 / 1024, 997 / 1024, 144 / 512, 154 / 512)
+    arrowElement:SetSize(12, 12)
+    arrowElement:SetDrawLayer('BORDER')
+
+    local playerPVPIcon = PlayerPVPIcon
+    playerPVPIcon:ClearAllPoints()
+    playerPVPIcon:SetPoint("LEFT", -16, -12)
 
     PlayerPVPTimerText:SetPoint("TOPLEFT", -10, 10)
 
-    local frameFlash = PlayerFrameFlash
-    frameFlash:SetAllPoints(playerFrame)
-    frameFlash:SetPoint("BOTTOM", 0, -1)
-    frameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-    frameFlash:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
-    frameFlash:SetDrawLayer("ARTWORK")
+    local playerFrameFlash = PlayerFrameFlash
+    playerFrameFlash:SetAllPoints(playerFrame)
+    playerFrameFlash:SetPoint("BOTTOM", 0, -1)
+    playerFrameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    playerFrameFlash:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
+    playerFrameFlash:SetDrawLayer("ARTWORK")
 
     -- DK Runes
-    RuneButtonIndividual1:ClearAllPoints()
-    RuneButtonIndividual1:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -20, -6)
+    for index = 1, 6 do
+        local button = _G['RuneButtonIndividual' .. index]
+        button:ClearAllPoints()
 
-    return playerFrameBar
+        if index > 1 then
+            button:SetPoint('LEFT', _G['RuneButtonIndividual' .. index - 1], 'RIGHT', 4, 0)
+        else
+            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -20, -6)
+        end
+
+        UpdateRune(button)
+    end
 end
 
-local function CreateTargetUnitFrame()
-    local width = 191 + 8
-    local height = 65 + 8
-
-    local targetFrameBar = CreateFrame("Frame", 'DFUI_TargetFrame', UIParent)
-    targetFrameBar:SetSize(width, height)
-
-    targetFrameBar:RegisterForDrag("LeftButton")
-    targetFrameBar:EnableMouse(false)
-    targetFrameBar:SetMovable(false)
-    targetFrameBar:SetScript("OnDragStart", function(self, button)
-        self:StartMoving()
-    end)
-    targetFrameBar:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-    end)
-
-    do
-        local texture = targetFrameBar:CreateTexture(nil, 'BACKGROUND')
-        texture:SetAllPoints(TargetFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
-        texture:Hide()
-
-        targetFrameBar.editorTexture = texture
-
-        local fontString = targetFrameBar:CreateFontString(nil, "BORDER", 'GameFontNormal')
-        fontString:SetAllPoints(texture)
-        fontString:SetText("Target Frame")
-        fontString:Hide()
-
-        targetFrameBar.editorText = fontString
-    end
-
+function Module:ReplaceBlizzardTargetFrame()
     local targetFrame = TargetFrame
     targetFrame:ClearAllPoints()
-    targetFrame:SetPoint("CENTER", targetFrameBar, "LEFT", 4)
+    targetFrame:SetPoint("LEFT", self.targetFrameBar, "LEFT", 0)
 
-    targetFrame:SetSize(191, 65)
+    targetFrame:SetSize(self.targetFrameBar:GetWidth(), self.targetFrameBar:GetHeight())
 
-    local portrait = TargetFramePortrait
-    portrait:ClearAllPoints()
-    portrait:SetPoint("RIGHT", -5, 1)
-    portrait:SetSize(portrait:GetWidth() - 8, portrait:GetHeight() - 8)
-    portrait:SetDrawLayer("BACKGROUND")
+    -- Main
+    local targetPortrait = TargetFramePortrait
+    targetPortrait:ClearAllPoints()
+    targetPortrait:SetPoint("RIGHT", -5, 1)
+    targetPortrait:SetSize(58, 58)
+    targetPortrait:SetDrawLayer("BACKGROUND")
 
-    do
-        local texture = targetFrame:CreateTexture(nil, "BORDER")
-        texture:SetAllPoints(targetFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-        texture:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
-    end
+    -- Reuse Blizzard Textures
+    local frameBorder = _G[targetFrame:GetName() .. 'Background']
+    frameBorder:GetParent():SetFrameLevel(targetFrame:GetFrameLevel())
+    frameBorder:SetAllPoints(targetFrame)
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
+    frameBorder:SetDrawLayer('BORDER')
 
-    local healthBar = TargetFrameHealthBar
-    healthBar:ClearAllPoints()
-    healthBar:SetPoint("TOPLEFT", 4, -22)
-    healthBar:SetPoint("BOTTOMRIGHT", -62, 21)
+    -- Health Bar
+    local targetHealthBar = TargetFrameHealthBar
+    targetHealthBar:SetFrameLevel(targetFrame:GetFrameLevel())
+    targetHealthBar:ClearAllPoints()
+    targetHealthBar:SetPoint("TOPLEFT", 4, -22)
+    targetHealthBar:SetPoint("BOTTOMRIGHT", -62, 21)
 
-    local statusBarTexture = healthBar:GetStatusBarTexture()
+    local statusBarTexture = targetHealthBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(433 / 1024, 557 / 1024, 157 / 512, 179 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local manaBar = TargetFrameManaBar
-    manaBar:ClearAllPoints()
-    manaBar:SetPoint("TOPLEFT", 4, -43)
-    manaBar:SetPoint("BOTTOMRIGHT", -54, 10)
+    local targetManaBar = TargetFrameManaBar
+    targetManaBar:SetFrameLevel(targetFrame:GetFrameLevel())
+    targetManaBar:ClearAllPoints()
+    targetManaBar:SetPoint("TOPLEFT", 4, -43)
+    targetManaBar:SetPoint("BOTTOMRIGHT", -54, 10)
 
-    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture = targetManaBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(332 / 1024, 463 / 1024, 207 / 512, 221 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local nameText = TargetFrameTextureFrameName
-    nameText:SetPoint("TOP", -16, -9)
-    nameText:SetDrawLayer("OVERLAY")
+    -- Font Strings
+    local targetNameText = TargetFrameTextureFrameName
+    targetNameText:ClearAllPoints()
+    targetNameText:SetPoint("TOP", -16, -9)
+    targetNameText:SetDrawLayer("OVERLAY")
 
-    local levelText = TargetFrameTextureFrameLevelText
-    levelText:SetPoint("TOPLEFT", 8, -9)
-    levelText:SetDrawLayer("OVERLAY")
+    local targetLevelText = TargetFrameTextureFrameLevelText
+    targetLevelText:ClearAllPoints()
+    targetLevelText:SetPoint("TOPLEFT", 8, -9)
+    targetLevelText:SetDrawLayer("OVERLAY")
 
-    local healthBarText = TargetFrameTextureFrameHealthBarText
-    healthBarText:SetPoint("CENTER", -25, -1)
-    healthBarText:SetDrawLayer("OVERLAY")
+    local targetHealthText = TargetFrameTextureFrameHealthBarText
+    targetHealthText:ClearAllPoints()
+    targetHealthText:SetPoint("CENTER", -25, -1)
+    targetHealthText:SetDrawLayer("OVERLAY")
 
-    local deadText = TargetFrameTextureFrameDeadText
-    deadText:SetPoint("CENTER", -25, -1)
-    deadText:SetDrawLayer("OVERLAY")
+    local targetDeathText = TargetFrameTextureFrameDeadText
+    targetDeathText:ClearAllPoints()
+    targetDeathText:SetPoint("CENTER", -25, -1)
+    targetDeathText:SetDrawLayer("OVERLAY")
 
-    local manaBarText = TargetFrameTextureFrameManaBarText
-    manaBarText:SetPoint("CENTER", -25, -18)
-    manaBarText:SetDrawLayer("OVERLAY")
+    local targetManaText = TargetFrameTextureFrameManaBarText
+    targetManaText:ClearAllPoints()
+    targetManaText:SetPoint("CENTER", -25, -18)
+    targetManaText:SetDrawLayer("OVERLAY")
 
     TargetFrameNameBackground:Hide()
 
-    local pvpIcon = TargetFrameTextureFramePVPIcon
-    pvpIcon:ClearAllPoints()
-    pvpIcon:SetPoint("RIGHT", 40, -12)
+    local targetPVPIcon = TargetFrameTextureFramePVPIcon
+    targetPVPIcon:ClearAllPoints()
+    targetPVPIcon:SetPoint("RIGHT", 40, -12)
 
-    local frameFlash = TargetFrameFlash
-    frameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-    frameFlash:SetDrawLayer("ARTWORK")
-
-    return targetFrameBar
+    -- Secure UI Element
+    local targetFrameFlash = TargetFrameFlash
+    targetFrameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    targetFrameFlash:SetDrawLayer("ARTWORK")
 end
 
-local function CreatePetFrame()
-    local width = 113 + 8
-    local height = 42 + 8
-
-    local petFrameBar = CreateFrame("Frame", 'DFUI_PetFrame', UIParent)
-    petFrameBar:SetSize(width, height)
-
-    petFrameBar:RegisterForDrag("LeftButton")
-    petFrameBar:EnableMouse(false)
-    petFrameBar:SetMovable(false)
-    petFrameBar:SetScript("OnDragStart", function(self, button)
-        self:StartMoving()
-    end)
-    petFrameBar:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-    end)
-
-    do
-        local texture = petFrameBar:CreateTexture(nil, 'BACKGROUND')
-        texture:SetAllPoints(PetFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
-        texture:Hide()
-
-        petFrameBar.editorTexture = texture
-
-        local fontString = petFrameBar:CreateFontString(nil, "BORDER", 'GameFontNormal')
-        fontString:SetAllPoints(texture)
-        fontString:SetText("Pet Frame")
-        fontString:Hide()
-
-        petFrameBar.editorText = fontString
-    end
-
+function Module:ReplaceBlizzardPetFrame()
     local petFrame = PetFrame
     petFrame:ClearAllPoints()
-    petFrame:SetPoint("CENTER", petFrameBar, "LEFT", 4)
+    petFrame:SetPoint("LEFT", self.petFrameBar, "LEFT", 0)
 
-    petFrame:SetSize(113, 42)
+    petFrame:SetSize(self.petFrameBar:GetWidth(), self.petFrameBar:GetHeight())
 
-    local portrait = PetPortrait
-    portrait:ClearAllPoints()
-    portrait:SetPoint("LEFT", 2, 0)
-    portrait:SetSize(portrait:GetWidth() - 2, portrait:GetHeight() - 2)
-    portrait:SetDrawLayer("BACKGROUND")
+    -- Main
+    local petPortrait = PetPortrait
+    petPortrait:ClearAllPoints()
+    petPortrait:SetPoint("LEFT", 2, 0)
+    petPortrait:SetSize(33, 33)
+    petPortrait:SetDrawLayer("BACKGROUND")
 
-    do
-        local texture = petFrame:CreateTexture(nil, "BORDER")
-        texture:SetAllPoints(petFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-        texture:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
-    end
+    -- Secure UI Element
+    local frameBorder = _G[petFrame:GetName() .. 'Texture']
+    frameBorder:GetParent():SetFrameLevel(petFrame:GetFrameLevel())
+    frameBorder:SetAllPoints(petFrame)
+    frameBorder:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
+    frameBorder:SetDrawLayer('BORDER')
 
-    local healthBar = PetFrameHealthBar
-    healthBar:ClearAllPoints()
-    healthBar:SetPoint("TOPLEFT", 40, -15)
-    healthBar:SetPoint("BOTTOMRIGHT", -2, 17)
+    -- Health Bar
+    local petHealthBar = PetFrameHealthBar
+    petHealthBar:SetFrameLevel(petFrame:GetFrameLevel())
+    petHealthBar:ClearAllPoints()
+    petHealthBar:SetPoint("TOPLEFT", 40, -15)
+    petHealthBar:SetPoint("BOTTOMRIGHT", -2, 17)
 
-    local statusBarTexture = healthBar:GetStatusBarTexture()
+    local statusBarTexture = petHealthBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(940 / 1024, 1014 / 1024, 72 / 512, 83 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local manaBar = PetFrameManaBar
-    manaBar:ClearAllPoints()
-    manaBar:SetPoint("TOPLEFT", 41, -25)
-    manaBar:SetPoint("BOTTOMRIGHT", -3, 8)
+    -- Mana Bar
+    local petManaBar = PetFrameManaBar
+    petManaBar:SetFrameLevel(petFrame:GetFrameLevel())
+    petManaBar:ClearAllPoints()
+    petManaBar:SetPoint("TOPLEFT", 41, -25)
+    petManaBar:SetPoint("BOTTOMRIGHT", -3, 8)
 
-    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture = petManaBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(398 / 1024, 470 / 1024, 246 / 512, 254 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local happiness = PetFrameHappiness
-    happiness:ClearAllPoints()
-    happiness:SetPoint("LEFT", petFrame, "RIGHT", 5, -5)
+    -- Font Strings
+    local petNameText = PetName
+    petNameText:ClearAllPoints()
+    petNameText:SetPoint("TOP", 12, -2)
+    petNameText:SetJustifyH("LEFT")
+    petNameText:SetDrawLayer("OVERLAY")
 
-    local nameText = PetName
-    nameText:ClearAllPoints()
-    nameText:SetPoint("TOP", 12, -2)
-    nameText:SetJustifyH("LEFT")
-    nameText:SetDrawLayer("OVERLAY")
+    local petHealthText = PetFrameHealthBarText
+    petHealthText:ClearAllPoints()
+    petHealthText:SetPoint("CENTER", 20, 1)
+    petHealthText:SetDrawLayer("OVERLAY")
 
-    local healthBarText = PetFrameHealthBarText
-    healthBarText:ClearAllPoints()
-    healthBarText:SetPoint("CENTER", 20, 1)
-    healthBarText:SetDrawLayer("OVERLAY")
+    local petManaText = PetFrameManaBarText
+    petManaText:ClearAllPoints()
+    petManaText:SetPoint("CENTER", 19, -9)
+    petManaText:SetDrawLayer("OVERLAY")
 
-    local manaBarText = PetFrameManaBarText
-    manaBarText:ClearAllPoints()
-    manaBarText:SetPoint("CENTER", 19, -9)
-    manaBarText:SetDrawLayer("OVERLAY")
-
-    return petFrameBar
+    local petHappiness = PetFrameHappiness
+    petHappiness:ClearAllPoints()
+    petHappiness:SetPoint("LEFT", petFrame, "RIGHT", 5, -5)
 end
 
-local function CreateTargetOfTargetFrame()
-    local width = 113 + 8
-    local height = 42 + 8
-
-    local targetOfTargetFrameBar = CreateFrame("Frame", 'DFUI_TargetOfTargetFrame', UIParent)
-    targetOfTargetFrameBar:SetSize(width, height)
-
-    targetOfTargetFrameBar:RegisterForDrag("LeftButton")
-    targetOfTargetFrameBar:EnableMouse(false)
-    targetOfTargetFrameBar:SetMovable(false)
-    targetOfTargetFrameBar:SetScript("OnDragStart", function(self, button)
-        self:StartMoving()
-    end)
-    targetOfTargetFrameBar:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-    end)
-
-    do
-        local texture = targetOfTargetFrameBar:CreateTexture(nil, 'BACKGROUND')
-        texture:SetAllPoints(TargetFrameToT)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
-        texture:Hide()
-
-        targetOfTargetFrameBar.editorTexture = texture
-
-        local fontString = targetOfTargetFrameBar:CreateFontString(nil, "BORDER", 'GameFontNormal')
-        fontString:SetAllPoints(texture)
-        fontString:SetText("TOT Frame")
-        fontString:Hide()
-
-        targetOfTargetFrameBar.editorText = fontString
-    end
-
+function Module:ReplaceBlizzardTOTFrame()
     local targetFrameToT = TargetFrameToT
     targetFrameToT:ClearAllPoints()
-    targetFrameToT:SetPoint("CENTER", targetOfTargetFrameBar, "LEFT", 4)
+    targetFrameToT:SetPoint("LEFT", self.targetOfTargetFrameBar, "LEFT", 0)
 
-    targetFrameToT:SetSize(113, 42)
+    targetFrameToT:SetSize(self.targetOfTargetFrameBar:GetWidth(), self.targetOfTargetFrameBar:GetHeight())
 
-    do
-        local texture = targetFrameToT:CreateTexture(nil, "BORDER")
-        texture:SetAllPoints(targetFrameToT)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-        texture:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
-    end
+    -- Reuse Blizzard Frames
+    local frameBorder = _G[targetFrameToT:GetName() .. 'Background']
+    frameBorder:GetParent():SetFrameLevel(targetFrameToT:GetFrameLevel())
+    frameBorder:SetAllPoints(targetFrameToT)
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
+    frameBorder:SetDrawLayer('BORDER')
 
-    local healthBar = TargetFrameToTHealthBar
-    healthBar:ClearAllPoints()
-    healthBar:SetPoint("TOPLEFT", 40, -15)
-    healthBar:SetPoint("BOTTOMRIGHT", -2, 17)
+    -- Health Bar
+    local totHealthBar = TargetFrameToTHealthBar
+    totHealthBar:SetFrameLevel(targetFrameToT:GetFrameLevel())
+    totHealthBar:ClearAllPoints()
+    totHealthBar:SetPoint("TOPLEFT", 40, -15)
+    totHealthBar:SetPoint("BOTTOMRIGHT", -2, 17)
 
-    local statusBarTexture = healthBar:GetStatusBarTexture()
+    local statusBarTexture = totHealthBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(940 / 1024, 1014 / 1024, 72 / 512, 83 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local manaBar = TargetFrameToTManaBar
-    manaBar:ClearAllPoints()
-    manaBar:SetPoint("TOPLEFT", 41, -25)
-    manaBar:SetPoint("BOTTOMRIGHT", -3, 8)
+    -- Mana Bar
+    local totManaBar = TargetFrameToTManaBar
+    totManaBar:SetFrameLevel(targetFrameToT:GetFrameLevel())
+    totManaBar:ClearAllPoints()
+    totManaBar:SetPoint("TOPLEFT", 41, -25)
+    totManaBar:SetPoint("BOTTOMRIGHT", -3, 8)
 
-    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture = totManaBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(398 / 1024, 470 / 1024, 246 / 512, 254 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local nameText = TargetFrameToTTextureFrameName
-    nameText:SetPoint("TOPLEFT", 47, 24)
-    nameText:SetDrawLayer("OVERLAY")
-
-    return targetOfTargetFrameBar
+    -- Font Strings
+    local totNameText = TargetFrameToTTextureFrameName
+    totNameText:ClearAllPoints()
+    totNameText:SetPoint("TOPLEFT", 47, 24)
+    totNameText:SetDrawLayer("OVERLAY")
 end
 
-local function CreateFocusFrame()
-    local width = 185 + 8
-    local height = 59 + 8
-
-    local focusFrameBar = CreateFrame("Frame", 'DFUI_FocusFrame', UIParent)
-    focusFrameBar:SetSize(width, height)
-
-    focusFrameBar:RegisterForDrag("LeftButton")
-    focusFrameBar:EnableMouse(true)
-    focusFrameBar:SetMovable(true)
-    focusFrameBar:SetScript("OnDragStart", function(self, button)
-        self:StartMoving()
-    end)
-    focusFrameBar:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-    end)
-
-    do
-        local texture = focusFrameBar:CreateTexture(nil, 'BACKGROUND')
-        texture:SetAllPoints(FocusFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
-        texture:Hide()
-
-        focusFrameBar.editorTexture = texture
-
-        local fontString = focusFrameBar:CreateFontString(nil, "BORDER", 'GameFontNormal')
-        fontString:SetAllPoints(texture)
-        fontString:SetText("Focus Frame")
-        fontString:Hide()
-
-        focusFrameBar.editorText = fontString
-    end
-
+function Module:ReplaceBlizzardFocusFrame()
     local focusFrame = FocusFrame
     focusFrame:ClearAllPoints()
-    focusFrame:SetPoint("CENTER", focusFrameBar, "LEFT", 4)
+    focusFrame:SetPoint("LEFT", self.focusFrameBar, "LEFT", 0)
 
-    focusFrame:SetSize(185, 59)
+    focusFrame:SetSize(self.focusFrameBar:GetWidth(), self.focusFrameBar:GetHeight())
 
-    local portrait = FocusFramePortrait
-    portrait:ClearAllPoints()
-    portrait:SetPoint("RIGHT", -3, 1)
-    portrait:SetSize(portrait:GetWidth() - 12, portrait:GetHeight() - 12)
-    portrait:SetDrawLayer("BACKGROUND")
+    local focusPortrait = FocusFramePortrait
+    focusPortrait:ClearAllPoints()
+    focusPortrait:SetPoint("RIGHT", -3, 1)
+    focusPortrait:SetSize(40, 40)
+    focusPortrait:SetDrawLayer("BACKGROUND")
 
-    do
-        local texture = focusFrame:CreateTexture(nil, "BORDER")
-        texture:SetAllPoints(focusFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
-        texture:SetTexCoord(590 / 1024, 774 / 1024, 87 / 512, 150 / 512)
-    end
+    -- Reuse Blizzard Frames
+    local frameBorder = _G[focusFrame:GetName() .. 'Background']
+    frameBorder:GetParent():SetFrameLevel(focusFrame:GetFrameLevel())
+    frameBorder:SetAllPoints(focusFrame)
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexCoord(590 / 1024, 774 / 1024, 87 / 512, 150 / 512)
+    frameBorder:SetDrawLayer('BORDER')
 
-    local healthBar = FocusFrameHealthBar
-    healthBar:ClearAllPoints()
-    healthBar:SetPoint("TOPLEFT", 2, -22)
-    healthBar:SetPoint("BOTTOMRIGHT", -60, 28)
+    -- Health Bar
+    local focusHealthBar = FocusFrameHealthBar
+    focusHealthBar:SetFrameLevel(focusFrame:GetFrameLevel())
+    focusHealthBar:ClearAllPoints()
+    focusHealthBar:SetPoint("TOPLEFT", 2, -22)
+    focusHealthBar:SetPoint("BOTTOMRIGHT", -60, 28)
 
-    local statusBarTexture = healthBar:GetStatusBarTexture()
+    local statusBarTexture = focusHealthBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(812 / 1024, 936 / 1024, 178 / 512, 191 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local manaBar = FocusFrameManaBar
-    manaBar:ClearAllPoints()
-    manaBar:SetPoint("TOPLEFT", 2, -34)
-    manaBar:SetPoint("BOTTOMRIGHT", -58, 16)
+    -- Mana Bar
+    local focusManaBar = FocusFrameManaBar
+    focusManaBar:SetFrameLevel(focusFrame:GetFrameLevel())
+    focusManaBar:ClearAllPoints()
+    focusManaBar:SetPoint("TOPLEFT", 2, -34)
+    focusManaBar:SetPoint("BOTTOMRIGHT", -58, 16)
 
-    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture = focusManaBar:GetStatusBarTexture()
     statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
     statusBarTexture:SetTexCoord(323 / 1024, 449 / 1024, 221 / 512, 231 / 512)
+    statusBarTexture:SetDrawLayer('ARTWORK')
 
-    local nameText = FocusFrameTextureFrameName
-    nameText:SetPoint("TOP", -20, -8)
-    nameText:SetDrawLayer("OVERLAY")
+    -- Font Strings
+    local focusNameText = FocusFrameTextureFrameName
+    focusNameText:ClearAllPoints()
+    focusNameText:SetPoint("TOP", -20, -8)
+    focusNameText:SetDrawLayer("OVERLAY")
 
-    local levelText = FocusFrameTextureFrameLevelText
-    levelText:SetPoint("TOPLEFT", 8, -9)
-    levelText:SetDrawLayer("OVERLAY")
+    local focusLevelText = FocusFrameTextureFrameLevelText
+    focusLevelText:ClearAllPoints()
+    focusLevelText:SetPoint("TOPLEFT", 8, -9)
+    focusLevelText:SetDrawLayer("OVERLAY")
 
-    local healthBarText = FocusFrameTextureFrameHealthBarText
-    healthBarText:SetPoint("CENTER", -25, 2)
-    healthBarText:SetDrawLayer("OVERLAY")
+    local focusHealthText = FocusFrameTextureFrameHealthBarText
+    focusHealthText:ClearAllPoints()
+    focusHealthText:SetPoint("CENTER", -25, 2)
+    focusHealthText:SetDrawLayer("OVERLAY")
 
-    local deadText = FocusFrameTextureFrameDeadText
-    deadText:SetPoint("CENTER", -25, 2)
-    deadText:SetDrawLayer("OVERLAY")
+    local focusDeadText = FocusFrameTextureFrameDeadText
+    focusDeadText:ClearAllPoints()
+    focusDeadText:SetPoint("CENTER", -25, 2)
+    focusDeadText:SetDrawLayer("OVERLAY")
 
-    local manaBarText = FocusFrameTextureFrameManaBarText
-    manaBarText:SetPoint("CENTER", -25, -10)
-    manaBarText:SetDrawLayer("OVERLAY")
+    local focusManaText = FocusFrameTextureFrameManaBarText
+    focusManaText:ClearAllPoints()
+    focusManaText:SetPoint("CENTER", -25, -10)
+    focusManaText:SetDrawLayer("OVERLAY")
 
     FocusFrameNameBackground:Hide()
-
-    return focusFrameBar
 end
 
 function Module:CreateUnitFrames()
-    self.playerFrameBar = CreatePlayerUnitFrame()
-    self.targetFrameBar = CreateTargetUnitFrame()
-    self.targetOfTargetFrameBar = CreateTargetOfTargetFrame()
-    self.focusFrameBar = CreateFocusFrame()
-    self.petFrameBar = CreatePetFrame()
+    self.playerFrameBar = CreateUIFrameBar(191, 65, "PlayerFrame")
+    self.targetFrameBar = CreateUIFrameBar(191, 65, "TargetFrame")
+    self.petFrameBar = CreateUIFrameBar(113, 42, "PetFrame")
+    self.targetOfTargetFrameBar = CreateUIFrameBar(113, 42, "TOTFrame")
+    self.focusFrameBar = CreateUIFrameBar(185, 59, "FocusFrame")
+end
+
+function Module:ReplaceBlizzardUnitFrames()
+    self:ReplaceBlizzardPlayerFrame()
+    self:ReplaceBlizzardTargetFrame()
+    self:ReplaceBlizzardPetFrame()
+    self:ReplaceBlizzardTOTFrame()
+    self:ReplaceBlizzardFocusFrame()
 end
 
 function Module:LoadDefaultSettings()
@@ -613,8 +561,9 @@ function Module:EnableEditorPreviewForPlayerFrame()
     playerFrameBar.editorTexture:Show()
     playerFrameBar.editorText:Show()
 
-    PlayerFrame:SetAlpha(0)
-    PlayerFrame:EnableMouse(false)
+    local playerFrame = PlayerFrame
+    playerFrame:SetAlpha(0)
+    playerFrame:EnableMouse(false)
 
     -- DK Runes
     for index = 1, 6 do
@@ -633,8 +582,9 @@ function Module:DisableEditorPreviewForPlayerFrame()
     playerFrameBar.editorTexture:Hide()
     playerFrameBar.editorText:Hide()
 
-    PlayerFrame:SetAlpha(1)
-    PlayerFrame:EnableMouse(true)
+    local playerFrame = PlayerFrame
+    playerFrame:SetAlpha(1)
+    playerFrame:EnableMouse(true)
 
     -- DK Runes
     for index = 1, 6 do
@@ -658,8 +608,9 @@ function Module:EnableEditorPreviewForTargetFrame()
     targetFrameBar.editorTexture:Show()
     targetFrameBar.editorText:Show()
 
-    TargetFrame:SetAlpha(0)
-    TargetFrame:EnableMouse(false)
+    local targetFrame = TargetFrame
+    targetFrame:SetAlpha(0)
+    targetFrame:EnableMouse(false)
 end
 
 function Module:DisableEditorPreviewForTargetFrame()
@@ -671,8 +622,9 @@ function Module:DisableEditorPreviewForTargetFrame()
     targetFrameBar.editorTexture:Hide()
     targetFrameBar.editorText:Hide()
 
-    TargetFrame:SetAlpha(1)
-    TargetFrame:EnableMouse(true)
+    local targetFrame = TargetFrame
+    targetFrame:SetAlpha(1)
+    targetFrame:EnableMouse(true)
 
     local _, _, relativePoint, posX, posY = targetFrameBar:GetPoint('CENTER')
     DFUI.DB.profile.widgets.targetFrame.anchor = relativePoint
@@ -689,8 +641,9 @@ function Module:EnableEditorPreviewForTargetOfTargetFrame()
     targetOfTargetFrameBar.editorTexture:Show()
     targetOfTargetFrameBar.editorText:Show()
 
-    TargetFrameToT:SetAlpha(0)
-    TargetFrameToT:EnableMouse(false)
+    local targetFrameTOT = TargetFrameToT
+    targetFrameTOT:SetAlpha(0)
+    targetFrameTOT:EnableMouse(false)
 end
 
 function Module:DisableEditorPreviewForTargetOfTargetFrame()
@@ -702,8 +655,9 @@ function Module:DisableEditorPreviewForTargetOfTargetFrame()
     targetOfTargetFrameBar.editorTexture:Hide()
     targetOfTargetFrameBar.editorText:Hide()
 
-    TargetFrameToT:SetAlpha(1)
-    TargetFrameToT:EnableMouse(true)
+    local targetFrameTOT = TargetFrameToT
+    targetFrameTOT:SetAlpha(1)
+    targetFrameTOT:EnableMouse(true)
 
     local _, _, relativePoint, posX, posY = targetOfTargetFrameBar:GetPoint('CENTER')
     DFUI.DB.profile.widgets.targetOfTargetFrame.anchor = relativePoint
@@ -720,8 +674,9 @@ function Module:EnableEditorPreviewForFocusFrame()
     focusFrameBar.editorTexture:Show()
     focusFrameBar.editorText:Show()
 
-    FocusFrame:SetAlpha(0)
-    FocusFrame:EnableMouse(false)
+    local focusFrame = FocusFrame
+    focusFrame:SetAlpha(0)
+    focusFrame:EnableMouse(false)
 end
 
 function Module:DisableEditorPreviewForFocusFrame()
@@ -733,8 +688,9 @@ function Module:DisableEditorPreviewForFocusFrame()
     focusFrameBar.editorTexture:Hide()
     focusFrameBar.editorText:Hide()
 
-    FocusFrame:SetAlpha(1)
-    FocusFrame:EnableMouse(true)
+    local focusFrame = FocusFrame
+    focusFrame:SetAlpha(1)
+    focusFrame:EnableMouse(true)
 
     local _, _, relativePoint, posX, posY = focusFrameBar:GetPoint('CENTER')
     DFUI.DB.profile.widgets.focusFrame.anchor = relativePoint
@@ -751,8 +707,9 @@ function Module:EnableEditorPreviewForPetFrame()
     petFrameBar.editorTexture:Show()
     petFrameBar.editorText:Show()
 
-    PetFrame:SetAlpha(0)
-    PetFrame:EnableMouse(false)
+    local petFrame = PetFrame
+    petFrame:SetAlpha(0)
+    petFrame:EnableMouse(false)
 end
 
 function Module:DisableEditorPreviewForPetFrame()
@@ -764,8 +721,9 @@ function Module:DisableEditorPreviewForPetFrame()
     petFrameBar.editorTexture:Hide()
     petFrameBar.editorText:Hide()
 
-    PetFrame:SetAlpha(1)
-    PetFrame:EnableMouse(true)
+    local petFrame = PetFrame
+    petFrame:SetAlpha(1)
+    petFrame:EnableMouse(true)
 
     local _, _, relativePoint, posX, posY = petFrameBar:GetPoint('CENTER')
     DFUI.DB.profile.widgets.petFrame.anchor = relativePoint

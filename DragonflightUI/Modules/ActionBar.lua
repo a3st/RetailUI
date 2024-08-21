@@ -10,12 +10,23 @@ Module.repExpBar = nil
 Module.bagsBar = nil
 Module.microMenuBar = nil
 
-local function ActionButton_ShowGrid(button)
+local function ShowBackgroundMainActionButton(button)
     local normalTexture = button:GetNormalTexture()
-    normalTexture:SetAlpha(0)
+    if string.find(button:GetName(), 'ActionButton%d') then
+        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        normalTexture:SetVertexColor(1, 1, 1, 1)
+    else
+        normalTexture:SetAlpha(0)
+    end
+end
 
-    if button.background == nil then return end
+local function ActionButton_ShowGrid(button)
+    ShowBackgroundMainActionButton(button)
     button:Show()
+end
+
+local function ActionButton_Update(button)
+    ShowBackgroundMainActionButton(button)
 end
 
 local function ReputationWatchBar_Update()
@@ -64,8 +75,11 @@ function Module:OnEnable()
     self:RegisterEvent("UPDATE_EXHAUSTION")
 
     self:SecureHook('ActionButton_ShowGrid', ActionButton_ShowGrid)
+    self:SecureHook('ActionButton_Update', ActionButton_Update)
     self:SecureHook('ReputationWatchBar_Update', ReputationWatchBar_Update)
     self:SecureHook('MainMenuExpBar_Update', MainMenuExpBar_Update)
+
+    self:CreateActionBars()
 end
 
 function Module:OnDisable()
@@ -73,13 +87,14 @@ function Module:OnDisable()
     self:UnregisterEvent("UPDATE_EXHAUSTION")
 
     self:Unhook('ActionButton_ShowGrid', ActionButton_ShowGrid)
+    self:Unhook('ActionButton_Update', ActionButton_Update)
     self:Unhook('ReputationWatchBar_Update', ReputationWatchBar_Update)
     self:Unhook('MainMenuExpBar_Update', MainMenuExpBar_Update)
 end
 
 function Module:PLAYER_ENTERING_WORLD()
-    self:RemoveBlizzardActionFrames()
-    self:CreateActionBars()
+    self:RemoveBlizzardActionBarFrames()
+    self:ReplaceBlizzardActionBarFrames()
 
     if DFUI.DB.profile.widgets.actionBar == nil or DFUI.DB.profile.widgets.bagsBar == nil or DFUI.DB.profile.widgets.expBar == nil or
         DFUI.DB.profile.widgets.microMenuBar == nil or DFUI.DB.profile.widgets.repBar == nil or DFUI.DB.profile.widgets.stanceBar == nil then
@@ -114,6 +129,190 @@ local blizzActionBars = {
     'MultiBarLeftButton',
     'BonusActionButton'
 }
+
+MAIN_ACTION_BAR_ID = 1
+BONUS_ACTION_BAR_ID = 6
+
+local function CreateActionFrameBar(barID, buttonCount, buttonSize, gap, vertical)
+    if buttonCount > 12 then
+        assert(nil, "The Action Bar cannot contain more than 12 buttons")
+    end
+
+    local width
+    local height
+
+    if vertical then
+        width = (buttonSize - 2)
+        height = gap * (buttonCount - 1) + ((buttonSize - 2) * buttonCount)
+    else
+        width = gap * (buttonCount - 1) + ((buttonSize - 2) * buttonCount)
+        height = (buttonSize - 2)
+    end
+
+    local frameBar = CreateUIFrameBar(width, height, 'ActionBar' .. barID)
+
+    frameBar.borderTextures = {}
+    for index = 1, buttonCount do
+        frameBar.borderTextures[index] = frameBar:CreateTexture(nil, 'OVERLAY')
+    end
+
+    frameBar.ID = barID
+    frameBar.buttonSize = buttonSize
+    frameBar.buttonCount = buttonCount
+    frameBar.gap = gap
+    frameBar.vertical = vertical
+
+    return frameBar
+end
+
+function Module:ReplaceBlizzardActionBarFrame(frameBar)
+    if frameBar.ID == MAIN_ACTION_BAR_ID then
+        local leftEndCap = MainMenuBarLeftEndCap
+        leftEndCap:ClearAllPoints()
+        leftEndCap:SetPoint("RIGHT", frameBar, "LEFT", 6, 4)
+        leftEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        leftEndCap:SetTexCoord(1 / 512, 357 / 512, 209 / 2048, 543 / 2048)
+        leftEndCap:SetSize(92, 92)
+
+        local rightEndCap = MainMenuBarRightEndCap
+        rightEndCap:ClearAllPoints()
+        rightEndCap:SetPoint("LEFT", frameBar, "RIGHT", -6, 4)
+        rightEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        rightEndCap:SetTexCoord(1 / 512, 357 / 512, 545 / 2048, 879 / 2048)
+        rightEndCap:SetSize(92, 92)
+
+        local pageNumber = _G['MainMenuBarPageNumber']
+        pageNumber:SetPoint("CENTER", frameBar, "LEFT", -18, 0)
+        pageNumber:SetFontObject(GameFontNormal)
+
+        local barUpButton = _G['ActionBarUpButton']
+        barUpButton:SetPoint("CENTER", pageNumber, "CENTER", 0, 15)
+
+        local normalTexture = barUpButton:GetNormalTexture()
+        normalTexture:SetPoint("TOPLEFT", 7, -6)
+        normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
+        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        normalTexture:SetTexCoord(359 / 512, 393 / 512, 833 / 2048, 861 / 2048)
+
+        local pushedTexture = barUpButton:GetPushedTexture()
+        pushedTexture:SetPoint("TOPLEFT", 7, -6)
+        pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
+        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        pushedTexture:SetTexCoord(453 / 512, 487 / 512, 679 / 2048, 707 / 2048)
+
+        local highlightTexture = barUpButton:GetHighlightTexture()
+        highlightTexture:SetPoint("TOPLEFT", 7, -6)
+        highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        highlightTexture:SetTexCoord(453 / 512, 487 / 512, 709 / 2048, 737 / 2048)
+
+        local barDownButton = _G['ActionBarDownButton']
+        barDownButton:SetPoint("CENTER", pageNumber, "CENTER", 0, -15)
+
+        normalTexture = barDownButton:GetNormalTexture()
+        normalTexture:SetPoint("TOPLEFT", 7, -6)
+        normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
+        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        normalTexture:SetTexCoord(463 / 512, 497 / 512, 605 / 2048, 633 / 2048)
+
+        pushedTexture = barDownButton:GetPushedTexture()
+        pushedTexture:SetPoint("TOPLEFT", 7, -6)
+        pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
+        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        pushedTexture:SetTexCoord(463 / 512, 497 / 512, 545 / 2048, 573 / 2048)
+
+        highlightTexture = barDownButton:GetHighlightTexture()
+        highlightTexture:SetPoint("TOPLEFT", 7, -6)
+        highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        highlightTexture:SetTexCoord(463 / 512, 497 / 512, 575 / 2048, 603 / 2048)
+    end
+
+    for index = 1, frameBar.buttonCount do
+        local button = _G[blizzActionBars[frameBar.ID] .. index]
+        button:ClearAllPoints()
+
+        if index > 1 then
+            if frameBar.vertical then
+                button:SetPoint("TOP", _G[blizzActionBars[frameBar.ID] .. index - 1], "BOTTOM", 0, -frameBar.gap)
+            else
+                button:SetPoint("LEFT", _G[blizzActionBars[frameBar.ID] .. index - 1], "RIGHT", frameBar.gap, 0)
+            end
+        else
+            if frameBar.vertical then
+                button:SetPoint("TOP", frameBar, "TOP", 0, 0)
+            else
+                button:SetPoint("LEFT", frameBar, "LEFT", 0, 0)
+            end
+        end
+
+        button:SetSize(frameBar.buttonSize - 2, frameBar.buttonSize - 2)
+
+        local normalTexture = button:GetNormalTexture()
+        normalTexture:SetAllPoints(button)
+        normalTexture:SetPoint("TOPLEFT", -2, 2)
+        normalTexture:SetPoint("BOTTOMRIGHT", 2, -2)
+        normalTexture:SetDrawLayer("BACKGROUND")
+
+        if frameBar.ID == MAIN_ACTION_BAR_ID then
+            normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+            normalTexture:SetTexCoord(359 / 512, 487 / 512, 209 / 2048, 333 / 2048)
+        else
+            normalTexture:SetAlpha(0)
+        end
+
+        local highlightTexture = button:GetHighlightTexture()
+        highlightTexture:SetAllPoints(button)
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        highlightTexture:SetTexCoord(359 / 512, 451 / 512, 1065 / 2048, 1155 / 2048)
+
+        local pushedTexture = button:GetPushedTexture()
+        pushedTexture:SetAllPoints(button)
+        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        pushedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+
+        local checkedTexture = button:GetCheckedTexture()
+        checkedTexture:SetAllPoints(button)
+        checkedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        checkedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+
+        local icon = _G[button:GetName() .. "Icon"]
+        icon:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
+        icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+        icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+        icon:SetDrawLayer('BORDER')
+
+        local border = _G[button:GetName() .. "Border"]
+        border:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
+        border:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+        border:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        border:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+        border:SetDrawLayer("OVERLAY")
+
+        local flash = _G[button:GetName() .. "Flash"]
+        flash:SetAllPoints(button)
+        flash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        flash:SetTexCoord(359 / 512, 451 / 512, 973 / 2048, 1063 / 2048)
+
+        local count = _G[button:GetName() .. "Count"]
+        count:SetPoint("BOTTOMRIGHT", -4, 3)
+
+        local hotKey = _G[button:GetName() .. "HotKey"]
+        hotKey:SetPoint("TOPLEFT", 4, -3)
+
+        local cooldown = _G[button:GetName() .. "Cooldown"]
+        cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -2)
+        cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
+
+        local borderTexture = frameBar.borderTextures[index]
+        borderTexture:SetParent(button)
+        borderTexture:SetAllPoints(button)
+        borderTexture:SetPoint("TOPLEFT", -2, 2)
+        borderTexture:SetPoint("BOTTOMRIGHT", 2, -2)
+        borderTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        borderTexture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
+    end
+end
 
 local function CreatePetActionBar(buttonSize, gap)
     local buttonCount = 10
@@ -493,174 +692,10 @@ local function CreateActionBar(barID, buttonCount, buttonSize, gap, vertical)
         end
 
         actionBar.nineSliceFrame = nineSliceFrame
-
-        local leftArt = MainMenuBarLeftEndCap
-        leftArt:ClearAllPoints()
-        leftArt:SetPoint("RIGHT", actionBar, "LEFT", 8, 4)
-        leftArt:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        leftArt:SetTexCoord(1 / 512, 357 / 512, 209 / 2048, 543 / 2048)
-        leftArt:SetSize(92, 92)
-
-        local rightArt = MainMenuBarRightEndCap
-        rightArt:ClearAllPoints()
-        rightArt:SetPoint("LEFT", actionBar, "RIGHT", -8, 4)
-        rightArt:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        rightArt:SetTexCoord(1 / 512, 357 / 512, 545 / 2048, 879 / 2048)
-        rightArt:SetSize(92, 92)
-
-        local pageNumber = _G['MainMenuBarPageNumber']
-        if pageNumber then
-            pageNumber:SetPoint("CENTER", actionBar, "LEFT", -18, 0)
-            pageNumber:SetFontObject(GameFontNormal)
-        end
-
-        local barUpButton = _G['ActionBarUpButton']
-        if barUpButton then
-            barUpButton:SetPoint("CENTER", pageNumber, "CENTER", 0, 15)
-
-            local normalTexture = barUpButton:GetNormalTexture()
-            normalTexture:SetPoint("TOPLEFT", 7, -6)
-            normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-            normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            normalTexture:SetTexCoord(359 / 512, 393 / 512, 833 / 2048, 861 / 2048)
-
-            local pushedTexture = barUpButton:GetPushedTexture()
-            pushedTexture:SetPoint("TOPLEFT", 7, -6)
-            pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-            pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            pushedTexture:SetTexCoord(453 / 512, 487 / 512, 679 / 2048, 707 / 2048)
-
-            local highlightTexture = barUpButton:GetPushedTexture()
-            highlightTexture:SetPoint("TOPLEFT", 7, -6)
-            highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-            highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            highlightTexture:SetTexCoord(453 / 512, 487 / 512, 709 / 2048, 737 / 2048)
-        end
-
-        local barDownButton = _G['ActionBarDownButton']
-        if barDownButton then
-            barDownButton:SetPoint("CENTER", pageNumber, "CENTER", 0, -15)
-
-            local normalTexture = barDownButton:GetNormalTexture()
-            normalTexture:SetPoint("TOPLEFT", 7, -6)
-            normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-            normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            normalTexture:SetTexCoord(463 / 512, 497 / 512, 605 / 2048, 633 / 2048)
-
-            local pushedTexture = barDownButton:GetPushedTexture()
-            pushedTexture:SetPoint("TOPLEFT", 7, -6)
-            pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-            pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            pushedTexture:SetTexCoord(463 / 512, 497 / 512, 545 / 2048, 573 / 2048)
-
-            local highlightTexture = barDownButton:GetPushedTexture()
-            highlightTexture:SetPoint("TOPLEFT", 7, -6)
-            highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-            highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            highlightTexture:SetTexCoord(463 / 512, 497 / 512, 575 / 2048, 603 / 2048)
-        end
     end
 
     actionBar.buttons = {}
-    for index = 1, buttonCount do
-        local button = _G[blizzActionBars[barID] .. index]
-        button:ClearAllPoints()
 
-        if index > 1 then
-            if vertical then
-                button:SetPoint("TOP", _G[blizzActionBars[barID] .. index - 1], "BOTTOM", 0, -gap)
-            else
-                button:SetPoint("LEFT", _G[blizzActionBars[barID] .. index - 1], "RIGHT", gap, 0)
-            end
-        else
-            if vertical then
-                button:SetPoint("TOP", actionBar, "TOP", 0, -4)
-            else
-                button:SetPoint("LEFT", actionBar, "LEFT", 4, 0)
-            end
-        end
-
-        button:SetSize(buttonSize - 2, buttonSize - 2)
-
-        local normalTexture = button:GetNormalTexture()
-        normalTexture:SetAllPoints(button)
-        normalTexture:SetPoint("TOPLEFT", -2, 2)
-        normalTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-        normalTexture:SetAlpha(0)
-
-        local highlightTexture = button:CreateTexture(nil, "HIGHLIGHT")
-        highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        highlightTexture:SetTexCoord(359 / 512, 451 / 512, 1065 / 2048, 1155 / 2048)
-
-        button:SetHighlightTexture(highlightTexture)
-
-        local pushedTexture = button:CreateTexture(nil, "OVERLAY")
-        pushedTexture:SetAllPoints(button)
-        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        pushedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
-
-        button:SetPushedTexture(pushedTexture)
-
-        local checkedTexture = button:CreateTexture(nil, "OVERLAY")
-        checkedTexture:SetAllPoints(button)
-        checkedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        checkedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
-
-        button:SetCheckedTexture(checkedTexture)
-
-        local icon = _G[button:GetName() .. "Icon"]
-        if icon then
-            icon:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
-            icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
-            icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
-            icon:SetDrawLayer('BORDER')
-        end
-
-        local flash = _G[button:GetName() .. "Flash"]
-        if flash then
-            flash:SetAllPoints(button)
-            flash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            flash:SetTexCoord(359 / 512, 451 / 512, 973 / 2048, 1063 / 2048)
-        end
-
-        local count = _G[button:GetName() .. "Count"]
-        if count then
-            count:SetPoint("BOTTOMRIGHT", -4, 3)
-        end
-
-        local hotKey = _G[button:GetName() .. "HotKey"]
-        if hotKey then
-            hotKey:SetPoint("TOPLEFT", 4, -3)
-        end
-
-        local cooldown = _G[button:GetName() .. "Cooldown"]
-        if cooldown then
-            cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -2)
-            cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
-        end
-
-        do
-            local texture = button:CreateTexture(nil, 'BACKGROUND')
-            texture:SetAllPoints(button)
-            texture:SetPoint("TOPLEFT", -2, 2)
-            texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            texture:SetTexCoord(359 / 512, 487 / 512, 209 / 2048, 333 / 2048)
-
-            button.background = texture
-        end
-
-        do
-            local texture = button:CreateTexture(nil, 'OVERLAY')
-            texture:SetAllPoints(button)
-            texture:SetPoint("TOPLEFT", -2, 2)
-            texture:SetPoint("BOTTOMRIGHT", 2, -2)
-            texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-            texture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
-        end
-
-        tinsert(actionBar.buttons, button)
-    end
 
     return actionBar
 end
@@ -1119,9 +1154,9 @@ local blizzActionBarFrames = {
     ShapeshiftBarRight
 }
 
-function Module:RemoveBlizzardActionFrames()
-    for _, blizzFrame in pairs(blizzActionBarFrames) do
-        blizzFrame:SetAlpha(0)
+function Module:RemoveBlizzardActionBarFrames()
+    for _, frame in pairs(blizzActionBarFrames) do
+        frame:SetAlpha(0)
     end
 
     MainMenuBar:EnableMouse(false)
@@ -1145,13 +1180,14 @@ function Module:EnableEditorPreviewForActionBars()
         actionBar.editorText:Show()
 
         if index == 1 then
-            actionBar.nineSliceFrame:Hide()
+            ---actionBar.nineSliceFrame:Hide()
             for _, frame in pairs(hideMainActionBarFrames) do
                 frame:SetAlpha(0)
             end
         end
 
-        for _, button in pairs(actionBar.buttons) do
+        for index = 1, actionBar.buttonCount do
+            local button = _G[blizzActionBars[actionBar.ID] .. index]
             button:SetAlpha(0)
             button:EnableMouse(false)
         end
@@ -1167,13 +1203,14 @@ function Module:DisableEditorPreviewForActionBars()
         actionBar.editorText:Hide()
 
         if index == 1 then
-            actionBar.nineSliceFrame:Show()
+            --actionBar.nineSliceFrame:Show()
             for _, frame in pairs(hideMainActionBarFrames) do
                 frame:SetAlpha(1)
             end
         end
 
-        for _, button in pairs(actionBar.buttons) do
+        for index = 1, actionBar.buttonCount do
+            local button = _G[blizzActionBars[actionBar.ID] .. index]
             button:SetAlpha(1)
             button:EnableMouse(true)
         end
@@ -1359,33 +1396,41 @@ function Module:DisableEditorPreviewForStanceBar()
     DFUI.DB.profile.widgets.stanceBar.posY = posY
 end
 
+function Module:ReplaceBlizzardActionBarFrames()
+    for _, actionBar in pairs(self.actionBars) do
+        self:ReplaceBlizzardActionBarFrame(actionBar)
+    end
+end
+
 function Module:CreateActionBars()
-    tinsert(self.actionBars, CreateActionBar(1, 12, 42, 4, false))
-    for _, button in pairs(self.actionBars[1].buttons) do
+    self.actionBars[1] = CreateActionFrameBar(1, 12, 42, 4, false)
+
+    for index = 1, NUM_ACTIONBAR_BUTTONS do
+        local button = _G['ActionButton' .. index]
         button:SetAttribute('showgrid', 1)
         ActionButton_ShowGrid(button)
     end
 
     for index = 2, 3 do
-        tinsert(self.actionBars, CreateActionBar(index, 12, 42, 4, false))
+        self.actionBars[index] = CreateActionFrameBar(index, 12, 42, 4, false)
     end
 
     for index = 4, 5 do
-        tinsert(self.actionBars, CreateActionBar(index, 12, 42, 6, true))
+        self.actionBars[index] = CreateActionFrameBar(index, 12, 42, 6, true)
     end
 
     -- Bonus Actions
-    self.bonusActionBar = CreateActionBar(6, 12, 42, 4, false)
-    for _, button in pairs(self.bonusActionBar.buttons) do
-        button:SetAttribute('showgrid', 1)
-        ActionButton_ShowGrid(button)
-    end
+    --self.bonusActionBar = CreateActionBar(6, 12, 42, 4, false)
+    --for _, button in pairs(self.bonusActionBar.buttons) do
+    --    button:SetAttribute('showgrid', 1)
+    --    ActionButton_ShowGrid(button)
+    --end
 
-    self.stanceBar = CreateStanceBar(40, 4)
-    self.repExpBar = CreateRepExpBar(self.actionBars[1]:GetWidth() - 10)
-    self.microMenuBar = CreateMicroMenuBar(2)
-    self.bagsBar = CreateBagsBar(2)
-    self.petActionBar = CreatePetActionBar(36, 4)
+    --self.stanceBar = CreateStanceBar(40, 4)
+    --self.repExpBar = CreateRepExpBar(self.actionBars[1]:GetWidth() - 10)
+    --self.microMenuBar = CreateMicroMenuBar(2)
+    --self.bagsBar = CreateBagsBar(2)
+    --self.petActionBar = CreatePetActionBar(36, 4)
 end
 
 function Module:LoadDefaultSettings()
@@ -1421,7 +1466,7 @@ function Module:UpdateWidgets()
     end
 
     -- Bonus Actions
-    do
+    --[[do
         local widgetOptions = DFUI.DB.profile.widgets.actionBar[1]
         self.bonusActionBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
     end
@@ -1444,5 +1489,5 @@ function Module:UpdateWidgets()
     do
         local widgetOptions = DFUI.DB.profile.widgets.stanceBar
         self.stanceBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    end]] --
 end
