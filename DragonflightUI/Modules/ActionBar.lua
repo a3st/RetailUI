@@ -103,7 +103,7 @@ local function CreateNineSliceFrame(width, height)
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPLEFT", 10, 7)
         texture:SetPoint("TOPRIGHT", -10, 7)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(0, 32 / 512, 145 / 2048, 177 / 2048)
         texture:SetHorizTile(true)
         texture:SetSize(width, 20)
@@ -113,7 +113,7 @@ local function CreateNineSliceFrame(width, height)
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("BOTTOMLEFT", 10, -7)
         texture:SetPoint("BOTTOMRIGHT", -10, -7)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(0, 32 / 512, 97 / 2048, 143 / 2048)
         texture:SetHorizTile(true)
         texture:SetSize(width, 20)
@@ -122,7 +122,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPLEFT", -7, 7)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(463 / 512, 497 / 512, 475 / 2048, 507 / 2048)
         texture:SetSize(20, 20)
     end
@@ -130,7 +130,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPLEFT", -7, -10)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 405 / 2048)
         texture:SetSize(20, height / 2)
     end
@@ -138,7 +138,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("BOTTOMLEFT", -7, -7)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 429 / 2048)
         texture:SetSize(20, 20)
     end
@@ -146,7 +146,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPRIGHT", 7, 7)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(463 / 512, 507 / 512, 441 / 2048, 473 / 2048)
         texture:SetSize(20, 20)
     end
@@ -154,7 +154,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPRIGHT", 7, -10)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 359 / 2048)
         texture:SetSize(20, height / 2)
     end
@@ -162,7 +162,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("BOTTOMRIGHT", 7, -7)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 381 / 2048)
         texture:SetSize(20, 20)
     end
@@ -257,19 +257,19 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
         rightEndCap:SetSize(92, 92)
 
         if faction == 'Alliance' then
-            leftEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+            leftEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
             leftEndCap:SetTexCoord(1 / 512, 357 / 512, 209 / 2048, 543 / 2048)
             leftEndCap:SetSize(92, 92)
 
-            rightEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+            rightEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
             rightEndCap:SetTexCoord(1 / 512, 357 / 512, 545 / 2048, 879 / 2048)
             rightEndCap:SetSize(92, 92)
         else
-            leftEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+            leftEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
             leftEndCap:SetTexCoord(1 / 512, 357 / 512, 881 / 2048, 1215 / 2048)
             leftEndCap:SetSize(104.5, 96)
 
-            rightEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+            rightEndCap:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
             rightEndCap:SetTexCoord(1 / 512, 357 / 512, 1217 / 2048, 1551 / 2048)
             rightEndCap:SetSize(104.5, 96)
         end
@@ -284,19 +284,19 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
         local normalTexture = barUpButton:GetNormalTexture()
         normalTexture:SetPoint("TOPLEFT", 7, -6)
         normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         normalTexture:SetTexCoord(359 / 512, 393 / 512, 833 / 2048, 861 / 2048)
 
         local pushedTexture = barUpButton:GetPushedTexture()
         pushedTexture:SetPoint("TOPLEFT", 7, -6)
         pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         pushedTexture:SetTexCoord(453 / 512, 487 / 512, 679 / 2048, 707 / 2048)
 
         local highlightTexture = barUpButton:GetHighlightTexture()
         highlightTexture:SetPoint("TOPLEFT", 7, -6)
         highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         highlightTexture:SetTexCoord(453 / 512, 487 / 512, 709 / 2048, 737 / 2048)
 
         local barDownButton = _G['ActionBarDownButton']
@@ -305,19 +305,19 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
         normalTexture = barDownButton:GetNormalTexture()
         normalTexture:SetPoint("TOPLEFT", 7, -6)
         normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         normalTexture:SetTexCoord(463 / 512, 497 / 512, 605 / 2048, 633 / 2048)
 
         pushedTexture = barDownButton:GetPushedTexture()
         pushedTexture:SetPoint("TOPLEFT", 7, -6)
         pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         pushedTexture:SetTexCoord(463 / 512, 497 / 512, 545 / 2048, 573 / 2048)
 
         highlightTexture = barDownButton:GetHighlightTexture()
         highlightTexture:SetPoint("TOPLEFT", 7, -6)
         highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         highlightTexture:SetTexCoord(463 / 512, 497 / 512, 575 / 2048, 603 / 2048)
     end
 
@@ -353,7 +353,7 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
         backgroundTexture:SetAllPoints(button)
         backgroundTexture:SetPoint("TOPLEFT", -2, 2)
         backgroundTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-        backgroundTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        backgroundTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         backgroundTexture:SetTexCoord(359 / 512, 487 / 512, 209 / 2048, 333 / 2048)
 
         if frameBar.ID == MAIN_ACTION_BAR_ID or frameBar.ID == BONUS_ACTION_BAR_ID then
@@ -364,17 +364,17 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
 
         local highlightTexture = button:GetHighlightTexture()
         highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         highlightTexture:SetTexCoord(359 / 512, 451 / 512, 1065 / 2048, 1155 / 2048)
 
         local pushedTexture = button:GetPushedTexture()
         pushedTexture:SetAllPoints(button)
-        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         pushedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
 
         local checkedTexture = button:GetCheckedTexture()
         checkedTexture:SetAllPoints(button)
-        checkedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        checkedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         checkedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
 
         local icon = _G[button:GetName() .. "Icon"]
@@ -386,13 +386,13 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
         local border = _G[button:GetName() .. "Border"]
         border:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
         border:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
-        border:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        border:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         border:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
         border:SetDrawLayer("OVERLAY")
 
         local flash = _G[button:GetName() .. "Flash"]
         flash:SetAllPoints(button)
-        flash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        flash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         flash:SetTexCoord(359 / 512, 451 / 512, 973 / 2048, 1063 / 2048)
 
         local count = _G[button:GetName() .. "Count"]
@@ -410,7 +410,7 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
         borderTexture:SetAllPoints(button)
         borderTexture:SetPoint("TOPLEFT", -2, 2)
         borderTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-        borderTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+        borderTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
         borderTexture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
     end
 end
@@ -423,7 +423,7 @@ function Module:ReplaceBlizzardRepExpBarFrame(frameBar)
 
     for _, region in pairs { mainMenuExpBar:GetRegions() } do
         if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
-            region:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+            region:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ExperienceBar.blp")
             region:SetTexCoord(0.00088878125, 570 / 2048, 20 / 64, 29 / 64)
         end
     end
@@ -436,7 +436,7 @@ function Module:ReplaceBlizzardRepExpBarFrame(frameBar)
     frameBorder:SetAllPoints(mainMenuExpBar)
     frameBorder:SetPoint("TOPLEFT", mainMenuExpBar, "TOPLEFT", -3, 3)
     frameBorder:SetPoint("BOTTOMRIGHT", mainMenuExpBar, "BOTTOMRIGHT", 3, -6)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ExperienceBar.blp")
     frameBorder:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
 
     local expText = MainMenuBarExpText
@@ -454,7 +454,7 @@ function Module:ReplaceBlizzardRepExpBarFrame(frameBar)
 
     local background = _G[repStatusBar:GetName() .. "Background"]
     background:SetAllPoints(repStatusBar)
-    background:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    background:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ExperienceBar.blp")
     background:SetTexCoord(0.00088878125, 570 / 2048, 20 / 64, 29 / 64)
 
     -- Reuse Blizzard Frames
@@ -462,7 +462,7 @@ function Module:ReplaceBlizzardRepExpBarFrame(frameBar)
     frameBorder:SetAllPoints(repStatusBar)
     frameBorder:SetPoint("TOPLEFT", repStatusBar, "TOPLEFT", -3, 2)
     frameBorder:SetPoint("BOTTOMRIGHT", repStatusBar, "BOTTOMRIGHT", 3, -7)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ExperienceBar.blp")
     frameBorder:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
 
     -- Reuse Blizzard Frames
@@ -470,7 +470,7 @@ function Module:ReplaceBlizzardRepExpBarFrame(frameBar)
     frameBorder:SetAllPoints(repStatusBar)
     frameBorder:SetPoint("TOPLEFT", repStatusBar, "TOPLEFT", -3, 2)
     frameBorder:SetPoint("BOTTOMRIGHT", repStatusBar, "BOTTOMRIGHT", 3, -7)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ExperienceBar.blp")
     frameBorder:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
 end
 
@@ -559,20 +559,20 @@ function Module:ReplaceBlizzardMicroMenuBarFrame(frameBar)
 
         local normalTexture = button:GetNormalTexture()
         normalTexture:SetAllPoints(button)
-        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uimicromenu2x.blp")
+        normalTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-MicroMenu.blp")
         normalTexture:SetTexCoord(microMenuStyles[index].normalTexture.left, microMenuStyles[index].normalTexture.right,
             microMenuStyles[index].normalTexture.top, microMenuStyles[index].normalTexture.bottom)
 
         local highlightTexture = button:GetHighlightTexture()
         highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uimicromenu2x.blp")
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-MicroMenu.blp")
         highlightTexture:SetTexCoord(microMenuStyles[index].highlightTexture.left,
             microMenuStyles[index].highlightTexture.right, microMenuStyles[index].highlightTexture.top,
             microMenuStyles[index].highlightTexture.bottom)
 
         local pushedTexture = button:GetPushedTexture()
         pushedTexture:SetAllPoints(button)
-        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uimicromenu2x.blp")
+        pushedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-MicroMenu.blp")
         pushedTexture:SetTexCoord(microMenuStyles[index].pushedTexture.left,
             microMenuStyles[index].pushedTexture.right, microMenuStyles[index].pushedTexture.top,
             microMenuStyles[index].pushedTexture.bottom)
@@ -580,7 +580,7 @@ function Module:ReplaceBlizzardMicroMenuBarFrame(frameBar)
         if microMenuStyles[index].disabledTexture ~= nil then
             local disabledTexture = button:GetDisabledTexture() or button:CreateTexture(nil, "OVERLAY")
             disabledTexture:SetAllPoints(button)
-            disabledTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uimicromenu2x.blp")
+            disabledTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-MicroMenu.blp")
             disabledTexture:SetTexCoord(microMenuStyles[index].disabledTexture.left,
                 microMenuStyles[index].disabledTexture.right, microMenuStyles[index].disabledTexture.top,
                 microMenuStyles[index].disabledTexture.bottom)
@@ -622,12 +622,12 @@ function Module:ReplaceBlizzardBagsBarFrame(frameBar)
 
         local highlightTexture = button:GetHighlightTexture()
         highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\bagslots2x.blp")
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-BagSlots.blp")
         highlightTexture:SetTexCoord(358 / 512, 419 / 512, 1 / 128, 62 / 128)
 
         local checkedTexture = button:GetCheckedTexture() or button:CreateTexture(nil, 'OVERLAY')
         checkedTexture:SetAllPoints(button)
-        checkedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\bagslots2x.blp")
+        checkedTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-BagSlots.blp")
         checkedTexture:SetTexCoord(358 / 512, 419 / 512, 1 / 128, 62 / 128)
 
         button:SetCheckedTexture(checkedTexture)
@@ -646,10 +646,10 @@ function Module:ReplaceBlizzardBagsBarFrame(frameBar)
         borderTexture:SetAllPoints(button)
 
         if index == 1 then -- Keys
-            borderTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\bagslots2key.blp")
+            borderTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-BagSlotsKey.blp")
             borderTexture:SetTexCoord(3 / 128, 63 / 128, 64 / 128, 125 / 128)
         else -- Bags
-            borderTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\bagslots2x.blp")
+            borderTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-BagSlots.blp")
             borderTexture:SetTexCoord(295 / 512, 356 / 512, 1 / 128, 62 / 128)
         end
     end
@@ -666,14 +666,14 @@ function Module:ReplaceBlizzardBagsBarFrame(frameBar)
 
         local highlightTexture = button:GetHighlightTexture()
         highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\bagslots2x.blp")
+        highlightTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-BagSlots.blp")
         highlightTexture:SetTexCoord(99 / 512, 195 / 512, 1 / 128, 97 / 128)
 
         button:SetCheckedTexture(highlightTexture)
         button:SetHighlightTexture(highlightTexture)
 
         local iconTexture = _G[button:GetName() .. 'IconTexture']
-        iconTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\bagslots2x.blp")
+        iconTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-BagSlots.blp")
         iconTexture:SetTexCoord(1 / 512, 97 / 512, 1 / 128, 97 / 128)
     end
 end

@@ -37,7 +37,7 @@ function CreateUIFrameBar(width, height, frameName)
 	do
 		local texture = unitFrameBar:CreateTexture(nil, 'BACKGROUND')
 		texture:SetAllPoints(unitFrameBar)
-		texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
+		texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-ActionBar.blp")
 		texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
 		texture:Hide()
 

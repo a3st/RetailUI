@@ -92,18 +92,18 @@ function Module:ReplaceBlizzardCastBarFrame()
     frameBorder:SetAllPoints(castBar)
     frameBorder:SetPoint("TOPLEFT", -2, 2)
     frameBorder:SetPoint("BOTTOMRIGHT", 2, -2)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uicastingbar2x.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
     frameBorder:SetTexCoord(423 / 1024, 847 / 1024, 2 / 512, 30 / 512)
 
     for _, region in pairs { statusBar:GetRegions() } do
         if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
-            region:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uicastingbar2x.blp")
+            region:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
             region:SetTexCoord(2 / 1024, 421 / 1024, 185 / 512, 215 / 512)
         end
     end
 
     local spark = _G[statusBar:GetName() .. "Spark"]
-    spark:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uicastingbar2x.blp")
+    spark:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
     spark:SetTexCoord(77 / 1024, 88 / 1024, 413 / 512, 460 / 512)
     spark:SetSize(5, 19)
 
@@ -114,14 +114,14 @@ function Module:ReplaceBlizzardCastBarFrame()
 
     local statusBarTexture = statusBar:GetStatusBarTexture()
     statusBarTexture:SetAllPoints(statusBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uicastingbar2x.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
     statusBarTexture:SetDrawLayer('BORDER')
 
     local background = self.backgroundTexture
     background:SetParent(statusBar)
     background:SetAllPoints(statusBar)
     background:SetPoint("BOTTOMRIGHT", 0, -16)
-    background:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uicastingbar2x.blp")
+    background:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
     background:SetTexCoord(1 / 1024, 419 / 1024, 1 / 512, 55 / 512)
 
     local castTimeText = self.castTimeText

@@ -13,7 +13,7 @@ local function CreateGridFrame()
     do
         local texture = gridFrame:CreateTexture(nil, "BACKGROUND")
         texture:SetAllPoints(gridFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\grid.blp", "REPEAT", "REPEAT")
+        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-Grid.blp", "REPEAT", "REPEAT")
         texture:SetTexCoord(0, 1, 0, 1)
         texture:SetVertTile(true)
         texture:SetHorizTile(true)
@@ -56,6 +56,9 @@ function Module:Show()
 
     local CastBar = DFUI:GetModule("CastBar")
     CastBar:EnableEditorPreviewForCastBar()
+
+    local Minimap = DFUI:GetModule("Minimap")
+    Minimap:EnableEditorPreviewForMinimapFrame()
 end
 
 function Module:Hide()
@@ -82,6 +85,11 @@ function Module:Hide()
     CastBar:DisableEditorPreviewForCastBar()
 
     CastBar:UpdateWidgets()
+
+    local Minimap = DFUI:GetModule("Minimap")
+    Minimap:DisableEditorPreviewForMinimapFrame()
+
+    Minimap:UpdateWidgets()
 end
 
 function Module:IsShown()

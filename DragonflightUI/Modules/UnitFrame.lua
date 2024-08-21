@@ -33,7 +33,7 @@ end
 
 local function PetFrame_Update()
     local frameBorder = _G[PetFrame:GetName() .. 'Texture']
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
 end
 
 function Module:OnEnable()
@@ -126,7 +126,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     local frameBorder = _G[playerFrame:GetName() .. 'Texture']
     frameBorder:GetParent():SetFrameLevel(playerFrame:GetFrameLevel())
     frameBorder:SetAllPoints(playerFrame)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     frameBorder:SetTexCoord(812 / 1024, 1002 / 1024, 3 / 512, 67 / 512)
     frameBorder:SetDrawLayer('BORDER')
 
@@ -138,7 +138,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     playerHealthBar:SetPoint("BOTTOMRIGHT", -2, 22)
 
     local statusBarTexture = playerHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(561 / 1024, 685 / 1024, 183 / 512, 200 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -150,7 +150,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     playerManaBar:SetPoint("BOTTOMRIGHT", -2, 10)
 
     statusBarTexture = playerManaBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(573 / 1024, 696 / 1024, 238 / 512, 244 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -179,7 +179,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     local playerRestIcon = PlayerRestIcon
     playerRestIcon:ClearAllPoints()
     playerRestIcon:SetPoint("TOPLEFT", 40, 10)
-    playerRestIcon:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframerestingflipbook.blp")
+    playerRestIcon:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\PlayerFrame\\PlayerRestFlipbook.blp")
     playerRestIcon:SetDrawLayer('ARTWORK')
 
     local playerStatusGlow = PlayerStatusGlow
@@ -190,7 +190,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     local playerStatusTexture = PlayerStatusTexture
     playerStatusTexture:SetAllPoints(playerFrame)
     playerStatusTexture:SetPoint("BOTTOM", 0, -1)
-    playerStatusTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    playerStatusTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     playerStatusTexture:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
     playerStatusTexture:SetDrawLayer("ARTWORK")
 
@@ -198,7 +198,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     local arrowElement = PlayerFrameBackground
     arrowElement:ClearAllPoints()
     arrowElement:SetPoint("LEFT", 48, -22)
-    arrowElement:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    arrowElement:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     arrowElement:SetTexCoord(986 / 1024, 997 / 1024, 144 / 512, 154 / 512)
     arrowElement:SetSize(12, 12)
     arrowElement:SetDrawLayer('BORDER')
@@ -212,7 +212,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     local playerFrameFlash = PlayerFrameFlash
     playerFrameFlash:SetAllPoints(playerFrame)
     playerFrameFlash:SetPoint("BOTTOM", 0, -1)
-    playerFrameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    playerFrameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     playerFrameFlash:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
     playerFrameFlash:SetDrawLayer("ARTWORK")
 
@@ -249,7 +249,7 @@ function Module:ReplaceBlizzardTargetFrame()
     local frameBorder = _G[targetFrame:GetName() .. 'Background']
     frameBorder:GetParent():SetFrameLevel(targetFrame:GetFrameLevel())
     frameBorder:SetAllPoints(targetFrame)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     frameBorder:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
     frameBorder:SetDrawLayer('BORDER')
 
@@ -261,7 +261,7 @@ function Module:ReplaceBlizzardTargetFrame()
     targetHealthBar:SetPoint("BOTTOMRIGHT", -62, 21)
 
     local statusBarTexture = targetHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(433 / 1024, 557 / 1024, 157 / 512, 179 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -272,7 +272,7 @@ function Module:ReplaceBlizzardTargetFrame()
     targetManaBar:SetPoint("BOTTOMRIGHT", -54, 10)
 
     statusBarTexture = targetManaBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(332 / 1024, 463 / 1024, 207 / 512, 221 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -310,8 +310,32 @@ function Module:ReplaceBlizzardTargetFrame()
 
     -- Secure UI Element
     local targetFrameFlash = TargetFrameFlash
-    targetFrameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    targetFrameFlash:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     targetFrameFlash:SetDrawLayer("ARTWORK")
+
+    -- Combo Points
+    local comboFrame = ComboFrame
+    comboFrame:ClearAllPoints()
+    comboFrame:SetPoint("CENTER", targetFrame, "CENTER", -33, 21)
+
+    for index = 1, MAX_COMBO_POINTS do
+        local comboPoint = _G['ComboPoint' .. index]
+        comboPoint:SetSize(13, 13)
+
+        for _, region in pairs { comboPoint:GetRegions() } do
+            if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
+                region:SetAllPoints(comboPoint)
+                region:SetTexture(
+                    "Interface\\AddOns\\DragonflightUI\\Textures\\PlayerFrame\\ClassOverlayComboPoints.BLP")
+                region:SetTexCoord(100 / 128, 118 / 128, 43 / 64, 61 / 64)
+            end
+        end
+
+        local highlight = _G[comboPoint:GetName() .. 'Highlight']
+        highlight:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\PlayerFrame\\ClassOverlayComboPoints.BLP")
+        highlight:SetTexCoord(58 / 128, 72 / 128, 23 / 64, 37 / 64)
+        highlight:SetSize(10, 10)
+    end
 end
 
 function Module:ReplaceBlizzardPetFrame()
@@ -343,7 +367,7 @@ function Module:ReplaceBlizzardPetFrame()
     petHealthBar:SetPoint("BOTTOMRIGHT", -2, 17)
 
     local statusBarTexture = petHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(940 / 1024, 1014 / 1024, 72 / 512, 83 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -355,7 +379,7 @@ function Module:ReplaceBlizzardPetFrame()
     petManaBar:SetPoint("BOTTOMRIGHT", -3, 8)
 
     statusBarTexture = petManaBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(398 / 1024, 470 / 1024, 246 / 512, 254 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -392,7 +416,7 @@ function Module:ReplaceBlizzardTOTFrame()
     local frameBorder = _G[targetFrameToT:GetName() .. 'Background']
     frameBorder:GetParent():SetFrameLevel(targetFrameToT:GetFrameLevel())
     frameBorder:SetAllPoints(targetFrameToT)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     frameBorder:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
     frameBorder:SetDrawLayer('BORDER')
 
@@ -404,7 +428,7 @@ function Module:ReplaceBlizzardTOTFrame()
     totHealthBar:SetPoint("BOTTOMRIGHT", -2, 17)
 
     local statusBarTexture = totHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(940 / 1024, 1014 / 1024, 72 / 512, 83 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -416,7 +440,7 @@ function Module:ReplaceBlizzardTOTFrame()
     totManaBar:SetPoint("BOTTOMRIGHT", -3, 8)
 
     statusBarTexture = totManaBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(398 / 1024, 470 / 1024, 246 / 512, 254 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -444,7 +468,7 @@ function Module:ReplaceBlizzardFocusFrame()
     local frameBorder = _G[focusFrame:GetName() .. 'Background']
     frameBorder:GetParent():SetFrameLevel(focusFrame:GetFrameLevel())
     frameBorder:SetAllPoints(focusFrame)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     frameBorder:SetTexCoord(590 / 1024, 774 / 1024, 87 / 512, 150 / 512)
     frameBorder:SetDrawLayer('BORDER')
 
@@ -456,7 +480,7 @@ function Module:ReplaceBlizzardFocusFrame()
     focusHealthBar:SetPoint("BOTTOMRIGHT", -60, 28)
 
     local statusBarTexture = focusHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(812 / 1024, 936 / 1024, 178 / 512, 191 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 
@@ -468,7 +492,7 @@ function Module:ReplaceBlizzardFocusFrame()
     focusManaBar:SetPoint("BOTTOMRIGHT", -58, 16)
 
     statusBarTexture = focusManaBar:GetStatusBarTexture()
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiunitframe.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(323 / 1024, 449 / 1024, 221 / 512, 231 / 512)
     statusBarTexture:SetDrawLayer('ARTWORK')
 

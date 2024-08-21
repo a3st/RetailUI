@@ -8,7 +8,7 @@ Retail UI ported to the old version of the client.
 
 - Action Bars
 - Unit Frames
-- Map (Work in progress)
+- Map
 - Cast Bar
 - Grid Layout to adjust the possition of UI elements
 
