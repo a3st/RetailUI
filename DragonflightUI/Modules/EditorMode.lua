@@ -38,9 +38,8 @@ function Module:Show()
 
     local ActionBar = DFUI:GetModule("ActionBar")
     ActionBar:EnableEditorPreviewForActionBars()
-    --ActionBar:EnableEditorPreviewForStanceBar()
-    --ActionBar:EnableEditorPreviewForBags()
-    --ActionBar:EnableEditorPreviewForMicroMenuBar()
+    ActionBar:EnableEditorPreviewForBags()
+    ActionBar:EnableEditorPreviewForMicroMenuBar()
     --ActionBar:EnableEditorPreviewForRepExpBar()
 
     local UnitFrame = DFUI:GetModule("UnitFrame")
@@ -59,10 +58,11 @@ function Module:Hide()
 
     local ActionBar = DFUI:GetModule("ActionBar")
     ActionBar:DisableEditorPreviewForActionBars()
-    --ActionBar:DisableEditorPreviewForStanceBar()
-    --ActionBar:DisableEditorPreviewForBags()
-    --ActionBar:DisableEditorPreviewForMicroMenuBar()
+    ActionBar:DisableEditorPreviewForBags()
+    ActionBar:DisableEditorPreviewForMicroMenuBar()
     --ActionBar:DisableEditorPreviewForRepExpBar()
+
+    ActionBar:UpdateWidgets()
 
     local UnitFrame = DFUI:GetModule("UnitFrame")
     UnitFrame:DisableEditorPreviewForPlayerFrame()
@@ -71,8 +71,12 @@ function Module:Hide()
     UnitFrame:DisableEditorPreviewForTargetOfTargetFrame()
     UnitFrame:DisableEditorPreviewForFocusFrame()
 
+    UnitFrame:UpdateWidgets()
+
     local CastBar = DFUI:GetModule("CastBar")
     CastBar:DisableEditorPreviewForCastBar()
+
+    CastBar:UpdateWidgets()
 end
 
 function Module:IsShown()
