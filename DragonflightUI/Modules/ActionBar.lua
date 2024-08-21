@@ -25,23 +25,24 @@ local function ReputationWatchBar_Update()
     local factionInfo = GetWatchedFactionInfo();
     if factionInfo then
         local repWatchBar = ReputationWatchBar
-        repWatchBar:SetHeight(16)
         repWatchBar:ClearAllPoints()
-        repWatchBar:SetPoint("LEFT", Module.repExpBar, "LEFT", 4, 0)
+        repWatchBar:SetHeight(Module.repExpBar:GetHeight())
+        repWatchBar:SetPoint("LEFT", Module.repExpBar, "LEFT", 0, 0)
     end
 end
 
 local function MainMenuExpBar_Update()
     local mainMenuExpBar = MainMenuExpBar
-    mainMenuExpBar:SetHeight(16)
     mainMenuExpBar:ClearAllPoints()
-    mainMenuExpBar:SetPoint("LEFT", Module.repExpBar, "LEFT", 4, 0)
+    mainMenuExpBar:SetWidth(Module.repExpBar:GetWidth())
+    mainMenuExpBar:SetHeight(Module.repExpBar:GetHeight())
+    mainMenuExpBar:SetPoint("LEFT", Module.repExpBar, "LEFT", 0, 0)
 
     local repWatchBar = ReputationWatchBar
     if repWatchBar:IsShown() then
         mainMenuExpBar:SetPoint("LEFT", repWatchBar, "LEFT", 0, -22)
     else
-        mainMenuExpBar:SetPoint("LEFT", Module.repExpBar, "LEFT", 4, 0)
+        mainMenuExpBar:SetPoint("LEFT", Module.repExpBar, "LEFT", 0, 0)
     end
 end
 
@@ -64,19 +65,17 @@ function ShapeshiftBar_Update() end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
-    self:RegisterEvent("UPDATE_EXHAUSTION")
 
     self:SecureHook('ActionButton_ShowGrid', ActionButton_ShowGrid)
     self:SecureHook('ActionButton_Update', ActionButton_Update)
     self:SecureHook('ReputationWatchBar_Update', ReputationWatchBar_Update)
     self:SecureHook('MainMenuExpBar_Update', MainMenuExpBar_Update)
 
-    self:CreateActionBars()
+    self:CreateUIFrames()
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-    self:UnregisterEvent("UPDATE_EXHAUSTION")
 
     self:Unhook('ActionButton_ShowGrid', ActionButton_ShowGrid)
     self:Unhook('ActionButton_Update', ActionButton_Update)
@@ -88,29 +87,12 @@ function Module:PLAYER_ENTERING_WORLD()
     self:RemoveBlizzardActionBarFrames()
     self:ReplaceBlizzardActionBarFrames()
 
-    if DFUI.DB.profile.widgets.actionBar == nil or DFUI.DB.profile.widgets.bagsBar == nil or DFUI.DB.profile.widgets.expBar == nil or
-        DFUI.DB.profile.widgets.microMenuBar == nil or DFUI.DB.profile.widgets.repBar == nil or DFUI.DB.profile.widgets.stanceBar == nil then
+    if DFUI.DB.profile.widgets.actionBar == nil or DFUI.DB.profile.widgets.bagsBar == nil or DFUI.DB.profile.widgets.repExpBar == nil or
+        DFUI.DB.profile.widgets.microMenuBar == nil then
         self:LoadDefaultSettings()
     end
 
     self:UpdateWidgets()
-end
-
-function Module:UPDATE_EXHAUSTION()
-    local restStateID = GetRestState();
-
-    restLevelBar = ExhaustionLevelFillBar
-    restLevelBar:SetAllPoints(MainMenuExpBar)
-    restLevelBar:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
-    restLevelBar:SetTexCoord(574 / 2048, 1136 / 2048, 1 / 64, 10 / 64)
-
-    if restStateID == 1 then
-        restLevelBar:SetVertexColor(0.0, 0, 1, 0.45)
-    elseif restStateID == 2 then
-        restLevelBar:SetVertexColor(0.58, 0.0, 0.55, 0.45)
-    end
-
-    ExhaustionTick:Hide()
 end
 
 local function CreateNineSliceFrame(width, height)
@@ -433,103 +415,63 @@ function Module:ReplaceBlizzardActionBarFrame(frameBar)
     end
 end
 
-local function CreateRepExpBar(width)
-    local width = width + 8
-    local height = 32 + 8 + 4
+function Module:ReplaceBlizzardRepExpBarFrame(frameBar)
+    local mainMenuExpBar = MainMenuExpBar
+    mainMenuExpBar:ClearAllPoints()
 
-    local repExpBar = CreateFrame("Frame", 'DFUI_RepExpBar', UIParent)
-    repExpBar:SetSize(width, height)
+    mainMenuExpBar:SetWidth(frameBar:GetWidth())
 
-    repExpBar:RegisterForDrag("LeftButton")
-    repExpBar:EnableMouse(false)
-    repExpBar:SetMovable(false)
-    repExpBar:SetScript("OnDragStart", function(self, button)
-        self:StartMoving()
-    end)
-    repExpBar:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-    end)
-
-    do
-        local texture = repExpBar:CreateTexture(nil, 'BACKGROUND')
-        texture:SetAllPoints(repExpBar)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiactionbar2x_new.blp")
-        texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
-        texture:Hide()
-
-        repExpBar.editorTexture = texture
-
-        local fontString = repExpBar:CreateFontString(nil, "BORDER", 'GameFontNormal')
-        fontString:SetAllPoints(texture)
-        fontString:SetText("Status Bar Frame")
-        fontString:Hide()
-
-        repExpBar.editorText = fontString
-    end
-
-    local expStatusBar = MainMenuExpBar
-    expStatusBar:ClearAllPoints()
-    expStatusBar:SetWidth(width)
-
-    for _, region in pairs { expStatusBar:GetRegions() } do
+    for _, region in pairs { mainMenuExpBar:GetRegions() } do
         if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
             region:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
             region:SetTexCoord(0.00088878125, 570 / 2048, 20 / 64, 29 / 64)
         end
     end
 
-    do
-        local texture = expStatusBar:CreateTexture(nil, 'OVERLAY')
-        texture:SetAllPoints(expStatusBar)
-        texture:SetPoint("TOPLEFT", expStatusBar, "TOPLEFT", -3, 3)
-        texture:SetPoint("BOTTOMRIGHT", expStatusBar, "BOTTOMRIGHT", 3, -6)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
-        texture:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
-    end
+    local exhaustionLevelBar = ExhaustionLevelFillBar
+    exhaustionLevelBar:SetHeight(frameBar:GetHeight())
 
-    --[[do
-        local statusBarTexture = expStatusBar:CreateTexture(nil, 'BORDER')
-        statusBarTexture:SetAllPoints(expStatusBar)
-        statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\statusbarfill.blp")
-        statusBarTexture:SetTexCoord(574 / 2048, 1137 / 2048, 34 / 64, 43 / 64)
+    -- Reuse Blizzard Frames
+    local frameBorder = MainMenuXPBarTexture0
+    frameBorder:SetAllPoints(mainMenuExpBar)
+    frameBorder:SetPoint("TOPLEFT", mainMenuExpBar, "TOPLEFT", -3, 3)
+    frameBorder:SetPoint("BOTTOMRIGHT", mainMenuExpBar, "BOTTOMRIGHT", 3, -6)
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    frameBorder:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
 
-        expStatusBar:SetStatusBarTexture(statusBarTexture)
-    end]]
+    local expText = MainMenuBarExpText
+    expText:SetPoint("CENTER", mainMenuExpBar, "CENTER", 0, 2)
 
     local repWatchBar = ReputationWatchBar
     repWatchBar:ClearAllPoints()
-    repWatchBar:SetWidth(width)
+
+    repWatchBar:SetWidth(frameBar:GetWidth())
 
     local repStatusBar = ReputationWatchStatusBar
-    repStatusBar:SetWidth(width)
     repStatusBar:SetAllPoints(repWatchBar)
 
+    repStatusBar:SetWidth(repWatchBar:GetWidth())
+
     local background = _G[repStatusBar:GetName() .. "Background"]
-    if background then
-        background:SetAllPoints(repStatusBar)
-        background:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
-        background:SetTexCoord(0.00088878125, 570 / 2048, 20 / 64, 29 / 64)
-    end
+    background:SetAllPoints(repStatusBar)
+    background:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    background:SetTexCoord(0.00088878125, 570 / 2048, 20 / 64, 29 / 64)
 
-    do
-        local texture = repStatusBar:CreateTexture(nil, 'OVERLAY')
-        texture:SetAllPoints(repStatusBar)
-        texture:SetPoint("TOPLEFT", repStatusBar, "TOPLEFT", -3, 3)
-        texture:SetPoint("BOTTOMRIGHT", repStatusBar, "BOTTOMRIGHT", 3, -6)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
-        texture:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
-    end
+    -- Reuse Blizzard Frames
+    local frameBorder = ReputationXPBarTexture0
+    frameBorder:SetAllPoints(repStatusBar)
+    frameBorder:SetPoint("TOPLEFT", repStatusBar, "TOPLEFT", -3, 2)
+    frameBorder:SetPoint("BOTTOMRIGHT", repStatusBar, "BOTTOMRIGHT", 3, -7)
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    frameBorder:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
 
-    --[[do
-        local statusBarTexture = repStatusBar:CreateTexture(nil, 'BORDER')
-        statusBarTexture:SetAllPoints(repStatusBar)
-        statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\statusbarfill.blp")
-        statusBarTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
-
-        repStatusBar:SetStatusBarTexture(statusBarTexture)
-    end]]
-
-    return repExpBar
+    -- Reuse Blizzard Frames
+    frameBorder = ReputationWatchBarTexture0
+    frameBorder:SetAllPoints(repStatusBar)
+    frameBorder:SetPoint("TOPLEFT", repStatusBar, "TOPLEFT", -3, 2)
+    frameBorder:SetPoint("BOTTOMRIGHT", repStatusBar, "BOTTOMRIGHT", 3, -7)
+    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\uiexperiencebar.blp")
+    frameBorder:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
 end
 
 local microMenuButtons = {
@@ -743,15 +685,12 @@ local blizzActionBarFrames = {
     MainMenuBarTexture2,
     MainMenuBarTexture3,
     MainMenuBarMaxLevelBar,
-    ReputationXPBarTexture0,
     ReputationXPBarTexture1,
     ReputationXPBarTexture2,
     ReputationXPBarTexture3,
-    ReputationWatchBarTexture0,
     ReputationWatchBarTexture1,
     ReputationWatchBarTexture2,
     ReputationWatchBarTexture3,
-    MainMenuXPBarTexture0,
     MainMenuXPBarTexture1,
     MainMenuXPBarTexture2,
     MainMenuXPBarTexture3,
@@ -941,8 +880,14 @@ function Module:EnableEditorPreviewForRepExpBar()
 
     ReputationWatchBar:SetAlpha(0)
     ReputationWatchBar:EnableMouse(false)
-    MainMenuExpBar:SetAlpha(0)
-    MainMenuExpBar:EnableMouse(false)
+
+    local mainMenuExpBar = MainMenuExpBar
+    mainMenuExpBar:SetAlpha(0)
+    mainMenuExpBar:EnableMouse(false)
+
+    local exhaustionTick = ExhaustionTick
+    exhaustionTick:SetAlpha(0)
+    exhaustionTick:EnableMouse(false)
 end
 
 function Module:DisableEditorPreviewForRepExpBar()
@@ -956,8 +901,14 @@ function Module:DisableEditorPreviewForRepExpBar()
 
     ReputationWatchBar:SetAlpha(1)
     ReputationWatchBar:EnableMouse(true)
-    MainMenuExpBar:SetAlpha(1)
-    MainMenuExpBar:EnableMouse(true)
+
+    local mainMenuExpBar = MainMenuExpBar
+    mainMenuExpBar:SetAlpha(1)
+    mainMenuExpBar:EnableMouse(true)
+
+    local exhaustionTick = ExhaustionTick
+    exhaustionTick:SetAlpha(1)
+    exhaustionTick:EnableMouse(true)
 
     local _, _, relativePoint, posX, posY = repExpBar:GetPoint('CENTER')
     DFUI.DB.profile.widgets.repExpBar.anchor = relativePoint
@@ -970,11 +921,13 @@ function Module:ReplaceBlizzardActionBarFrames()
         self:ReplaceBlizzardActionBarFrame(actionBar)
     end
 
+    self:ReplaceBlizzardRepExpBarFrame(self.repExpBar)
+
     self:ReplaceBlizzardMicroMenuBarFrame(self.microMenuBar)
     self:ReplaceBlizzardBagsBarFrame(self.bagsBar)
 end
 
-function Module:CreateActionBars()
+function Module:CreateUIFrames()
     -- Main
     self.actionBars[MAIN_ACTION_BAR_ID] = CreateActionFrameBar(MAIN_ACTION_BAR_ID, 12, 42, 4, false)
 
@@ -983,6 +936,9 @@ function Module:CreateActionBars()
         button:SetAttribute('showgrid', 1)
         ActionButton_ShowGrid(button)
     end
+
+    -- RepExp
+    self.repExpBar = CreateUIFrameBar(self.actionBars[MAIN_ACTION_BAR_ID]:GetWidth(), 16, "RepExpBar")
 
     -- Bottom Side
     for index = 2, 3 do
@@ -1009,7 +965,6 @@ function Module:CreateActionBars()
     -- Pet
     self.actionBars[PET_ACTION_BAR_ID] = CreateActionFrameBar(PET_ACTION_BAR_ID, 10, 36, 4, false)
 
-    --self.repExpBar = CreateRepExpBar(self.actionBars[1]:GetWidth() - 10)
     self.microMenuBar = CreateActionFrameBar(nil, 10, 29, 2, false, 'MicroMenuBar')
     self.bagsBar = CreateActionFrameBar(nil, 5, 50, 2, false, 'BagsBar')
 end
@@ -1042,7 +997,7 @@ function Module:LoadDefaultSettings()
 
     DFUI.DB.profile.widgets.microMenuBar = { anchor = "BOTTOMRIGHT", posX = 50, posY = 10 }
     DFUI.DB.profile.widgets.bagsBar = { anchor = "BOTTOMRIGHT", posX = 25, posY = 45 }
-    DFUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 20 }
+    DFUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 30 }
 
     -- Static
     DFUI.DB.profile.widgets.actionBar[PET_ACTION_BAR_ID] = {
@@ -1074,14 +1029,13 @@ function Module:UpdateWidgets()
         self.bagsBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
     end
 
+    do
+        local widgetOptions = DFUI.DB.profile.widgets.repExpBar
+        self.repExpBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    end
+
     -- Static
     do
         self.actionBars[BONUS_ACTION_BAR_ID]:SetPoint('LEFT', self.actionBars[MAIN_ACTION_BAR_ID], 'LEFT', 0, 0)
     end
-
-    --[[
-    do
-        local widgetOptions = DFUI.DB.profile.widgets.repExpBar
-        self.repExpBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end]]
 end

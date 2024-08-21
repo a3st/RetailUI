@@ -34,13 +34,18 @@ function Module:OnDisable()
 end
 
 function Module:Show()
+    if InCombatLockdown() then
+        self:Printf(DEFAULT_CHAT_FRAME, "Cannot open settings while in combat")
+        return
+    end
+
     self.gridFrame:Show()
 
     local ActionBar = DFUI:GetModule("ActionBar")
     ActionBar:EnableEditorPreviewForActionBars()
     ActionBar:EnableEditorPreviewForBags()
     ActionBar:EnableEditorPreviewForMicroMenuBar()
-    --ActionBar:EnableEditorPreviewForRepExpBar()
+    ActionBar:EnableEditorPreviewForRepExpBar()
 
     local UnitFrame = DFUI:GetModule("UnitFrame")
     UnitFrame:EnableEditorPreviewForPlayerFrame()
@@ -60,7 +65,7 @@ function Module:Hide()
     ActionBar:DisableEditorPreviewForActionBars()
     ActionBar:DisableEditorPreviewForBags()
     ActionBar:DisableEditorPreviewForMicroMenuBar()
-    --ActionBar:DisableEditorPreviewForRepExpBar()
+    ActionBar:DisableEditorPreviewForRepExpBar()
 
     ActionBar:UpdateWidgets()
 

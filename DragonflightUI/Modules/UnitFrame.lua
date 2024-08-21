@@ -44,7 +44,7 @@ function Module:OnEnable()
     PlayerFrame:HookScript('OnUpdate', PlayerFrame_OnUpdate)
     self:SecureHook('PetFrame_Update', PetFrame_Update)
 
-    self:CreateUnitFrames()
+    self:CreateUIFrames()
 end
 
 function Module:OnDisable()
@@ -423,7 +423,7 @@ function Module:ReplaceBlizzardTOTFrame()
     -- Font Strings
     local totNameText = TargetFrameToTTextureFrameName
     totNameText:ClearAllPoints()
-    totNameText:SetPoint("TOPLEFT", 47, 24)
+    totNameText:SetPoint("TOPLEFT", 47, -3)
     totNameText:SetDrawLayer("OVERLAY")
 end
 
@@ -501,7 +501,7 @@ function Module:ReplaceBlizzardFocusFrame()
     FocusFrameNameBackground:Hide()
 end
 
-function Module:CreateUnitFrames()
+function Module:CreateUIFrames()
     self.playerFrameBar = CreateUIFrameBar(191, 65, "PlayerFrame")
     self.targetFrameBar = CreateUIFrameBar(191, 65, "TargetFrame")
     self.petFrameBar = CreateUIFrameBar(113, 42, "PetFrame")
