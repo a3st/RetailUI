@@ -1,7 +1,7 @@
-local DFUI = LibStub('AceAddon-3.0'):GetAddon('DragonflightUI')
+local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 
-DFUI.optionsSlash = {
-    name = "DFUI Commands",
+RUI.optionsSlash = {
+    name = "RetailUI Commands",
     order = 0,
     type = "group",
     args = {
@@ -10,7 +10,7 @@ DFUI.optionsSlash = {
             type = 'execute',
             order = 0,
             func = function()
-                local EditorMode = DFUI:GetModule('EditorMode')
+                local EditorMode = RUI:GetModule('EditorMode')
                 if EditorMode:IsShown() then
                     EditorMode:Hide()
                 else
@@ -24,27 +24,37 @@ DFUI.optionsSlash = {
             type = 'execute',
             order = 0,
             func = function()
-                local ActionBar = DFUI:GetModule('ActionBar')
+                local ActionBar = RUI:GetModule('ActionBar')
                 ActionBar:LoadDefaultSettings()
                 ActionBar:UpdateWidgets()
 
-                local UnitFrame = DFUI:GetModule('UnitFrame')
+                local UnitFrame = RUI:GetModule('UnitFrame')
                 UnitFrame:LoadDefaultSettings()
                 UnitFrame:UpdateWidgets()
 
-                local CastBar = DFUI:GetModule('CastBar')
+                local CastBar = RUI:GetModule('CastBar')
                 CastBar:LoadDefaultSettings()
                 CastBar:UpdateWidgets()
+
+                local Minimap = RUI:GetModule('Minimap')
+                Minimap:LoadDefaultSettings()
+                Minimap:UpdateWidgets()
+
+                local QuestLog = RUI:GetModule('QuestLog')
+                QuestLog:LoadDefaultSettings()
+                QuestLog:UpdateWidgets()
+
+                local BuffFrame = RUI:GetModule('BuffFrame')
+                BuffFrame:LoadDefaultSettings()
+                BuffFrame:UpdateWidgets()
             end,
             dialogHidden = true
         }
     }
 }
 
-DFUI.default = {
+RUI.default = {
     profile = {
-        widgets = {
-
-        }
+        widgets = {}
     }
 }

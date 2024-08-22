@@ -1,11 +1,11 @@
-local DFUI = LibStub('AceAddon-3.0'):GetAddon('DragonflightUI')
+local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'EditorMode'
-local Module = DFUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
+local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
 Module.gridFrame = nil
 
 local function CreateGridFrame()
-    local gridFrame = CreateFrame("Frame", 'DFUI_GridFrame', UIParent)
+    local gridFrame = CreateFrame("Frame", 'RUI_GridFrame', UIParent)
     gridFrame:SetPoint("TOPLEFT", 0, 0)
     gridFrame:SetSize(GetScreenWidth(), GetScreenHeight())
     gridFrame:SetFrameLevel(0)
@@ -13,7 +13,7 @@ local function CreateGridFrame()
     do
         local texture = gridFrame:CreateTexture(nil, "BACKGROUND")
         texture:SetAllPoints(gridFrame)
-        texture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-Grid.blp", "REPEAT", "REPEAT")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Grid.blp", "REPEAT", "REPEAT")
         texture:SetTexCoord(0, 1, 0, 1)
         texture:SetVertTile(true)
         texture:SetHorizTile(true)
@@ -41,38 +41,44 @@ function Module:Show()
 
     self.gridFrame:Show()
 
-    local ActionBar = DFUI:GetModule("ActionBar")
-    ActionBar:EnableEditorPreviewForActionBars()
-    ActionBar:EnableEditorPreviewForBags()
-    ActionBar:EnableEditorPreviewForMicroMenuBar()
-    ActionBar:EnableEditorPreviewForRepExpBar()
+    local ActionBar = RUI:GetModule("ActionBar")
+    ActionBar:EnableEditorPreviewForActionBarFrames()
+    ActionBar:EnableEditorPreviewForBagsFrame()
+    ActionBar:EnableEditorPreviewForMicroMenuBarFrame()
+    ActionBar:EnableEditorPreviewForRepExpBarFrame()
 
-    local UnitFrame = DFUI:GetModule("UnitFrame")
+    local UnitFrame = RUI:GetModule("UnitFrame")
     UnitFrame:EnableEditorPreviewForPlayerFrame()
     UnitFrame:EnableEditorPreviewForPetFrame()
     UnitFrame:EnableEditorPreviewForTargetFrame()
     UnitFrame:EnableEditorPreviewForTargetOfTargetFrame()
     UnitFrame:EnableEditorPreviewForFocusFrame()
 
-    local CastBar = DFUI:GetModule("CastBar")
-    CastBar:EnableEditorPreviewForCastBar()
+    local CastBar = RUI:GetModule("CastBar")
+    CastBar:EnableEditorPreviewForCastBarFrame()
 
-    local Minimap = DFUI:GetModule("Minimap")
+    local Minimap = RUI:GetModule("Minimap")
     Minimap:EnableEditorPreviewForMinimapFrame()
+
+    local QuestLog = RUI:GetModule("QuestLog")
+    QuestLog:EnableEditorPreviewForQuestLogFrame()
+
+    local BuffFrame = RUI:GetModule("BuffFrame")
+    BuffFrame:EnableEditorPreviewForBuffFrame()
 end
 
 function Module:Hide()
     self.gridFrame:Hide()
 
-    local ActionBar = DFUI:GetModule("ActionBar")
-    ActionBar:DisableEditorPreviewForActionBars()
-    ActionBar:DisableEditorPreviewForBags()
-    ActionBar:DisableEditorPreviewForMicroMenuBar()
-    ActionBar:DisableEditorPreviewForRepExpBar()
+    local ActionBar = RUI:GetModule("ActionBar")
+    ActionBar:DisableEditorPreviewForActionBarFrames()
+    ActionBar:DisableEditorPreviewForBagsFrame()
+    ActionBar:DisableEditorPreviewForMicroMenuBarFrame()
+    ActionBar:DisableEditorPreviewForRepExpBarFrame()
 
     ActionBar:UpdateWidgets()
 
-    local UnitFrame = DFUI:GetModule("UnitFrame")
+    local UnitFrame = RUI:GetModule("UnitFrame")
     UnitFrame:DisableEditorPreviewForPlayerFrame()
     UnitFrame:DisableEditorPreviewForPetFrame()
     UnitFrame:DisableEditorPreviewForTargetFrame()
@@ -81,15 +87,25 @@ function Module:Hide()
 
     UnitFrame:UpdateWidgets()
 
-    local CastBar = DFUI:GetModule("CastBar")
-    CastBar:DisableEditorPreviewForCastBar()
+    local CastBar = RUI:GetModule("CastBar")
+    CastBar:DisableEditorPreviewForCastBarFrame()
 
     CastBar:UpdateWidgets()
 
-    local Minimap = DFUI:GetModule("Minimap")
+    local Minimap = RUI:GetModule("Minimap")
     Minimap:DisableEditorPreviewForMinimapFrame()
 
     Minimap:UpdateWidgets()
+
+    local QuestLog = RUI:GetModule("QuestLog")
+    QuestLog:DisableEditorPreviewForQuestLogFrame()
+
+    QuestLog:UpdateWidgets()
+
+    local BuffFrame = RUI:GetModule("BuffFrame")
+    BuffFrame:DisableEditorPreviewForBuffFrame()
+
+    BuffFrame:UpdateWidgets()
 end
 
 function Module:IsShown()

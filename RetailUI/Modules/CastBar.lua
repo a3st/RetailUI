@@ -1,6 +1,6 @@
-local DFUI = LibStub('AceAddon-3.0'):GetAddon('DragonflightUI')
+local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'CastBar'
-local Module = DFUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
+local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
 Module.castBar = nil
 Module.startTime = 0
@@ -63,7 +63,9 @@ function Module:OnEnable()
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_INTERRUPTED")
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 
-    self:CreateUIFrames()
+    self.castBar = CreateUIFrame(228, 18, "CastBarFrame")
+    self.backgroundTexture = self.castBar:CreateTexture(nil, 'BACKGROUND')
+    self.castTimeText = self.castBar:CreateFontString(nil, "BORDER", 'GameFontHighlightSmall')
 end
 
 function Module:OnDisable()
@@ -79,11 +81,22 @@ function Module:OnDisable()
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
 
     CastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+
+    self.castBar = nil
+    self.backgroundTexture = nil
+    self.castTimeText = nil
 end
 
 function Module:ReplaceBlizzardCastBarFrame()
     local statusBar = CastingBarFrame
     statusBar:ClearAllPoints()
+
+    statusBar:SetPoint("LEFT", self.castBar, "LEFT", 4)
+    statusBar:SetSize(228, 16)
+
+    -- Disable Blizzard UI ability to control this element
+    statusBar.ClearAllPoints = function() end
+    statusBar.SetPoint = function() end
 
     statusBar:SetSize(228, 16)
     statusBar:SetMinMaxValues(0.0, 1.0)
@@ -92,18 +105,18 @@ function Module:ReplaceBlizzardCastBarFrame()
     frameBorder:SetAllPoints(castBar)
     frameBorder:SetPoint("TOPLEFT", -2, 2)
     frameBorder:SetPoint("BOTTOMRIGHT", 2, -2)
-    frameBorder:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
+    frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
     frameBorder:SetTexCoord(423 / 1024, 847 / 1024, 2 / 512, 30 / 512)
 
     for _, region in pairs { statusBar:GetRegions() } do
         if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
-            region:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
+            region:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
             region:SetTexCoord(2 / 1024, 421 / 1024, 185 / 512, 215 / 512)
         end
     end
 
     local spark = _G[statusBar:GetName() .. "Spark"]
-    spark:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
+    spark:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
     spark:SetTexCoord(77 / 1024, 88 / 1024, 413 / 512, 460 / 512)
     spark:SetSize(5, 19)
 
@@ -114,14 +127,14 @@ function Module:ReplaceBlizzardCastBarFrame()
 
     local statusBarTexture = statusBar:GetStatusBarTexture()
     statusBarTexture:SetAllPoints(statusBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
+    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
     statusBarTexture:SetDrawLayer('BORDER')
 
     local background = self.backgroundTexture
     background:SetParent(statusBar)
     background:SetAllPoints(statusBar)
     background:SetPoint("BOTTOMRIGHT", 0, -16)
-    background:SetTexture("Interface\\AddOns\\DragonflightUI\\Textures\\UI-CastingBar.blp")
+    background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
     background:SetTexCoord(1 / 1024, 419 / 1024, 1 / 512, 55 / 512)
 
     local castTimeText = self.castTimeText
@@ -133,16 +146,10 @@ function Module:ReplaceBlizzardCastBarFrame()
     castBarFlash:SetAlpha(0)
 end
 
-function Module:CreateUIFrames()
-    self.castBar = CreateUIFrameBar(228, 18, "CastBarFrame")
-    self.backgroundTexture = self.castBar:CreateTexture(nil, 'BACKGROUND')
-    self.castTimeText = self.castBar:CreateFontString(nil, "BORDER", 'GameFontHighlightSmall')
-end
-
 function Module:PLAYER_ENTERING_WORLD()
     self:ReplaceBlizzardCastBarFrame()
 
-    if DFUI.DB.profile.widgets.castBar == nil then
+    if RUI.DB.profile.widgets.castBar == nil then
         self:LoadDefaultSettings()
     end
 
@@ -153,9 +160,6 @@ function Module:UNIT_SPELLCAST_START(eventName, unit)
     if unit ~= 'player' then return end
 
     local statusBar = CastingBarFrame
-    statusBar:ClearAllPoints()
-    statusBar:SetPoint("LEFT", self.castBar, "LEFT", 4)
-    statusBar:SetSize(228, 16)
 
     local castText = _G[statusBar:GetName() .. "Text"]
 
@@ -214,9 +218,6 @@ function Module:UNIT_SPELLCAST_FAILED(eventName, unit)
     end
 
     self.casting, self.channeling = false, false
-
-    -- self.fadeOut = true
-    -- UIFrameFadeOut(statusBar, 1, 1.0, 0.0)
 end
 
 function Module:UNIT_SPELLCAST_INTERRUPTED(eventName, unit)
@@ -260,17 +261,17 @@ end
 Module.UNIT_SPELLCAST_CHANNEL_UPDATE = Module.UNIT_SPELLCAST_DELAYED
 
 function Module:LoadDefaultSettings()
-    DFUI.DB.profile.widgets.castBar = { anchor = "BOTTOM", posX = 0, posY = 270 }
+    RUI.DB.profile.widgets.castBar = { anchor = "BOTTOM", posX = 0, posY = 270 }
 end
 
 function Module:UpdateWidgets()
     do
-        local widgetOptions = DFUI.DB.profile.widgets.castBar
+        local widgetOptions = RUI.DB.profile.widgets.castBar
         self.castBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
     end
 end
 
-function Module:EnableEditorPreviewForCastBar()
+function Module:EnableEditorPreviewForCastBarFrame()
     local castBar = self.castBar
 
     castBar:SetMovable(true)
@@ -279,12 +280,12 @@ function Module:EnableEditorPreviewForCastBar()
     castBar.editorTexture:Show()
     castBar.editorText:Show()
 
-    local castingBarFrame = CastingBarFrame
-    castingBarFrame:SetAlpha(0)
-    castingBarFrame:EnableMouse(false)
+    local hideFrame = CastingBarFrame
+    hideFrame:SetAlpha(0)
+    hideFrame:EnableMouse(false)
 end
 
-function Module:DisableEditorPreviewForCastBar()
+function Module:DisableEditorPreviewForCastBarFrame()
     local castBar = self.castBar
 
     castBar:SetMovable(false)
@@ -293,12 +294,12 @@ function Module:DisableEditorPreviewForCastBar()
     castBar.editorTexture:Hide()
     castBar.editorText:Hide()
 
-    local castingBarFrame = CastingBarFrame
-    castingBarFrame:SetAlpha(1)
-    castingBarFrame:EnableMouse(true)
+    local hideFrame = CastingBarFrame
+    hideFrame:SetAlpha(1)
+    hideFrame:EnableMouse(true)
 
     local _, _, relativePoint, posX, posY = castBar:GetPoint('CENTER')
-    DFUI.DB.profile.widgets.castBar.anchor = relativePoint
-    DFUI.DB.profile.widgets.castBar.posX = posX
-    DFUI.DB.profile.widgets.castBar.posY = posY
+    RUI.DB.profile.widgets.castBar.anchor = relativePoint
+    RUI.DB.profile.widgets.castBar.posX = posX
+    RUI.DB.profile.widgets.castBar.posY = posY
 end
