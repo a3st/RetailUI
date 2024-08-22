@@ -194,7 +194,7 @@ function PetActionBar_UpdatePositionValues()
     end
 end
 
-local function ShapeshiftBar_Update() end
+function ShapeshiftBar_Update() end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -203,7 +203,7 @@ function Module:OnEnable()
     self:SecureHook('ActionButton_Update', ActionButton_Update)
     self:SecureHook('ReputationWatchBar_Update', ReputationWatchBar_Update)
     self:SecureHook('MainMenuExpBar_Update', MainMenuExpBar_Update)
-    self:SecureHook('ShapeshiftBar_Update', ShapeshiftBar_Update, true)
+    -- self:SecureHook('ShapeshiftBar_Update', ShapeshiftBar_Update, true)
 
     -- Main
     self.actionBars[MAIN_ACTION_BAR_ID] = CreateActionFrameBar(MAIN_ACTION_BAR_ID, 12, 42, 4, false)
@@ -253,7 +253,7 @@ function Module:OnDisable()
     self:Unhook('ActionButton_Update', ActionButton_Update)
     self:Unhook('ReputationWatchBar_Update', ReputationWatchBar_Update)
     self:Unhook('MainMenuExpBar_Update', MainMenuExpBar_Update)
-    self:Unhook('ShapeshiftBar_Update', ShapeshiftBar_Update)
+    -- self:Unhook('ShapeshiftBar_Update', ShapeshiftBar_Update)
 
     Module.actionBars = nil
     Module.repExpBar = nil
