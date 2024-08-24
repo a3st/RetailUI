@@ -8,27 +8,103 @@ Module.targetOfTargetFrame = nil
 Module.focusFrame = nil
 Module.petFrame = nil
 
-local function TargetFrame_UpdateAuras()
-    local targetFrameBuffs = _G["TargetFrameBuff1"]
-    if targetFrameBuffs then
-        targetFrameBuffs:ClearAllPoints()
-        targetFrameBuffs:SetPoint("BOTTOMLEFT", 3, -16)
-    end
-
-    local targetFrameDebuffs = _G["TargetFrameDebuff1"]
-    if targetFrameDebuffs then
-        targetFrameDebuffs:ClearAllPoints()
-        targetFrameDebuffs:SetPoint("BOTTOMLEFT", 3, -16)
-    end
-
-    local targetFrameFlash = TargetFrameFlash
-    targetFrameFlash:SetAllPoints(TargetFrame)
-    targetFrameFlash:SetTexCoord(-1 / 1024, 187 / 1024, 301 / 512, 363 / 512)
-end
-
 local function PlayerFrame_OnUpdate(self, elapsed)
     local playerRestIcon = PlayerRestIcon
     AnimateTexCoords(playerRestIcon, 512, 512, 64, 64, 42, elapsed, 1)
+end
+
+local AURA_OFFSET_Y = 3
+local AURA_START_X = 3
+local AURA_START_Y = 3
+
+local function TargetFrame_UpdateBuffAnchor(self, buffName, index, numDebuffs, anchorIndex, size, offsetX, offsetY)
+    local buff = _G[buffName .. index]
+    if (index == 1) then
+        if (UnitIsFriend("player", self.unit) or numDebuffs == 0) then
+            -- unit is friendly or there are no debuffs...buffs start on top
+            buff:SetPoint("TOPLEFT", self, "BOTTOMLEFT", AURA_START_X, AURA_START_Y)
+        else
+            -- unit is not friendly and we have debuffs...buffs start on bottom
+            buff:SetPoint("TOPLEFT", self.debuffs, "BOTTOMLEFT", 0, -offsetY)
+        end
+        self.buffs:SetPoint("TOPLEFT", buff, "TOPLEFT", 0, 0);
+        self.buffs:SetPoint("BOTTOMLEFT", buff, "BOTTOMLEFT", 0, -AURA_OFFSET_Y)
+        self.spellbarAnchor = buff
+    elseif (anchorIndex ~= (index - 1)) then
+        -- anchor index is not the previous index...must be a new row
+        buff:SetPoint("TOPLEFT", _G[buffName .. anchorIndex], "BOTTOMLEFT", 0, -offsetY)
+        self.buffs:SetPoint("BOTTOMLEFT", buff, "BOTTOMLEFT", 0, -AURA_OFFSET_Y)
+        self.spellbarAnchor = buff
+    else
+        -- anchor index is the previous index
+        buff:SetPoint("TOPLEFT", _G[buffName .. anchorIndex], "TOPRIGHT", offsetX, 0)
+    end
+
+    -- Resize
+    buff:SetWidth(size)
+    buff:SetHeight(size)
+end
+
+local function TargetFrame_UpdateDebuffAnchor(self, debuffName, index, numBuffs, anchorIndex, size, offsetX, offsetY)
+    local buff = _G[debuffName .. index]
+    local isFriend = UnitIsFriend("player", self.unit)
+    if (index == 1) then
+        if (isFriend and numBuffs > 0) then
+            -- unit is friendly and there are buffs...debuffs start on bottom
+            buff:SetPoint("TOPLEFT", self.buffs, "BOTTOMLEFT", 0, -offsetY)
+        else
+            -- unit is not friendly or there are no buffs...debuffs start on top
+            buff:SetPoint("TOPLEFT", self, "BOTTOMLEFT", AURA_START_X, AURA_START_Y)
+        end
+        self.debuffs:SetPoint("TOPLEFT", buff, "TOPLEFT", 0, 0)
+        self.debuffs:SetPoint("BOTTOMLEFT", buff, "BOTTOMLEFT", 0, -AURA_OFFSET_Y)
+        if ((isFriend) or (not isFriend and numBuffs == 0)) then
+            self.spellbarAnchor = buff
+        end
+    elseif (anchorIndex ~= (index - 1)) then
+        -- anchor index is not the previous index...must be a new row
+        buff:SetPoint("TOPLEFT", _G[debuffName .. anchorIndex], "BOTTOMLEFT", 0, -offsetY)
+        self.debuffs:SetPoint("BOTTOMLEFT", buff, "BOTTOMLEFT", 0, -AURA_OFFSET_Y)
+        if ((isFriend) or (not isFriend and numBuffs == 0)) then
+            self.spellbarAnchor = buff
+        end
+    else
+        -- anchor index is the previous index
+        buff:SetPoint("TOPLEFT", _G[debuffName .. (index - 1)], "TOPRIGHT", offsetX, 0)
+    end
+
+    -- Resize
+    buff:SetWidth(size)
+    buff:SetHeight(size)
+    local debuffFrame = _G[debuffName .. index .. "Border"]
+    debuffFrame:SetWidth(size + 2)
+    debuffFrame:SetHeight(size + 2)
+end
+
+local function TargetFrame_CheckClassification(self, forceNormalTexture)
+    local classification = UnitClassification(self.unit)
+    if (classification == "worldboss" or classification == "elite") then
+        self.elite:SetTexCoord(0 / 512, 160 / 512, 161 / 512, 322 / 512)
+        self.elite:SetPoint("RIGHT", 9, 0)
+        self.elite:SetSize(79, 82)
+        self.elite:Show()
+    elseif (classification == "rareelite") then
+        self.elite:SetTexCoord(0 / 512, 196 / 512, 0 / 512, 160 / 512)
+        self.elite:SetPoint("RIGHT", 27, 0)
+        self.elite:SetSize(98, 80)
+        self.elite:Show()
+    elseif (classification == "rare") then
+        self.elite:SetTexCoord(0 / 512, 160 / 512, 322 / 512, 485 / 512)
+        self.elite:SetPoint("RIGHT", 9, 0)
+        self.elite:SetSize(79, 82)
+        self.elite:Show()
+    else
+        self.elite:Hide()
+    end
+end
+
+local function FocusFrame_SetSmallSize(smallSize, onChange)
+    Module.ReplaceBlizzardFocusFrame(Module)
 end
 
 function Module:OnEnable()
@@ -36,9 +112,16 @@ function Module:OnEnable()
     self:RegisterEvent("RUNE_TYPE_UPDATE")
 
     PlayerFrame:HookScript('OnUpdate', PlayerFrame_OnUpdate)
-    self:SecureHook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
+    self:SecureHook('TargetFrame_UpdateBuffAnchor', TargetFrame_UpdateBuffAnchor)
+    self:SecureHook('TargetFrame_UpdateDebuffAnchor', TargetFrame_UpdateDebuffAnchor)
+    self:SecureHook('TargetFrame_CheckClassification', TargetFrame_CheckClassification)
+    self:SecureHook('FocusFrame_SetSmallSize', FocusFrame_SetSmallSize)
 
-    self:CreateUIFrames()
+    self.playerFrame = CreateUIFrame(191, 65, "PlayerFrame")
+    self.targetFrame = CreateUIFrame(191, 65, "TargetFrame")
+    self.petFrame = CreateUIFrame(113, 42, "PetFrame")
+    self.targetOfTargetFrame = CreateUIFrame(113, 42, "TOTFrame")
+    self.focusFrame = CreateUIFrame(191, 65, "FocusFrame")
 end
 
 function Module:OnDisable()
@@ -46,7 +129,16 @@ function Module:OnDisable()
     self:UnregisterEvent("RUNE_TYPE_UPDATE")
 
     PlayerFrame:Unhook('OnUpdate', PlayerFrame_OnUpdate)
-    self:Unhook('TargetFrame_UpdateAuras', TargetFrame_UpdateAuras)
+    self:Unhook('TargetFrame_UpdateBuffAnchor', TargetFrame_UpdateBuffAnchor)
+    self:Unhook('TargetFrame_UpdateDebuffAnchor', TargetFrame_UpdateDebuffAnchor)
+    self:Unhook('TargetFrame_CheckClassification', TargetFrame_CheckClassification)
+    self:Unhook('FocusFrame_SetSmallSize', FocusFrame_SetSmallSize)
+
+    self.playerFrame = nil
+    self.targetFrame = nil
+    self.targetOfTargetFrame = nil
+    self.focusFrame = nil
+    self.petFrame = nil
 end
 
 local function UpdateRune(button)
@@ -89,11 +181,12 @@ function Module:PLAYER_ENTERING_WORLD()
 end
 
 local blizzUnitFrames = {
+    PlayerFrameBackground,
     PlayerAttackBackground,
     PlayerAttackIcon,
-    TargetFrameTextureFrameTexture,
-    FocusFrameTextureFrameTexture,
-    TargetFrameToTTextureFrameTexture,
+    TargetFrameBackground,
+    TargetFrameToTBackground,
+    FocusFrameBackground,
     PlayerFrameRoleIcon,
     PlayerGuideIcon,
     PlayerFrameGroupIndicatorLeft,
@@ -103,6 +196,7 @@ local blizzUnitFrames = {
 function Module:RemoveBlizzardFrames()
     for _, blizzFrame in pairs(blizzUnitFrames) do
         blizzFrame:SetAlpha(0)
+        blizzFrame.SetAlpha = function() end
     end
 end
 
@@ -112,56 +206,44 @@ function Module:ReplaceBlizzardPlayerFrame()
     playerFrame:SetPoint("LEFT", self.playerFrame, "LEFT", 0)
 
     playerFrame:SetSize(self.playerFrame:GetWidth(), self.playerFrame:GetHeight())
+    playerFrame:SetHitRectInsets(0, 0, 0, 0)
 
     -- Main
     local playerPortrait = PlayerPortrait
     playerPortrait:ClearAllPoints()
-    playerPortrait:SetPoint("LEFT", 1, -1)
+    playerPortrait:SetPoint("LEFT", 3, -1)
     playerPortrait:SetSize(58, 58)
-    playerPortrait:SetDrawLayer("BACKGROUND")
+    playerPortrait:SetDrawLayer('BACKGROUND')
 
-    local frameBorder = _G[playerFrame:GetName() .. 'Texture']
-    frameBorder:GetParent():SetFrameLevel(playerFrame:GetFrameLevel())
-    frameBorder:SetAllPoints(playerFrame)
-    frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    frameBorder:SetTexCoord(812 / 1024, 1002 / 1024, 3 / 512, 68 / 512)
-    frameBorder:SetDrawLayer('BORDER')
-
-    -- Background
-    local background = _G[playerFrame:GetName() .. 'Background']
-    background:ClearAllPoints()
-    background:SetPoint('TOPLEFT', 60, -10)
-    background:SetPoint('BOTTOMRIGHT', -1, 40)
-    background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    background:SetTexCoord(690 / 1024, 808 / 1024, 162 / 512, 166 / 512)
-    local classColor = RAID_CLASS_COLORS[select(2, UnitClass("player"))]
-    background:SetVertexColor(classColor.r, classColor.g, classColor.b, 1.0)
-    background:SetDrawLayer("BACKGROUND")
-    background:SetBlendMode('BLEND')
+    local border = _G[playerFrame:GetName() .. 'Texture']
+    border:SetAllPoints(playerFrame)
+    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    border:SetTexCoord(812 / 1024, 1002 / 1024, 3 / 512, 68 / 512)
+    border:SetDrawLayer('BORDER')
 
     -- Health Bar
     local playerHealthBar = PlayerFrameHealthBar
-    playerHealthBar:SetFrameLevel(playerFrame:GetFrameLevel())
+    playerHealthBar:SetFrameLevel(playerFrame:GetFrameLevel() + 2)
     playerHealthBar:ClearAllPoints()
     playerHealthBar:SetPoint("TOPLEFT", 65, -25)
-    playerHealthBar:SetPoint("BOTTOMRIGHT", -2, 22)
+    playerHealthBar:SetSize(124, 18)
 
     local statusBarTexture = playerHealthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(playerHealthBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(687 / 1024, 810 / 1024, 161 / 512, 179 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Mana Bar
     local playerManaBar = PlayerFrameManaBar
-    playerManaBar:SetFrameLevel(playerFrame:GetFrameLevel())
+    playerManaBar:SetFrameLevel(playerFrame:GetFrameLevel() + 2)
     playerManaBar:ClearAllPoints()
     playerManaBar:SetPoint("TOPLEFT", 65, -46)
-    playerManaBar:SetPoint("BOTTOMRIGHT", -2, 10)
+    playerManaBar:SetSize(124, 9)
 
     statusBarTexture = playerManaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(playerManaBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(699 / 1024, 822 / 1024, 236 / 512, 245 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Font Strings
     local playerNameText = PlayerName
@@ -203,7 +285,7 @@ function Module:ReplaceBlizzardPlayerFrame()
     playerStatusTexture:SetPoint("BOTTOM", 0, -1)
     playerStatusTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     playerStatusTexture:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
-    playerStatusTexture:SetDrawLayer("ARTWORK")
+    playerStatusTexture:SetDrawLayer("OVERLAY")
 
     -- Arrow
     playerFrame.arrowIcon = playerFrame.arrowIcon or playerFrame:CreateTexture(nil, "BORDER")
@@ -219,13 +301,13 @@ function Module:ReplaceBlizzardPlayerFrame()
     playerPVPIcon:ClearAllPoints()
     playerPVPIcon:SetPoint("LEFT", -16, -12)
 
-    PlayerPVPTimerText:SetPoint("TOPLEFT", -10, 10)
+    PlayerPVPTimerText:SetPoint("TOPLEFT", -10, 5)
 
     local playerFrameFlash = PlayerFrameFlash
     playerFrameFlash:SetAllPoints(playerFrame)
     playerFrameFlash:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     playerFrameFlash:SetTexCoord(202 / 1024, 392 / 1024, 90 / 512, 154 / 512)
-    playerFrameFlash:SetDrawLayer("ARTWORK")
+    playerFrameFlash:SetDrawLayer("OVERLAY")
 
     local playerHitText = PlayerHitIndicator
     playerHitText:ClearAllPoints()
@@ -285,44 +367,55 @@ function Module:ReplaceBlizzardTargetFrame()
     targetFrame:SetPoint("LEFT", self.targetFrame, "LEFT", 0)
 
     targetFrame:SetSize(self.targetFrame:GetWidth(), self.targetFrame:GetHeight())
+    targetFrame:SetHitRectInsets(0, 0, 0, 0)
 
     -- Main
+    local border = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Texture']
+    border:SetAllPoints(targetFrame)
+    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    border:SetTexCoord(782 / 1024, 971 / 1024, 88 / 512, 150 / 512)
+    border:SetDrawLayer('BORDER')
+    border.SetAllPoints = function() end
+    border.SetTexture = function() end
+
     local targetPortrait = TargetFramePortrait
     targetPortrait:ClearAllPoints()
     targetPortrait:SetPoint("RIGHT", -5, 1)
     targetPortrait:SetSize(58, 58)
-    targetPortrait:SetDrawLayer("BACKGROUND")
+    targetPortrait:SetDrawLayer('BACKGROUND')
 
-    -- Reuse Blizzard Textures
-    local frameBorder = _G[targetFrame:GetName() .. 'Background']
-    frameBorder:GetParent():SetFrameLevel(targetFrame:GetFrameLevel())
-    frameBorder:SetAllPoints(targetFrame)
-    frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    frameBorder:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
-    frameBorder:SetDrawLayer('BORDER')
+    local background = TargetFrameNameBackground
+    background:ClearAllPoints()
+    background:SetPoint('TOPLEFT', 2, -8)
+    background:SetPoint('BOTTOMRIGHT', -58, 42)
+    background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    background:SetTexCoord(690 / 1024, 808 / 1024, 162 / 512, 166 / 512)
+    background:SetDrawLayer("BACKGROUND")
+    background:SetBlendMode('BLEND')
 
     -- Health Bar
     local targetHealthBar = TargetFrameHealthBar
-    targetHealthBar:SetFrameLevel(targetFrame:GetFrameLevel())
+    targetHealthBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
     targetHealthBar:ClearAllPoints()
     targetHealthBar:SetPoint("TOPLEFT", 4, -24)
-    targetHealthBar:SetPoint("BOTTOMRIGHT", -62, 21)
+    targetHealthBar:SetSize(124, 20)
 
     local statusBarTexture = targetHealthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(targetHealthBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(434 / 1024, 557 / 1024, 183 / 512, 202 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
+    -- Mana Bar
     local targetManaBar = TargetFrameManaBar
-    targetManaBar:SetFrameLevel(targetFrame:GetFrameLevel())
+    targetManaBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
     targetManaBar:ClearAllPoints()
     targetManaBar:SetPoint("TOPLEFT", 4, -43)
-    targetManaBar:SetPoint("BOTTOMRIGHT", -55, 10)
+    targetManaBar:SetSize(130, 12)
 
     statusBarTexture = targetManaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(targetManaBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(466 / 1024, 598 / 1024, 207 / 512, 220 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Font Strings
     local targetNameText = TargetFrameTextureFrameName
@@ -352,19 +445,29 @@ function Module:ReplaceBlizzardTargetFrame()
     targetManaText:SetPoint("CENTER", -25, -18)
     targetManaText:SetDrawLayer("OVERLAY")
 
-    TargetFrameNameBackground:Hide()
-
     local targetPVPIcon = TargetFrameTextureFramePVPIcon
     targetPVPIcon:ClearAllPoints()
     targetPVPIcon:SetPoint("RIGHT", 40, -12)
 
-    -- Secure UI Element
+    local targetLeaderIcon = TargetFrameTextureFrameLeaderIcon
+    targetLeaderIcon:ClearAllPoints()
+    targetLeaderIcon:SetPoint("TOPRIGHT", 0, 0)
+
     local targetFrameFlash = TargetFrameFlash
+    targetFrameFlash:SetAllPoints(targetFrame)
     targetFrameFlash:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    targetFrameFlash:SetTexCoord(1 / 1024, 187 / 1024, 301 / 512, 363 / 512)
     targetFrameFlash:SetDrawLayer("OVERLAY")
+    targetFrameFlash.SetPoint = function() end
+    targetFrameFlash.SetTexCoord = function() end
+
+    targetFrame.elite = targetFrame.elite or
+        _G[targetFrame:GetName() .. 'TextureFrame']:CreateTexture(nil, 'OVERLAY')
+    local elite = targetFrame.elite
+    elite:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\BossFrame.blp")
 
     -- Raid Icon
-    local raidTargetIcon = _G['TargetFrameTextureFrame' .. 'RaidTargetIcon']
+    local raidTargetIcon = _G['TargetFrame' .. 'TextureFrame' .. 'RaidTargetIcon']
     raidTargetIcon:ClearAllPoints()
     raidTargetIcon:SetPoint("TOPRIGHT", -20, 10)
 
@@ -411,46 +514,45 @@ function Module:ReplaceBlizzardPetFrame()
     petFrame:SetPoint("LEFT", self.petFrame, "LEFT", 0)
 
     petFrame:SetSize(self.petFrame:GetWidth(), self.petFrame:GetHeight())
+    petFrame:SetHitRectInsets(0, 0, 0, 0)
 
     -- Main
     local petPortrait = PetPortrait
     petPortrait:ClearAllPoints()
-    petPortrait:SetPoint("LEFT", 2, 0)
-    petPortrait:SetSize(33, 33)
-    petPortrait:SetDrawLayer("BACKGROUND")
+    petPortrait:SetPoint("LEFT", 4, 0)
+    petPortrait:SetSize(34, 34)
+    petPortrait:SetDrawLayer('BACKGROUND')
 
-    -- Secure UI Element
-    local frameBorder = _G[petFrame:GetName() .. 'Texture']
-    frameBorder:GetParent():SetFrameLevel(petFrame:GetFrameLevel())
-    frameBorder:SetAllPoints(petFrame)
-    frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    frameBorder:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
-    frameBorder:SetDrawLayer('BORDER')
-    frameBorder.SetTexture = function() end
+    local border = _G[petFrame:GetName() .. 'Texture']
+    border:SetAllPoints(petFrame)
+    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    border:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
+    border:SetDrawLayer('BORDER')
+    border.SetTexture = function() end
 
     -- Health Bar
     local petHealthBar = PetFrameHealthBar
-    petHealthBar:SetFrameLevel(petFrame:GetFrameLevel())
+    petHealthBar:SetFrameLevel(petFrame:GetFrameLevel() + 2)
     petHealthBar:ClearAllPoints()
     petHealthBar:SetPoint("TOPLEFT", 42, -17)
-    petHealthBar:SetPoint("BOTTOMRIGHT", -3, 17)
+    petHealthBar:SetSize(68, 8)
 
     local statusBarTexture = petHealthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(petHealthBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(942 / 1024, 1009 / 1024, 181 / 512, 189 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Mana Bar
     local petManaBar = PetFrameManaBar
-    petManaBar:SetFrameLevel(petFrame:GetFrameLevel())
+    petManaBar:SetFrameLevel(petFrame:GetFrameLevel() + 2)
     petManaBar:ClearAllPoints()
-    petManaBar:SetPoint("TOPLEFT", 38, -27)
-    petManaBar:SetPoint("BOTTOMRIGHT", -2, 8)
+    petManaBar:SetPoint("TOPLEFT", 39, -28)
+    petManaBar:SetSize(71, 5)
 
     statusBarTexture = petManaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(petManaBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(473 / 1024, 546 / 1024, 247 / 512, 255 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Font Strings
     local petNameText = PetName
@@ -481,38 +583,46 @@ function Module:ReplaceBlizzardTOTFrame()
     targetFrameToT:SetPoint("LEFT", self.targetOfTargetFrame, "LEFT", 0)
 
     targetFrameToT:SetSize(self.targetOfTargetFrame:GetWidth(), self.targetOfTargetFrame:GetHeight())
+    targetFrameToT:SetHitRectInsets(0, 0, 0, 0)
 
-    -- Reuse Blizzard Frames
-    local frameBorder = _G[targetFrameToT:GetName() .. 'Background']
-    frameBorder:GetParent():SetFrameLevel(targetFrameToT:GetFrameLevel())
-    frameBorder:SetAllPoints(targetFrameToT)
-    frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    frameBorder:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 465 / 512)
-    frameBorder:SetDrawLayer('BORDER')
+    -- Main
+    local totPortrait = TargetFrameToTPortrait
+    totPortrait:ClearAllPoints()
+    totPortrait:SetPoint("LEFT", 4, 0)
+    totPortrait:SetSize(34, 34)
+    totPortrait:SetDrawLayer("BACKGROUND")
+
+    local border = _G[targetFrameToT:GetName() .. 'TextureFrame' .. 'Texture']
+    border:SetAllPoints(targetFrameToT)
+    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    border:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
+    border:SetDrawLayer('BORDER')
+    border.SetAllPoints = function() end
+    border.SetTexture = function() end
 
     -- Health Bar
     local totHealthBar = TargetFrameToTHealthBar
-    totHealthBar:SetFrameLevel(targetFrameToT:GetFrameLevel())
+    totHealthBar:SetFrameLevel(targetFrameToT:GetFrameLevel() + 2)
     totHealthBar:ClearAllPoints()
     totHealthBar:SetPoint("TOPLEFT", 42, -17)
-    totHealthBar:SetPoint("BOTTOMRIGHT", -3, 17)
+    totHealthBar:SetSize(69, 8)
 
     local statusBarTexture = totHealthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(totHealthBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(942 / 1024, 1009 / 1024, 181 / 512, 189 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
+    statusBarTexture:SetTexCoord(942 / 1024, 1010 / 1024, 181 / 512, 189 / 512)
 
     -- Mana Bar
     local totManaBar = TargetFrameToTManaBar
-    totManaBar:SetFrameLevel(targetFrameToT:GetFrameLevel())
+    totManaBar:SetFrameLevel(targetFrameToT:GetFrameLevel() + 2)
     totManaBar:ClearAllPoints()
-    totManaBar:SetPoint("TOPLEFT", 38, -27)
-    totManaBar:SetPoint("BOTTOMRIGHT", -2, 8)
+    totManaBar:SetPoint("TOPLEFT", 39, -28)
+    totManaBar:SetSize(71, 5)
 
     statusBarTexture = totManaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(totManaBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(473 / 1024, 546 / 1024, 247 / 512, 255 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Font Strings
     local totNameText = TargetFrameToTTextureFrameName
@@ -528,83 +638,101 @@ function Module:ReplaceBlizzardFocusFrame()
     focusFrame:SetPoint("LEFT", self.focusFrame, "LEFT", 0)
 
     focusFrame:SetSize(self.focusFrame:GetWidth(), self.focusFrame:GetHeight())
+    focusFrame:SetHitRectInsets(0, 0, 0, 0)
 
     -- Main
+    local border = _G[focusFrame:GetName() .. 'TextureFrame' .. 'Texture']
+    border:SetAllPoints(focusFrame)
+    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    border:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
+    border:SetDrawLayer('BORDER')
+    border.SetAllPoints = function() end
+    border.SetTexture = function() end
+
     local focusPortrait = FocusFramePortrait
     focusPortrait:ClearAllPoints()
     focusPortrait:SetPoint("RIGHT", -5, 1)
     focusPortrait:SetSize(58, 58)
     focusPortrait:SetDrawLayer("BACKGROUND")
 
-    -- Reuse Blizzard Frames
-    local frameBorder = _G[focusFrame:GetName() .. 'Background']
-    frameBorder:GetParent():SetFrameLevel(focusFrame:GetFrameLevel())
-    frameBorder:SetAllPoints(focusFrame)
-    frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    frameBorder:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
-    frameBorder:SetDrawLayer('BORDER')
+    local background = FocusFrameNameBackground
+    background:ClearAllPoints()
+    background:SetPoint('TOPLEFT', 2, -8)
+    background:SetPoint('BOTTOMRIGHT', -58, 42)
+    background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    background:SetTexCoord(690 / 1024, 808 / 1024, 162 / 512, 166 / 512)
+    background:SetDrawLayer("BACKGROUND")
+    background:SetBlendMode('BLEND')
 
     -- Health Bar
     local focusHealthBar = FocusFrameHealthBar
-    focusHealthBar:SetFrameLevel(focusFrame:GetFrameLevel())
+    focusHealthBar:SetFrameLevel(focusFrame:GetFrameLevel() + 1)
     focusHealthBar:ClearAllPoints()
     focusHealthBar:SetPoint("TOPLEFT", 4, -24)
-    focusHealthBar:SetPoint("BOTTOMRIGHT", -62, 21)
+    focusHealthBar:SetSize(124, 20)
 
     local statusBarTexture = focusHealthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(focusHealthBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(434 / 1024, 557 / 1024, 183 / 512, 202 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Mana Bar
     local focusManaBar = FocusFrameManaBar
-    focusManaBar:SetFrameLevel(focusFrame:GetFrameLevel())
+    focusManaBar:SetFrameLevel(focusFrame:GetFrameLevel() + 1)
     focusManaBar:ClearAllPoints()
     focusManaBar:SetPoint("TOPLEFT", 4, -43)
-    focusManaBar:SetPoint("BOTTOMRIGHT", -55, 10)
+    focusManaBar:SetSize(131, 12)
 
     statusBarTexture = focusManaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(focusManaBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
     statusBarTexture:SetTexCoord(466 / 1024, 598 / 1024, 207 / 512, 220 / 512)
-    statusBarTexture:SetDrawLayer('ARTWORK')
 
     -- Font Strings
     local focusNameText = FocusFrameTextureFrameName
     focusNameText:ClearAllPoints()
-    focusNameText:SetPoint("CENTER", -10, 19)
+    focusNameText:SetPoint("CENTER", -10, 18)
     focusNameText:SetDrawLayer("OVERLAY")
     focusNameText:SetJustifyH("LEFT")
     focusNameText:SetWidth(80)
+    focusNameText:SetFont(TargetFrameTextureFrameName:GetFont())
 
     local focusLevelText = FocusFrameTextureFrameLevelText
     focusLevelText:ClearAllPoints()
-    focusLevelText:SetPoint("CENTER", -80, 19)
+    focusLevelText:SetPoint("CENTER", -80, 18)
     focusLevelText:SetDrawLayer("OVERLAY")
+    focusLevelText:SetFont(TargetFrameTextureFrameLevelText:GetFont())
 
     local focusHealthText = FocusFrameTextureFrameHealthBarText
     focusHealthText:ClearAllPoints()
     focusHealthText:SetPoint("CENTER", -25, -1)
     focusHealthText:SetDrawLayer("OVERLAY")
+    focusHealthText:SetFont(TargetFrameTextureFrameHealthBarText:GetFont())
 
     local focusDeadText = FocusFrameTextureFrameDeadText
     focusDeadText:ClearAllPoints()
     focusDeadText:SetPoint("CENTER", -25, -1)
     focusDeadText:SetDrawLayer("OVERLAY")
+    focusDeadText:SetFont(TargetFrameTextureFrameDeadText:GetFont())
 
     local focusManaText = FocusFrameTextureFrameManaBarText
     focusManaText:ClearAllPoints()
     focusManaText:SetPoint("CENTER", -25, -18)
     focusManaText:SetDrawLayer("OVERLAY")
+    focusManaText:SetFont(TargetFrameTextureFrameManaBarText:GetFont())
 
-    FocusFrameNameBackground:Hide()
-end
+    local focusPVPIcon = FocusFrameTextureFramePVPIcon
+    focusPVPIcon:ClearAllPoints()
+    focusPVPIcon:SetPoint("RIGHT", 40, -12)
 
-function Module:CreateUIFrames()
-    self.playerFrame = CreateUIFrame(191, 65, "PlayerFrame")
-    self.targetFrame = CreateUIFrame(191, 65, "TargetFrame")
-    self.petFrame = CreateUIFrame(113, 42, "PetFrame")
-    self.targetOfTargetFrame = CreateUIFrame(113, 42, "TOTFrame")
-    self.focusFrame = CreateUIFrame(191, 65, "FocusFrame")
+    local focusLeaderIcon = FocusFrameTextureFrameLeaderIcon
+    focusLeaderIcon:ClearAllPoints()
+    focusLeaderIcon:SetPoint("TOPRIGHT", 0, 0)
+
+    focusFrame.elite = focusFrame.elite or
+        _G[focusFrame:GetName() .. 'TextureFrame']:CreateTexture(nil, 'OVERLAY')
+    local elite = focusFrame.elite
+    elite:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\BossFrame.blp")
 end
 
 function Module:ReplaceBlizzardFrames()
@@ -665,9 +793,9 @@ function Module:EnableEditorPreviewForPlayerFrame()
 
     -- DK Runes
     for index = 1, 6 do
-        local runeButton = _G['RuneButtonIndividual' .. index]
-        runeButton:SetAlpha(0)
-        runeButton:EnableMouse(false)
+        local button = _G['RuneButtonIndividual' .. index]
+        button:SetAlpha(0)
+        button:EnableMouse(false)
     end
 end
 
@@ -686,9 +814,9 @@ function Module:DisableEditorPreviewForPlayerFrame()
 
     -- DK Runes
     for index = 1, 6 do
-        local runeButton = _G['RuneButtonIndividual' .. index]
-        runeButton:SetAlpha(1)
-        runeButton:EnableMouse(true)
+        local button = _G['RuneButtonIndividual' .. index]
+        button:SetAlpha(1)
+        button:EnableMouse(true)
     end
 
     local _, _, relativePoint, posX, posY = playerFrame:GetPoint('CENTER')

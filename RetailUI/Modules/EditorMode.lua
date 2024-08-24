@@ -55,7 +55,7 @@ function Module:Show()
     UnitFrame:EnableEditorPreviewForFocusFrame()
 
     local CastBar = RUI:GetModule("CastBar")
-    CastBar:EnableEditorPreviewForCastBarFrame()
+    CastBar:EnableEditorPreviewForPlayerCastBarFrame()
 
     local Minimap = RUI:GetModule("Minimap")
     Minimap:EnableEditorPreviewForMinimapFrame()
@@ -88,7 +88,7 @@ function Module:Hide()
     UnitFrame:UpdateWidgets()
 
     local CastBar = RUI:GetModule("CastBar")
-    CastBar:DisableEditorPreviewForCastBarFrame()
+    CastBar:DisableEditorPreviewForPlayerCastBarFrame()
 
     CastBar:UpdateWidgets()
 

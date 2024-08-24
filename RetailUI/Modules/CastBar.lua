@@ -2,55 +2,82 @@ local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'CastBar'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
-Module.castBar = nil
-Module.startTime = 0
-Module.endTime = 0
-Module.casting = false
-Module.channeling = false
-Module.fadeOut = false
+Module.playerCastBar = nil
 
 local function CastingBarFrame_OnUpdate(self, elapsed)
-    local castingBarFrame = CastingBarFrame
     local currentTime, value, remainingTime = GetTime(), 0, 0
-    if Module.channeling or Module.casting then
-        if Module.casting then
-            remainingTime = min(currentTime, Module.endTime) - Module.startTime
-            value = remainingTime / (Module.endTime - Module.startTime)
-        elseif Module.channeling then
-            remainingTime = Module.endTime - currentTime
-            value = remainingTime / (Module.endTime - Module.startTime)
+    if self.channelingEx or self.castingEx then
+        if self.castingEx then
+            remainingTime = min(currentTime, self.endTime) - self.startTime
+            value = remainingTime / (self.endTime - self.startTime)
+        elseif self.channelingEx then
+            remainingTime = self.endTime - currentTime
+            value = remainingTime / (self.endTime - self.startTime)
         end
 
-        castingBarFrame:SetValue(value)
+        self:SetValue(value)
 
-        Module.castTimeText:SetText(string.format('%.1f/%.2f', abs(remainingTime),
-            Module.endTime - Module.startTime))
+        self.castTime:SetText(string.format('%.1f/%.2f', abs(remainingTime),
+            self.endTime - self.startTime))
 
-        local spark = _G[castingBarFrame:GetName() .. "Spark"]
+        local spark = _G[self:GetName() .. "Spark"]
         if spark then
             spark:ClearAllPoints()
-            spark:SetPoint("CENTER", castingBarFrame, "LEFT", value * 228, 0)
+            spark:SetPoint("CENTER", self, "LEFT", value * self:GetWidth(), 0)
         end
 
-        if currentTime > Module.endTime then
-            Module.casting, Module.channeling = nil, nil
-            Module.fadeOut = true
+        if currentTime > self.endTime then
+            self.castingEx, self.channelingEx = nil, nil
+            self.fadeOutEx = true
         end
-    elseif Module.fadeOut then
-        local spark = _G[castingBarFrame:GetName() .. "Spark"]
+    elseif self.fadeOutEx then
+        local spark = _G[self:GetName() .. "Spark"]
         if spark then
             spark:Hide()
         end
 
-        if castingBarFrame:GetAlpha() <= 0.0 then
-            castingBarFrame:Hide()
+        if self:GetAlpha() <= 0.0 then
+            self:Hide()
         end
     end
+end
+
+local function Target_Spellbar_AdjustPosition(self)
+    self.SetPoint = UIParent.SetPoint
+    local parentFrame = self:GetParent()
+    if (parentFrame.haveToT) then
+        if (parentFrame.auraRows <= 1) then
+            self:SetPoint("TOPLEFT", parentFrame, "BOTTOMLEFT", 25, -40)
+        else
+            self:SetPoint("TOPLEFT", parentFrame.spellbarAnchor, "BOTTOMLEFT", 20, -20)
+        end
+    elseif (parentFrame.haveElite) then
+        if (parentFrame.auraRows <= 1) then
+            self:SetPoint("TOPLEFT", parentFrame, "BOTTOMLEFT", 25, -10)
+        else
+            self:SetPoint("TOPLEFT", parentFrame.spellbarAnchor, "BOTTOMLEFT", 20, -10)
+        end
+    else
+        if (parentFrame.auraRows > 0) then
+            self:SetPoint("TOPLEFT", parentFrame.spellbarAnchor, "BOTTOMLEFT", 20, -10)
+        else
+            self:SetPoint("TOPLEFT", parentFrame, "BOTTOMLEFT", 25, -10)
+        end
+    end
+    self.SetPoint = function() end
 end
 
 function Module:OnEnable()
     CastingBarFrame:UnregisterAllEvents()
     CastingBarFrame:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
+
+    TargetFrameSpellBar:UnregisterAllEvents()
+    TargetFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
+
+    FocusFrameSpellBar:UnregisterAllEvents()
+    FocusFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
+
+    self:SecureHook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
 
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("UNIT_SPELLCAST_START")
@@ -62,14 +89,18 @@ function Module:OnEnable()
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_INTERRUPTED")
     self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
+    self:RegisterEvent("PLAYER_TARGET_CHANGED")
+    self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 
-    self.castBar = CreateUIFrame(228, 18, "CastBarFrame")
-    self.backgroundTexture = self.castBar:CreateTexture(nil, 'BACKGROUND')
-    self.castTimeText = self.castBar:CreateFontString(nil, "BORDER", 'GameFontHighlightSmall')
+    self.playerCastBar = CreateUIFrame(228, 18, "CastBarFrame")
 end
 
 function Module:OnDisable()
     CastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+    TargetFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+    FocusFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+
+    self:Unhook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
 
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
     self:UnregisterEvent("UNIT_SPELLCAST_START")
@@ -81,32 +112,34 @@ function Module:OnDisable()
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_INTERRUPTED")
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
+    self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+    self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
 
-    self.castBar = nil
-    self.backgroundTexture = nil
-    self.castTimeText = nil
+    self.playerCastBar = nil
 end
 
-function Module:ReplaceBlizzardCastBarFrame()
-    local statusBar = CastingBarFrame
+function Module:ReplaceBlizzardCastBarFrame(castBarFrame, attachTo)
+    local statusBar = castBarFrame
+    statusBar:SetMovable(true)
+    statusBar:SetUserPlaced(true)
     statusBar:ClearAllPoints()
 
-    statusBar:SetPoint("LEFT", self.castBar, "LEFT", 4)
-    statusBar:SetSize(228, 16)
+    -- User Defined
+    statusBar.selfInterrupt = false
 
-    -- Disable Blizzard UI ability to control this element
-    statusBar.ClearAllPoints = function() end
-    statusBar.SetPoint = function() end
+    if attachTo then
+        statusBar:SetPoint("LEFT", attachTo, "LEFT", 0, 0)
+        statusBar:SetSize(attachTo:GetWidth(), attachTo:GetHeight())
+    end
 
-    statusBar:SetSize(228, 16)
     statusBar:SetMinMaxValues(0.0, 1.0)
 
-    local frameBorder = _G[statusBar:GetName() .. "Border"]
-    frameBorder:SetAllPoints(statusBar)
-    frameBorder:SetPoint("TOPLEFT", -2, 2)
-    frameBorder:SetPoint("BOTTOMRIGHT", 2, -2)
-    frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
-    frameBorder:SetTexCoord(423 / 1024, 847 / 1024, 2 / 512, 30 / 512)
+    local border = _G[statusBar:GetName() .. "Border"]
+    border:SetAllPoints(statusBar)
+    border:SetPoint("TOPLEFT", -2, 2)
+    border:SetPoint("BOTTOMRIGHT", 2, -2)
+    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
+    border:SetTexCoord(423 / 1024, 847 / 1024, 2 / 512, 30 / 512)
 
     for _, region in pairs { statusBar:GetRegions() } do
         if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
@@ -118,27 +151,28 @@ function Module:ReplaceBlizzardCastBarFrame()
     local spark = _G[statusBar:GetName() .. "Spark"]
     spark:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
     spark:SetTexCoord(77 / 1024, 88 / 1024, 413 / 512, 460 / 512)
-    spark:SetSize(5, 19)
+    spark:SetSize(5, statusBar:GetHeight() * 1.25)
 
     local castNameText = _G[statusBar:GetName() .. "Text"]
     castNameText:ClearAllPoints()
     castNameText:SetPoint("BOTTOMLEFT", 5, -16)
     castNameText:SetJustifyH("LEFT")
+    castNameText:SetWidth(statusBar:GetWidth() * 0.6)
 
     local statusBarTexture = statusBar:GetStatusBarTexture()
     statusBarTexture:SetAllPoints(statusBar)
     statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
     statusBarTexture:SetDrawLayer('BORDER')
 
-    local background = self.backgroundTexture
-    background:SetParent(statusBar)
+    statusBar.background = statusBar.background or statusBar:CreateTexture(nil, "BACKGROUND")
+    local background = statusBar.background
     background:SetAllPoints(statusBar)
     background:SetPoint("BOTTOMRIGHT", 0, -16)
     background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
     background:SetTexCoord(1 / 1024, 419 / 1024, 1 / 512, 55 / 512)
 
-    local castTimeText = self.castTimeText
-    castTimeText:SetParent(statusBar)
+    statusBar.castTime = statusBar.castTime or statusBar:CreateFontString(nil, "BORDER", 'GameFontHighlightSmall')
+    local castTimeText = statusBar.castTime
     castTimeText:SetPoint("BOTTOMRIGHT", -4, -14)
     castTimeText:SetJustifyH("RIGHT")
 
@@ -146,41 +180,92 @@ function Module:ReplaceBlizzardCastBarFrame()
     castBarFlash:SetAlpha(0)
 end
 
-function Module:PLAYER_ENTERING_WORLD()
-    self:ReplaceBlizzardCastBarFrame()
+function Module:ReplaceBlizzardFrames()
+    self:ReplaceBlizzardCastBarFrame(CastingBarFrame, self.playerCastBar)
+    self:ReplaceBlizzardCastBarFrame(TargetFrameSpellBar, nil)
+    self:ReplaceBlizzardCastBarFrame(FocusFrameSpellBar, nil)
+end
 
-    if RUI.DB.profile.widgets.castBar == nil then
+function Module:PLAYER_ENTERING_WORLD()
+    self:ReplaceBlizzardFrames()
+
+    if RUI.DB.profile.widgets.playerCastBar == nil then
         self:LoadDefaultSettings()
     end
 
     self:UpdateWidgets()
 end
 
-function Module:UNIT_SPELLCAST_START(eventName, unit)
-    if unit ~= 'player' then return end
+function Module:PLAYER_TARGET_CHANGED()
+    local statusBar = TargetFrameSpellBar
 
-    local statusBar = CastingBarFrame
+    if UnitExists("target") and statusBar.unit == UnitGUID("target") then
+        if GetTime() > statusBar.endTime then
+            statusBar:Hide()
+        else
+            statusBar:Show()
+        end
+    else
+        statusBar:Hide()
+    end
+end
+
+function Module:PLAYER_FOCUS_CHANGED()
+    local statusBar = FocusFrameSpellBar
+
+    if UnitExists("focus") and statusBar.unit == UnitGUID("focus") then
+        if GetTime() > statusBar.endTime then
+            statusBar:Hide()
+        else
+            statusBar:Show()
+        end
+    else
+        statusBar:Hide()
+    end
+end
+
+function Module:UNIT_SPELLCAST_START(eventName, unit)
+    local statusBar
+    if unit == 'player' then
+        statusBar = CastingBarFrame
+    elseif unit == 'target' then
+        statusBar = TargetFrameSpellBar
+        statusBar.unit = UnitGUID("target")
+    elseif unit == 'focus' then
+        statusBar = FocusFrameSpellBar
+        statusBar.unit = UnitGUID("focus")
+    else
+        return
+    end
+
     local castText = _G[statusBar:GetName() .. "Text"]
 
     local spell, rank, displayName, icon, startTime, endTime
     if eventName == 'UNIT_SPELLCAST_START' then
         spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(unit)
-        self.casting = true
+        statusBar.castingEx = true
 
-        castText:SetText(displayName)
         statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
     else
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(unit)
-        self.channeling = true
+        statusBar.channelingEx = true
 
-        castText:SetText("Channeling")
         statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 63 / 512, 85 / 512)
     end
 
+    local iconTexture = _G[statusBar:GetName() .. 'Icon']
+    if unit ~= 'player' then
+        iconTexture:SetTexture(icon)
+        iconTexture:Show()
+    else
+        iconTexture:Hide()
+    end
+
+    castText:SetText(displayName)
     statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 
-    self.startTime = startTime / 1000
-    self.endTime = endTime / 1000
+    statusBar.startTime = startTime / 1000
+    statusBar.endTime = endTime / 1000
 
     UIFrameFadeRemoveFrame(statusBar)
 
@@ -196,60 +281,98 @@ end
 Module.UNIT_SPELLCAST_CHANNEL_START = Module.UNIT_SPELLCAST_START
 
 function Module:UNIT_SPELLCAST_STOP(eventName, unit)
-    if unit ~= 'player' then return end
-
-    local statusBar = CastingBarFrame
-
-    if self.casting then
-        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
-
-        self.casting = false
-    elseif self.channeling then
-        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 63 / 512, 85 / 512)
+    local statusBar
+    if unit == 'player' then
+        statusBar = CastingBarFrame
+    elseif unit == 'target' then
+        statusBar = TargetFrameSpellBar
+        if statusBar.unit ~= UnitGUID('target') then
+            return
+        end
+    elseif unit == 'focus' then
+        statusBar = FocusFrameSpellBar
+        if statusBar.unit ~= UnitGUID('focus') then
+            return
+        end
+    else
+        return
     end
 
-    statusBar:SetValue(1.0)
+    if statusBar.castingEx then
+        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
+    elseif statusBar.channelingEx then
+        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 63 / 512, 85 / 512)
+        statusBar.selfInterrupt = true
+    end
+
     statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 
-    self.casting, self.channeling = false, false
-    self.fadeOut = true
+    statusBar.castingEx, statusBar.channelingEx = false, false
+    statusBar.fadeOutEx = true
 
-    UIFrameFadeOut(CastingBarFrame, 1, 1.0, 0.0)
+    UIFrameFadeOut(statusBar, 1, 1.0, 0.0)
 end
 
 Module.UNIT_SPELLCAST_CHANNEL_STOP = Module.UNIT_SPELLCAST_STOP
 
 function Module:UNIT_SPELLCAST_FAILED(eventName, unit)
-    if unit ~= 'player' then return end
+    local statusBar
+    if unit == 'player' then
+        statusBar = CastingBarFrame
+    elseif unit == 'target' then
+        statusBar = TargetFrameSpellBar
+        if statusBar.unit ~= UnitGUID('target') then
+            return
+        end
+    elseif unit == 'focus' then
+        statusBar = FocusFrameSpellBar
+        if statusBar.unit ~= UnitGUID('focus') then
+            return
+        end
+    else
+        return
+    end
 
-    local statusBar = CastingBarFrame
-
-    if self.casting then
+    if statusBar.castingEx then
         statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
-
-        self.casting = false
-    elseif self.channeling then
+    elseif statusBar.channelingEx then
         statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 63 / 512, 85 / 512)
     end
 
-    statusBar:SetValue(1.0)
     statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 end
 
 function Module:UNIT_SPELLCAST_INTERRUPTED(eventName, unit)
-    if unit ~= 'player' then return end
+    local statusBar
+    if unit == 'player' then
+        statusBar = CastingBarFrame
+    elseif unit == 'target' then
+        statusBar = TargetFrameSpellBar
+        if statusBar.unit ~= UnitGUID('target') then
+            return
+        end
+    elseif unit == 'focus' then
+        statusBar = FocusFrameSpellBar
+        if statusBar.unit ~= UnitGUID('focus') then
+            return
+        end
+    else
+        return
+    end
 
-    local statusBar = CastingBarFrame
+    if not statusBar.selfInterrupt then
+        statusBar:SetValue(1.0)
+        statusBar:GetStatusBarTexture():SetTexCoord(2 / 1024, 416 / 1024, 335 / 512, 358 / 512)
+        statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 
-    statusBar:SetValue(1.0)
-    statusBar:GetStatusBarTexture():SetTexCoord(2 / 1024, 416 / 1024, 335 / 512, 358 / 512)
-    statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
+        local castText = _G[statusBar:GetName() .. "Text"]
+        castText:SetText("Interrupted")
+    else
+        statusBar.selfInterrupt = false
+    end
 
-    local castText = _G[statusBar:GetName() .. "Text"]
-    castText:SetText("Interrupted")
-
-    self.casting, self.channeling = false, false
-    self.fadeOut = true
+    statusBar.castingEx, statusBar.channelingEx = false, false
+    statusBar.fadeOutEx = true
 
     UIFrameFadeOut(statusBar, 1, 1.0, 0.0)
 end
@@ -257,14 +380,27 @@ end
 Module.UNIT_SPELLCAST_CHANNEL_INTERRUPTED = Module.UNIT_SPELLCAST_INTERRUPTED
 
 function Module:UNIT_SPELLCAST_DELAYED(eventName, unit)
-    if unit ~= 'player' then return end
-
-    local statusBar = CastingBarFrame
+    local statusBar
+    if unit == 'player' then
+        statusBar = CastingBarFrame
+    elseif unit == 'target' then
+        statusBar = TargetFrameSpellBar
+        if statusBar.unit ~= UnitGUID('target') then
+            return
+        end
+    elseif unit == 'focus' then
+        statusBar = FocusFrameSpellBar
+        if statusBar.unit ~= UnitGUID('focus') then
+            return
+        end
+    else
+        return
+    end
 
     local spell, rank, displayName, icon, startTime, endTime
-    if self.casting then
+    if statusBar.castingEx then
         spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(unit)
-    else
+    elseif statusBar.channelingEx then
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(unit)
     end
 
@@ -273,25 +409,25 @@ function Module:UNIT_SPELLCAST_DELAYED(eventName, unit)
         return
     end
 
-    self.startTime = startTime / 1000
-    self.endTime = endTime / 1000
+    statusBar.startTime = startTime / 1000
+    statusBar.endTime = endTime / 1000
 end
 
 Module.UNIT_SPELLCAST_CHANNEL_UPDATE = Module.UNIT_SPELLCAST_DELAYED
 
 function Module:LoadDefaultSettings()
-    RUI.DB.profile.widgets.castBar = { anchor = "BOTTOM", posX = 0, posY = 270 }
+    RUI.DB.profile.widgets.playerCastBar = { anchor = "BOTTOM", posX = 0, posY = 270 }
 end
 
 function Module:UpdateWidgets()
     do
-        local widgetOptions = RUI.DB.profile.widgets.castBar
-        self.castBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+        local widgetOptions = RUI.DB.profile.widgets.playerCastBar
+        self.playerCastBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
     end
 end
 
-function Module:EnableEditorPreviewForCastBarFrame()
-    local castBar = self.castBar
+function Module:EnableEditorPreviewForPlayerCastBarFrame()
+    local castBar = self.playerCastBar
 
     castBar:SetMovable(true)
     castBar:EnableMouse(true)
@@ -304,8 +440,8 @@ function Module:EnableEditorPreviewForCastBarFrame()
     hideFrame:EnableMouse(false)
 end
 
-function Module:DisableEditorPreviewForCastBarFrame()
-    local castBar = self.castBar
+function Module:DisableEditorPreviewForPlayerCastBarFrame()
+    local castBar = self.playerCastBar
 
     castBar:SetMovable(false)
     castBar:EnableMouse(false)
@@ -318,7 +454,7 @@ function Module:DisableEditorPreviewForCastBarFrame()
     hideFrame:EnableMouse(true)
 
     local _, _, relativePoint, posX, posY = castBar:GetPoint('CENTER')
-    RUI.DB.profile.widgets.castBar.anchor = relativePoint
-    RUI.DB.profile.widgets.castBar.posX = posX
-    RUI.DB.profile.widgets.castBar.posY = posY
+    RUI.DB.profile.widgets.playerCastBar.anchor = relativePoint
+    RUI.DB.profile.widgets.playerCastBar.posX = posX
+    RUI.DB.profile.widgets.playerCastBar.posY = posY
 end

@@ -29,7 +29,6 @@ end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
-    self:RegisterEvent("CALENDAR_UPDATE_PENDING_INVITES")
 
     self:SecureHook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
     MiniMapLFGFrameIcon:HookScript('OnUpdate', MiniMapLFGFrame_OnUpdate)
@@ -60,7 +59,6 @@ end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-    self:UnregisterEvent("CALENDAR_UPDATE_PENDING_INVITES")
 
     self:Unhook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
     MiniMapLFGFrameIcon:Unhook('OnUpdate', MiniMapLFGFrame_OnUpdate)
@@ -93,45 +91,6 @@ function Module:RemoveBlizzardFrames()
     for _, frame in pairs(blizzActionBarFrames) do
         frame:SetAlpha(0)
     end
-end
-
-local calendarStyles = {
-    {
-        normalTexture = { left = 47 / 256, right = 68 / 256, top = 1 / 256, bottom = 20 / 256 },
-        pushedTexture = { left = 1 / 256, right = 22 / 256, top = 1 / 256, bottom = 20 / 256 },
-        highlightTexture = { left = 24 / 256, right = 45 / 256, top = 1 / 256, bottom = 20 / 256 }
-    }
-}
-
-local function UpdateCalendarDate()
-    --local _, _, day = CalendarGetDate()
-    local day = 1
-
-    local gameTimeFrame = GameTimeFrame
-
-    local normalTexture = gameTimeFrame:GetNormalTexture()
-    normalTexture:SetAllPoints(gameTimeFrame)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
-    normalTexture:SetTexCoord(calendarStyles[day].normalTexture.left, calendarStyles[day].normalTexture.right,
-        calendarStyles[day].normalTexture.top, calendarStyles[day].normalTexture.bottom)
-
-    local highlightTexture = gameTimeFrame:GetHighlightTexture()
-    highlightTexture:SetAllPoints(gameTimeFrame)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
-    highlightTexture:SetTexCoord(calendarStyles[day].highlightTexture.left,
-        calendarStyles[day].highlightTexture.right, calendarStyles[day].highlightTexture.top,
-        calendarStyles[day].highlightTexture.bottom)
-
-    local pushedTexture = gameTimeFrame:GetPushedTexture()
-    pushedTexture:SetAllPoints(gameTimeFrame)
-    pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
-    pushedTexture:SetTexCoord(calendarStyles[day].pushedTexture.left,
-        calendarStyles[day].pushedTexture.right, calendarStyles[day].pushedTexture.top,
-        calendarStyles[day].pushedTexture.bottom)
-end
-
-function Module:CALENDAR_UPDATE_PENDING_INVITES()
-    UpdateCalendarDate()
 end
 
 function Module:ReplaceBlizzardFrames()
@@ -167,9 +126,25 @@ function Module:ReplaceBlizzardFrames()
     gameTimeFrame:SetPoint("LEFT", minimapBorderTop, "RIGHT", 5, -1)
     gameTimeFrame:SetSize(26, 24)
     gameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
-    gameTimeFrame:GetFontString():Hide()
 
-    UpdateCalendarDate()
+    local dateText = gameTimeFrame:GetFontString()
+    dateText:SetAllPoints(gameTimeFrame)
+    dateText:SetPoint("TOPLEFT", -3, 4)
+
+    local normalTexture = gameTimeFrame:GetNormalTexture()
+    normalTexture:SetAllPoints(gameTimeFrame)
+    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
+    normalTexture:SetTexCoord(0.18359375, 0.265625, 0.00390625, 0.078125)
+
+    local highlightTexture = gameTimeFrame:GetHighlightTexture()
+    highlightTexture:SetAllPoints(gameTimeFrame)
+    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
+    highlightTexture:SetTexCoord(0.09375, 0.17578125, 0.00390625, 0.078125)
+
+    local pushedTexture = gameTimeFrame:GetPushedTexture()
+    pushedTexture:SetAllPoints(gameTimeFrame)
+    pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
+    pushedTexture:SetTexCoord(0.00390625, 0.0859375, 0.00390625, 0.078125)
 
     -- Mail
     local minimapFrame = MiniMapMailFrame

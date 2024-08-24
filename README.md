@@ -2,7 +2,7 @@
 
 Retail UI ported to the old version of the client (3.3.5a).
 
-![Preview](media/RUI-1.png)
+![Preview](media/RUI-2.png)
 
 ## Features
 
