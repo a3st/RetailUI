@@ -23,7 +23,7 @@ local function CastingBarFrame_OnUpdate(self, elapsed)
 
         castingBarFrame:SetValue(value)
 
-        Module.castTimeText:SetText(string.format('%.1f/%.2f', remainingTime,
+        Module.castTimeText:SetText(string.format('%.1f/%.2f', abs(remainingTime),
             Module.endTime - Module.startTime))
 
         local spark = _G[castingBarFrame:GetName() .. "Spark"]
@@ -69,6 +69,8 @@ function Module:OnEnable()
 end
 
 function Module:OnDisable()
+    CastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
     self:UnregisterEvent("UNIT_SPELLCAST_START")
     self:UnregisterEvent("UNIT_SPELLCAST_STOP")
@@ -79,8 +81,6 @@ function Module:OnDisable()
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_INTERRUPTED")
     self:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
-
-    CastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
 
     self.castBar = nil
     self.backgroundTexture = nil
@@ -102,7 +102,7 @@ function Module:ReplaceBlizzardCastBarFrame()
     statusBar:SetMinMaxValues(0.0, 1.0)
 
     local frameBorder = _G[statusBar:GetName() .. "Border"]
-    frameBorder:SetAllPoints(castBar)
+    frameBorder:SetAllPoints(statusBar)
     frameBorder:SetPoint("TOPLEFT", -2, 2)
     frameBorder:SetPoint("BOTTOMRIGHT", 2, -2)
     frameBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
@@ -160,32 +160,31 @@ function Module:UNIT_SPELLCAST_START(eventName, unit)
     if unit ~= 'player' then return end
 
     local statusBar = CastingBarFrame
-
     local castText = _G[statusBar:GetName() .. "Text"]
 
-    local spell, rank, displayName, icon, startTime, endTime, isTradeSkill, notInterruptible
+    local spell, rank, displayName, icon, startTime, endTime
     if eventName == 'UNIT_SPELLCAST_START' then
-        spell, rank, displayName, icon, startTime, endTime, isTradeSkill, castID, notInterruptible =
-            UnitCastingInfo(
-                unit)
+        spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(unit)
         self.casting = true
+
         castText:SetText(displayName)
-
-        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 158 / 512, 180 / 512)
+        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
     else
-        spell, rank, displayName, icon, startTime, endTime, isTradeSkill, notInterruptible = UnitChannelInfo(unit)
+        spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(unit)
         self.channeling = true
-        castText:SetText("Channeling")
 
+        castText:SetText("Channeling")
         statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 63 / 512, 85 / 512)
     end
+
+    statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 
     self.startTime = startTime / 1000
     self.endTime = endTime / 1000
 
     UIFrameFadeRemoveFrame(statusBar)
 
-    local spark = _G[CastingBarFrame:GetName() .. "Spark"]
+    local spark = _G[statusBar:GetName() .. "Spark"]
     if spark then
         spark:Show()
     end
@@ -198,6 +197,19 @@ Module.UNIT_SPELLCAST_CHANNEL_START = Module.UNIT_SPELLCAST_START
 
 function Module:UNIT_SPELLCAST_STOP(eventName, unit)
     if unit ~= 'player' then return end
+
+    local statusBar = CastingBarFrame
+
+    if self.casting then
+        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
+
+        self.casting = false
+    elseif self.channeling then
+        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 63 / 512, 85 / 512)
+    end
+
+    statusBar:SetValue(1.0)
+    statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 
     self.casting, self.channeling = false, false
     self.fadeOut = true
@@ -213,11 +225,15 @@ function Module:UNIT_SPELLCAST_FAILED(eventName, unit)
     local statusBar = CastingBarFrame
 
     if self.casting then
-        statusBar:SetValue(1.0)
-        statusBar:GetStatusBarTexture():SetTexCoord(2 / 1024, 416 / 1024, 335 / 512, 358 / 512)
+        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
+
+        self.casting = false
+    elseif self.channeling then
+        statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 850 / 1024, 63 / 512, 85 / 512)
     end
 
-    self.casting, self.channeling = false, false
+    statusBar:SetValue(1.0)
+    statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 end
 
 function Module:UNIT_SPELLCAST_INTERRUPTED(eventName, unit)
@@ -225,13 +241,12 @@ function Module:UNIT_SPELLCAST_INTERRUPTED(eventName, unit)
 
     local statusBar = CastingBarFrame
 
-    if self.casting then
-        statusBar:SetValue(1.0)
-        statusBar:GetStatusBarTexture():SetTexCoord(2 / 1024, 416 / 1024, 335 / 512, 358 / 512)
+    statusBar:SetValue(1.0)
+    statusBar:GetStatusBarTexture():SetTexCoord(2 / 1024, 416 / 1024, 335 / 512, 358 / 512)
+    statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
 
-        local castText = _G[statusBar:GetName() .. "Text"]
-        castText:SetText("Interrupted")
-    end
+    local castText = _G[statusBar:GetName() .. "Text"]
+    castText:SetText("Interrupted")
 
     self.casting, self.channeling = false, false
     self.fadeOut = true
@@ -244,6 +259,8 @@ Module.UNIT_SPELLCAST_CHANNEL_INTERRUPTED = Module.UNIT_SPELLCAST_INTERRUPTED
 function Module:UNIT_SPELLCAST_DELAYED(eventName, unit)
     if unit ~= 'player' then return end
 
+    local statusBar = CastingBarFrame
+
     local spell, rank, displayName, icon, startTime, endTime
     if self.casting then
         spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(unit)
@@ -251,11 +268,13 @@ function Module:UNIT_SPELLCAST_DELAYED(eventName, unit)
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(unit)
     end
 
-    startTime = startTime / 1000
-    endTime = endTime / 1000
+    if not spell then
+        statusBar:Hide()
+        return
+    end
 
-    self.startTime = startTime
-    self.endTime = endTime
+    self.startTime = startTime / 1000
+    self.endTime = endTime / 1000
 end
 
 Module.UNIT_SPELLCAST_CHANNEL_UPDATE = Module.UNIT_SPELLCAST_DELAYED

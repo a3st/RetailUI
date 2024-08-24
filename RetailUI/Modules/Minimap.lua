@@ -151,6 +151,10 @@ function Module:ReplaceBlizzardFrames()
     local minimapZoneButton = MinimapZoneTextButton
     minimapZoneButton:ClearAllPoints()
     minimapZoneButton:SetPoint("TOP", -23, -4)
+    minimapZoneButton:SetWidth(95)
+
+    local minimapZoneText = MinimapZoneText
+    minimapZoneText:SetAllPoints(minimapZoneButton)
 
     local timeClockButton = TimeManagerClockButton
     timeClockButton:GetRegions():Hide()

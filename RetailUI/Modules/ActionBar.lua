@@ -84,8 +84,9 @@ end
 
 MAIN_ACTION_BAR_ID = 1
 BONUS_ACTION_BAR_ID = 6
-PET_ACTION_BAR_ID = 7
-SHAPESHIFT_ACTION_BAR_ID = 8
+SHAPESHIFT_ACTION_BAR_ID = 7
+PET_ACTION_BAR_ID = 8
+POSSESS_ACTION_BAR_ID = 9
 
 local function verticalString(str)
     local _, len = str:gsub("[^\128-\193]", "")
@@ -183,27 +184,30 @@ local function MainMenuExpBar_Update()
     end
 end
 
-function PetActionBar_UpdatePositionValues()
-    if Module.actionBars[PET_ACTION_BAR_ID] == nil or Module.actionBars[SHAPESHIFT_ACTION_BAR_ID] == nil then return end
+local function ShapeshiftBar_Update()
+    local button = _G['ShapeshiftButton' .. 1]
+    button:ClearAllPoints()
+    button:SetPoint("LEFT", Module.actionBars[SHAPESHIFT_ACTION_BAR_ID], "LEFT", 0)
 
     if GetNumShapeshiftForms() > 0 then
-        local shapeShiftActionButton = _G['ShapeshiftButton' .. GetNumShapeshiftForms()]
-        Module.actionBars[PET_ACTION_BAR_ID]:SetPoint("LEFT", shapeShiftActionButton, "RIGHT", 10, 0)
+        button = _G['ShapeshiftButton' .. GetNumShapeshiftForms()]
+        Module.actionBars[PET_ACTION_BAR_ID]:SetPoint("LEFT", button, "RIGHT", 10, 0)
     else
         Module.actionBars[PET_ACTION_BAR_ID]:SetPoint("LEFT", Module.actionBars[SHAPESHIFT_ACTION_BAR_ID], "LEFT", 0, 0)
     end
-end
 
-function ShapeshiftBar_Update() end
+    Module.actionBars[POSSESS_ACTION_BAR_ID]:SetPoint("LEFT", Module.actionBars[SHAPESHIFT_ACTION_BAR_ID], "LEFT", 0, 0)
+end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("PET_BAR_UPDATE")
 
     self:SecureHook('ActionButton_ShowGrid', ActionButton_ShowGrid)
     self:SecureHook('ActionButton_Update', ActionButton_Update)
     self:SecureHook('ReputationWatchBar_Update', ReputationWatchBar_Update)
     self:SecureHook('MainMenuExpBar_Update', MainMenuExpBar_Update)
-    -- self:SecureHook('ShapeshiftBar_Update', ShapeshiftBar_Update, true)
+    self:SecureHook('ShapeshiftBar_Update', ShapeshiftBar_Update)
 
     -- Main
     self.actionBars[MAIN_ACTION_BAR_ID] = CreateActionFrameBar(MAIN_ACTION_BAR_ID, 12, 42, 4, false)
@@ -239,21 +243,28 @@ function Module:OnEnable()
     -- Stance (Shapeshift)
     self.actionBars[SHAPESHIFT_ACTION_BAR_ID] = CreateActionFrameBar(SHAPESHIFT_ACTION_BAR_ID, 10, 40, 4, false)
 
+    -- Possess
+    self.actionBars[POSSESS_ACTION_BAR_ID] = CreateActionFrameBar(POSSESS_ACTION_BAR_ID, 2, 40, 4, false)
+
     -- Pet
     self.actionBars[PET_ACTION_BAR_ID] = CreateActionFrameBar(PET_ACTION_BAR_ID, 10, 36, 4, false)
 
+    -- Micro Menu
     self.microMenuBar = CreateActionFrameBar(nil, 10, 29, 2, false, 'MicroMenuBar')
+
+    -- Bags
     self.bagsBar = CreateActionFrameBar(nil, 5, 50, 2, false, 'BagsBar')
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    self:UnregisterEvent("PET_BAR_UPDATE")
 
     self:Unhook('ActionButton_ShowGrid', ActionButton_ShowGrid)
     self:Unhook('ActionButton_Update', ActionButton_Update)
     self:Unhook('ReputationWatchBar_Update', ReputationWatchBar_Update)
     self:Unhook('MainMenuExpBar_Update', MainMenuExpBar_Update)
-    -- self:Unhook('ShapeshiftBar_Update', ShapeshiftBar_Update)
+    self:Unhook('ShapeshiftBar_Update', ShapeshiftBar_Update)
 
     Module.actionBars = nil
     Module.repExpBar = nil
@@ -273,6 +284,17 @@ function Module:PLAYER_ENTERING_WORLD()
     self:UpdateWidgets()
 end
 
+local petBarInitialized = false
+
+function Module:PET_BAR_UPDATE()
+    if not petBarInitialized then
+        self:ReplaceBlizzardActionBarFrame(self.actionBars[SHAPESHIFT_ACTION_BAR_ID])
+        self:ReplaceBlizzardActionBarFrame(self.actionBars[PET_ACTION_BAR_ID])
+    end
+
+    petBarInitialized = true
+end
+
 local blizzActionBars = {
     'ActionButton',
     'MultiBarBottomLeftButton',
@@ -280,8 +302,9 @@ local blizzActionBars = {
     'MultiBarRightButton',
     'MultiBarLeftButton',
     'BonusActionButton',
+    'ShapeshiftButton',
     'PetActionButton',
-    'ShapeshiftButton'
+    'PossessButton'
 }
 
 function Module:ReplaceBlizzardActionBarFrame(frameBar)
@@ -744,7 +767,9 @@ local blizzActionBarFrames = {
     BonusActionBarTexture1,
     ShapeshiftBarLeft,
     ShapeshiftBarMiddle,
-    ShapeshiftBarRight
+    ShapeshiftBarRight,
+    PossessBackground1,
+    PossessBackground2
 }
 
 function Module:RemoveBlizzardFrames()
@@ -754,6 +779,8 @@ function Module:RemoveBlizzardFrames()
 
     MainMenuBar:EnableMouse(false)
     ShapeshiftBarFrame:EnableMouse(false)
+    PossessBarFrame:EnableMouse(false)
+    PetActionBarFrame:EnableMouse(false)
 end
 
 local hideMainActionBarFrames = {
@@ -766,7 +793,7 @@ local hideMainActionBarFrames = {
 
 function Module:EnableEditorPreviewForActionBarFrames()
     for index, actionBar in pairs(self.actionBars) do
-        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID then
+        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID then
             actionBar:SetMovable(true)
             actionBar:EnableMouse(true)
 
@@ -792,7 +819,7 @@ end
 
 function Module:DisableEditorPreviewForActionBarFrames()
     for index, actionBar in pairs(self.actionBars) do
-        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID then
+        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID then
             actionBar:SetMovable(false)
             actionBar:EnableMouse(false)
 
@@ -962,7 +989,9 @@ end
 
 function Module:ReplaceBlizzardFrames()
     for _, actionBar in pairs(self.actionBars) do
-        self:ReplaceBlizzardActionBarFrame(actionBar)
+        if actionBar.ID ~= PET_ACTION_BAR_ID and actionBar.ID ~= SHAPESHIFT_ACTION_BAR_ID then
+            self:ReplaceBlizzardActionBarFrame(actionBar)
+        end
     end
 
     self:ReplaceBlizzardRepExpBarFrame(self.repExpBar)
@@ -1009,6 +1038,12 @@ function Module:LoadDefaultSettings()
     }
 
     RUI.DB.profile.widgets.actionBar[BONUS_ACTION_BAR_ID] = {
+        anchor = "CENTER",
+        posX = 0,
+        posY = 0
+    }
+
+    RUI.DB.profile.widgets.actionBar[POSSESS_ACTION_BAR_ID] = {
         anchor = "CENTER",
         posX = 0,
         posY = 0
