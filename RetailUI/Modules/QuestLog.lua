@@ -4,6 +4,14 @@ local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEv
 
 Module.questLogFrame = nil
 
+local function ReplaceBlizzardFrame(frame)
+    local watchFrame = WatchFrame
+    watchFrame:SetMovable(true)
+    watchFrame:SetUserPlaced(true)
+    watchFrame:ClearAllPoints()
+    watchFrame:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+end
+
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
@@ -12,20 +20,10 @@ end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-
-    self.questLogFrame = nil
-end
-
-function Module:ReplaceBlizzardFrames()
-    local watchFrame = WatchFrame
-    watchFrame:SetMovable(true)
-    watchFrame:SetUserPlaced(true)
-    watchFrame:ClearAllPoints()
-    watchFrame:SetPoint("TOPRIGHT", self.questLogFrame, "TOPRIGHT", 0, 0)
 end
 
 function Module:PLAYER_ENTERING_WORLD()
-    self:ReplaceBlizzardFrames()
+    ReplaceBlizzardFrame(self.questLogFrame)
 
     if RUI.DB.profile.widgets.questLog == nil then
         self:LoadDefaultSettings()
@@ -43,27 +41,11 @@ function Module:UpdateWidgets()
     self.questLogFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreviewForQuestLogFrame()
-    local questLogFrame = self.questLogFrame
-
-    questLogFrame:SetMovable(true)
-    questLogFrame:EnableMouse(true)
-
-    questLogFrame.editorTexture:Show()
-    questLogFrame.editorText:Show()
+function Module:EnableEditorPreview()
+    HideUIFrame(self.questLogFrame)
 end
 
-function Module:DisableEditorPreviewForQuestLogFrame()
-    local questLogFrame = self.questLogFrame
-
-    questLogFrame:SetMovable(false)
-    questLogFrame:EnableMouse(false)
-
-    questLogFrame.editorTexture:Hide()
-    questLogFrame.editorText:Hide()
-
-    local _, _, relativePoint, posX, posY = questLogFrame:GetPoint('CENTER')
-    RUI.DB.profile.widgets.questLog.anchor = relativePoint
-    RUI.DB.profile.widgets.questLog.posX = posX
-    RUI.DB.profile.widgets.questLog.posY = posY
+function Module:DisableEditorPreview()
+    ShowUIFrame(self.questLogFrame)
+    SaveUIFramePosition(self.questLogFrame, 'questLog')
 end

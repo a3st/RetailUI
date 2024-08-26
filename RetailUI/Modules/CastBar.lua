@@ -4,6 +4,70 @@ local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEv
 
 Module.playerCastBar = nil
 
+local function ReplaceBlizzardCastBarFrame(castBarFrame, attachTo)
+    local statusBar = castBarFrame
+    statusBar:SetMovable(true)
+    statusBar:SetUserPlaced(true)
+    statusBar:ClearAllPoints()
+
+    -- User Defined
+    statusBar.selfInterrupt = false
+
+    attachTo = attachTo or nil
+
+    if attachTo then
+        statusBar:SetPoint("LEFT", attachTo, "LEFT", 0, 0)
+        statusBar:SetSize(attachTo:GetWidth(), attachTo:GetHeight())
+    end
+
+    statusBar:SetMinMaxValues(0.0, 1.0)
+
+    local border = _G[statusBar:GetName() .. "Border"]
+    border:SetAllPoints(statusBar)
+    border:SetPoint("TOPLEFT", -2, 2)
+    border:SetPoint("BOTTOMRIGHT", 2, -2)
+    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
+    border:SetTexCoord(423 / 1024, 847 / 1024, 2 / 512, 30 / 512)
+
+    for _, region in pairs { statusBar:GetRegions() } do
+        if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
+            region:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
+            region:SetTexCoord(2 / 1024, 421 / 1024, 185 / 512, 215 / 512)
+        end
+    end
+
+    local spark = _G[statusBar:GetName() .. "Spark"]
+    spark:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
+    spark:SetTexCoord(77 / 1024, 88 / 1024, 413 / 512, 460 / 512)
+    spark:SetSize(5, statusBar:GetHeight() * 1.25)
+
+    local castNameText = _G[statusBar:GetName() .. "Text"]
+    castNameText:ClearAllPoints()
+    castNameText:SetPoint("BOTTOMLEFT", 5, -16)
+    castNameText:SetJustifyH("LEFT")
+    castNameText:SetWidth(statusBar:GetWidth() * 0.6)
+
+    local statusBarTexture = statusBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(statusBar)
+    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
+    statusBarTexture:SetDrawLayer('BORDER')
+
+    statusBar.background = statusBar.background or statusBar:CreateTexture(nil, "BACKGROUND")
+    local background = statusBar.background
+    background:SetAllPoints(statusBar)
+    background:SetPoint("BOTTOMRIGHT", 0, -16)
+    background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
+    background:SetTexCoord(1 / 1024, 419 / 1024, 1 / 512, 55 / 512)
+
+    statusBar.castTime = statusBar.castTime or statusBar:CreateFontString(nil, "BORDER", 'GameFontHighlightSmall')
+    local castTimeText = statusBar.castTime
+    castTimeText:SetPoint("BOTTOMRIGHT", -4, -14)
+    castTimeText:SetJustifyH("RIGHT")
+
+    local castBarFlash = _G[statusBar:GetName() .. "Flash"]
+    castBarFlash:SetAlpha(0)
+end
+
 local function CastingBarFrame_OnUpdate(self, elapsed)
     local currentTime, value, remainingTime = GetTime(), 0, 0
     if self.channelingEx or self.castingEx then
@@ -68,17 +132,6 @@ local function Target_Spellbar_AdjustPosition(self)
 end
 
 function Module:OnEnable()
-    CastingBarFrame:UnregisterAllEvents()
-    CastingBarFrame:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
-
-    TargetFrameSpellBar:UnregisterAllEvents()
-    TargetFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
-
-    FocusFrameSpellBar:UnregisterAllEvents()
-    FocusFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
-
-    self:SecureHook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
-
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("UNIT_SPELLCAST_START")
     self:RegisterEvent("UNIT_SPELLCAST_STOP")
@@ -92,16 +145,21 @@ function Module:OnEnable()
     self:RegisterEvent("PLAYER_TARGET_CHANGED")
     self:RegisterEvent("PLAYER_FOCUS_CHANGED")
 
+    CastingBarFrame:UnregisterAllEvents()
+    CastingBarFrame:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
+
+    TargetFrameSpellBar:UnregisterAllEvents()
+    TargetFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
+
+    FocusFrameSpellBar:UnregisterAllEvents()
+    FocusFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
+
+    self:SecureHook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
+
     self.playerCastBar = CreateUIFrame(228, 18, "CastBarFrame")
 end
 
 function Module:OnDisable()
-    CastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
-    TargetFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
-    FocusFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
-
-    self:Unhook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
-
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
     self:UnregisterEvent("UNIT_SPELLCAST_START")
     self:UnregisterEvent("UNIT_SPELLCAST_STOP")
@@ -115,79 +173,17 @@ function Module:OnDisable()
     self:UnregisterEvent("PLAYER_TARGET_CHANGED")
     self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
 
-    self.playerCastBar = nil
-end
+    CastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+    TargetFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+    FocusFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
 
-function Module:ReplaceBlizzardCastBarFrame(castBarFrame, attachTo)
-    local statusBar = castBarFrame
-    statusBar:SetMovable(true)
-    statusBar:SetUserPlaced(true)
-    statusBar:ClearAllPoints()
-
-    -- User Defined
-    statusBar.selfInterrupt = false
-
-    if attachTo then
-        statusBar:SetPoint("LEFT", attachTo, "LEFT", 0, 0)
-        statusBar:SetSize(attachTo:GetWidth(), attachTo:GetHeight())
-    end
-
-    statusBar:SetMinMaxValues(0.0, 1.0)
-
-    local border = _G[statusBar:GetName() .. "Border"]
-    border:SetAllPoints(statusBar)
-    border:SetPoint("TOPLEFT", -2, 2)
-    border:SetPoint("BOTTOMRIGHT", 2, -2)
-    border:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
-    border:SetTexCoord(423 / 1024, 847 / 1024, 2 / 512, 30 / 512)
-
-    for _, region in pairs { statusBar:GetRegions() } do
-        if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
-            region:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
-            region:SetTexCoord(2 / 1024, 421 / 1024, 185 / 512, 215 / 512)
-        end
-    end
-
-    local spark = _G[statusBar:GetName() .. "Spark"]
-    spark:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
-    spark:SetTexCoord(77 / 1024, 88 / 1024, 413 / 512, 460 / 512)
-    spark:SetSize(5, statusBar:GetHeight() * 1.25)
-
-    local castNameText = _G[statusBar:GetName() .. "Text"]
-    castNameText:ClearAllPoints()
-    castNameText:SetPoint("BOTTOMLEFT", 5, -16)
-    castNameText:SetJustifyH("LEFT")
-    castNameText:SetWidth(statusBar:GetWidth() * 0.6)
-
-    local statusBarTexture = statusBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(statusBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
-    statusBarTexture:SetDrawLayer('BORDER')
-
-    statusBar.background = statusBar.background or statusBar:CreateTexture(nil, "BACKGROUND")
-    local background = statusBar.background
-    background:SetAllPoints(statusBar)
-    background:SetPoint("BOTTOMRIGHT", 0, -16)
-    background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CastingBar.blp")
-    background:SetTexCoord(1 / 1024, 419 / 1024, 1 / 512, 55 / 512)
-
-    statusBar.castTime = statusBar.castTime or statusBar:CreateFontString(nil, "BORDER", 'GameFontHighlightSmall')
-    local castTimeText = statusBar.castTime
-    castTimeText:SetPoint("BOTTOMRIGHT", -4, -14)
-    castTimeText:SetJustifyH("RIGHT")
-
-    local castBarFlash = _G[statusBar:GetName() .. "Flash"]
-    castBarFlash:SetAlpha(0)
-end
-
-function Module:ReplaceBlizzardFrames()
-    self:ReplaceBlizzardCastBarFrame(CastingBarFrame, self.playerCastBar)
-    self:ReplaceBlizzardCastBarFrame(TargetFrameSpellBar, nil)
-    self:ReplaceBlizzardCastBarFrame(FocusFrameSpellBar, nil)
+    self:Unhook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
 end
 
 function Module:PLAYER_ENTERING_WORLD()
-    self:ReplaceBlizzardFrames()
+    ReplaceBlizzardCastBarFrame(CastingBarFrame, self.playerCastBar)
+    ReplaceBlizzardCastBarFrame(TargetFrameSpellBar)
+    ReplaceBlizzardCastBarFrame(FocusFrameSpellBar)
 
     if RUI.DB.profile.widgets.playerCastBar == nil then
         self:LoadDefaultSettings()
@@ -420,41 +416,30 @@ function Module:LoadDefaultSettings()
 end
 
 function Module:UpdateWidgets()
-    do
-        local widgetOptions = RUI.DB.profile.widgets.playerCastBar
-        self.playerCastBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    local widgetOptions = RUI.DB.profile.widgets.playerCastBar
+    self.playerCastBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreviewForPlayerCastBarFrame()
-    local castBar = self.playerCastBar
+function Module:EnableEditorPreview()
+    HideUIFrame(self.playerCastBar)
 
-    castBar:SetMovable(true)
-    castBar:EnableMouse(true)
+    local statusBar = CastingBarFrame
+    statusBar:GetStatusBarTexture():SetTexCoord(432 / 1024, 849 / 1024, 160 / 512, 180 / 512)
+    statusBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 1)
+    statusBar:SetValue(0.5)
 
-    castBar.editorTexture:Show()
-    castBar.editorText:Show()
+    local castText = _G[statusBar:GetName() .. "Text"]
+    castText:SetText("Healing Wave")
+    statusBar.castTime:SetText(string.format('%.1f/%.2f', 0.5, 1.0))
 
-    local hideFrame = CastingBarFrame
-    hideFrame:SetAlpha(0)
-    hideFrame:EnableMouse(false)
+    statusBar:SetAlpha(1.0)
+    statusBar:Show()
 end
 
-function Module:DisableEditorPreviewForPlayerCastBarFrame()
-    local castBar = self.playerCastBar
+function Module:DisableEditorPreview()
+    ShowUIFrame(self.playerCastBar)
+    SaveUIFramePosition(self.playerCastBar, 'playerCastBar')
 
-    castBar:SetMovable(false)
-    castBar:EnableMouse(false)
-
-    castBar.editorTexture:Hide()
-    castBar.editorText:Hide()
-
-    local hideFrame = CastingBarFrame
-    hideFrame:SetAlpha(1)
-    hideFrame:EnableMouse(true)
-
-    local _, _, relativePoint, posX, posY = castBar:GetPoint('CENTER')
-    RUI.DB.profile.widgets.playerCastBar.anchor = relativePoint
-    RUI.DB.profile.widgets.playerCastBar.posX = posX
-    RUI.DB.profile.widgets.playerCastBar.posY = posY
+    local statusBar = CastingBarFrame
+    statusBar:Hide()
 end

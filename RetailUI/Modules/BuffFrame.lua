@@ -3,47 +3,105 @@ local moduleName = 'BuffFrame'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
 Module.buffFrame = nil
+Module.toggleBuffs = true
+
+local function ReplaceBlizzardFrame(frame)
+    frame.toggleButton = frame.toggleButton or CreateFrame('Button', nil, UIParent)
+    local toggleButton = frame.toggleButton
+    toggleButton:SetPoint("RIGHT", frame, "RIGHT", 0, -3)
+
+    toggleButton:SetSize(13, 24)
+    toggleButton:SetHitRectInsets(0, 0, 0, 0)
+
+    local normalTexture = toggleButton:GetNormalTexture() or toggleButton:CreateTexture(nil, "BORDER")
+    normalTexture:SetAllPoints(toggleButton)
+    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
+    normalTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+
+    toggleButton:SetNormalTexture(normalTexture)
+
+    local highlightTexture = toggleButton:GetHighlightTexture() or toggleButton:CreateTexture(nil, "HIGHLIGHT")
+    highlightTexture:SetAllPoints(toggleButton)
+    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
+    highlightTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+
+    toggleButton:SetHighlightTexture(highlightTexture)
+
+    toggleButton:SetScript("OnClick", function(self)
+        if Module.toggleBuffs then
+            local normalTexture = self:GetNormalTexture()
+            normalTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+
+            local highlightTexture = toggleButton:GetHighlightTexture()
+            highlightTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+
+            for index = 1, BUFF_ACTUAL_DISPLAY do
+                local button = _G['BuffButton' .. index]
+                if button then
+                    button:Hide()
+                end
+            end
+        else
+            local normalTexture = self:GetNormalTexture()
+            normalTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+
+            local highlightTexture = toggleButton:GetHighlightTexture()
+            highlightTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+
+            for index = 1, BUFF_ACTUAL_DISPLAY do
+                local button = _G['BuffButton' .. index]
+                if button then
+                    button:Show()
+                end
+            end
+        end
+
+        Module.toggleBuffs = not Module.toggleBuffs
+    end)
+
+    local consolidatedBuffFrame = ConsolidatedBuffs
+    consolidatedBuffFrame:SetMovable(true)
+    consolidatedBuffFrame:SetUserPlaced(true)
+    consolidatedBuffFrame:ClearAllPoints()
+    consolidatedBuffFrame:SetPoint("RIGHT", toggleButton, "LEFT", -6, 0)
+end
+
+local function showToggleButtonIf(condition)
+    if condition then
+        Module.buffFrame.toggleButton:Show()
+    else
+        Module.buffFrame.toggleButton:Hide()
+    end
+end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("UNIT_AURA")
 
     self.buffFrame = CreateUIFrame(BuffFrame:GetWidth(), BuffFrame:GetHeight(), "BuffFrame")
 end
 
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-
-    self.buffFrame = nil
-end
-
-function Module:ReplaceBlizzardFrames()
-    local buffFrame = BuffFrame
-    buffFrame:ClearAllPoints()
-    buffFrame:SetPoint("TOPLEFT", self.buffFrame, "TOPLEFT", 0, 0)
-    buffFrame:SetPoint("TOPRIGHT", self.buffFrame, "TOPRIGHT", 0, 0)
-
-    -- Disable Blizzard UI ability to control this element
-    buffFrame.ClearAllPoints = function() end
-    buffFrame.SetPoint = function() end
-
-    local consolidatedBuffFrame = ConsolidatedBuffs
-    consolidatedBuffFrame:ClearAllPoints()
-    consolidatedBuffFrame:SetPoint("BOTTOMLEFT", self.buffFrame, "BOTTOMLEFT", 0, 0)
-    consolidatedBuffFrame:SetPoint("BOTTOMRIGHT", self.buffFrame, "BOTTOMRIGHT", 0, 0)
-
-    -- Disable Blizzard UI ability to control this element
-    consolidatedBuffFrame.ClearAllPoints = function() end
-    consolidatedBuffFrame.SetPoint = function() end
+    self:UnregisterEvent("UNIT_AURA")
 end
 
 function Module:PLAYER_ENTERING_WORLD()
-    self:ReplaceBlizzardFrames()
+    ReplaceBlizzardFrame(self.buffFrame)
+
+    showToggleButtonIf(BUFF_ACTUAL_DISPLAY > 0)
 
     if RUI.DB.profile.widgets.buffs == nil then
         self:LoadDefaultSettings()
     end
 
     self:UpdateWidgets()
+end
+
+function Module:UNIT_AURA(eventName, unit)
+    if unit ~= 'player' then return end
+
+    showToggleButtonIf(BUFF_ACTUAL_DISPLAY > 0)
 end
 
 function Module:LoadDefaultSettings()
@@ -55,27 +113,11 @@ function Module:UpdateWidgets()
     self.buffFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreviewForBuffFrame()
-    local buffFrame = self.buffFrame
-
-    buffFrame:SetMovable(true)
-    buffFrame:EnableMouse(true)
-
-    buffFrame.editorTexture:Show()
-    buffFrame.editorText:Show()
+function Module:EnableEditorPreview()
+    HideUIFrame(self.buffFrame)
 end
 
-function Module:DisableEditorPreviewForBuffFrame()
-    local buffFrame = self.buffFrame
-
-    buffFrame:SetMovable(false)
-    buffFrame:EnableMouse(false)
-
-    buffFrame.editorTexture:Hide()
-    buffFrame.editorText:Hide()
-
-    local _, _, relativePoint, posX, posY = buffFrame:GetPoint('CENTER')
-    RUI.DB.profile.widgets.buffs.anchor = relativePoint
-    RUI.DB.profile.widgets.buffs.posX = posX
-    RUI.DB.profile.widgets.buffs.posY = posY
+function Module:DisableEditorPreview()
+    ShowUIFrame(self.buffFrame)
+    SaveUIFramePosition(self.buffFrame, 'buffs')
 end

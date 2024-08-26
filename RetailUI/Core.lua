@@ -16,37 +16,80 @@ function RUI:OnEnable() end
 function RUI:OnDisable() end
 
 function CreateUIFrame(width, height, frameName)
-	local unitFrame = CreateFrame("Frame", 'RUI_' .. frameName, UIParent)
-	unitFrame:SetSize(width, height)
+	local frame = CreateFrame("Frame", 'RUI_' .. frameName, UIParent)
+	frame:SetSize(width, height)
 
-	unitFrame:RegisterForDrag("LeftButton")
-	unitFrame:EnableMouse(false)
-	unitFrame:SetMovable(false)
-	unitFrame:SetScript("OnDragStart", function(self, button)
+	frame:RegisterForDrag("LeftButton")
+	frame:EnableMouse(false)
+	frame:SetMovable(false)
+	frame:SetScript("OnDragStart", function(self, button)
 		self:StartMoving()
 	end)
-	unitFrame:SetScript("OnDragStop", function(self)
+	frame:SetScript("OnDragStop", function(self)
 		self:StopMovingOrSizing()
 	end)
 
+	frame:SetFrameLevel(100)
+	frame:SetFrameStrata('FULLSCREEN')
+
 	do
-		local texture = unitFrame:CreateTexture(nil, 'BACKGROUND')
-		texture:SetAllPoints(unitFrame)
+		local texture = frame:CreateTexture(nil, 'BACKGROUND')
+		texture:SetAllPoints(frame)
 		texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
 		texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
 		texture:Hide()
 
-		unitFrame.editorTexture = texture
+		frame.editorTexture = texture
 	end
 
 	do
-		local fontString = unitFrame:CreateFontString(nil, "BORDER", 'GameFontNormal')
-		fontString:SetAllPoints(unitFrame)
+		local fontString = frame:CreateFontString(nil, "BORDER", 'GameFontNormal')
+		fontString:SetAllPoints(frame)
 		fontString:SetText(frameName)
 		fontString:Hide()
 
-		unitFrame.editorText = fontString
+		frame.editorText = fontString
 	end
 
-	return unitFrame
+	return frame
+end
+
+RUI.frames = {}
+
+function ShowUIFrame(frame)
+	frame:SetMovable(false)
+	frame:EnableMouse(false)
+
+	frame.editorTexture:Hide()
+	frame.editorText:Hide()
+
+	for _, target in pairs(RUI.frames[frame]) do
+		target:SetAlpha(1)
+	end
+
+	RUI.frames[frame] = nil
+end
+
+function HideUIFrame(frame, exclude)
+	frame:SetMovable(true)
+	frame:EnableMouse(true)
+
+	frame.editorTexture:Show()
+	frame.editorText:Show()
+
+	RUI.frames[frame] = {}
+
+	exclude = exclude or {}
+
+	for _, target in pairs(exclude) do
+		target:SetAlpha(0)
+		tinsert(RUI.frames[frame], target)
+	end
+end
+
+function SaveUIFramePosition(frame, widgetName)
+	local _, _, relativePoint, posX, posY = frame:GetPoint('CENTER')
+	RUI.DB.profile.widgets[widgetName].anchor = relativePoint
+	RUI.DB.profile.widgets[widgetName].posX = posX
+	RUI.DB.profile.widgets[widgetName].posY = posY
 end

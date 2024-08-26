@@ -5,111 +5,23 @@ local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEv
 Module.minimapFrame = nil
 Module.rotateFrame = nil
 
-local function Minimap_UpdateRotationSetting()
-    if GetCVar("rotateMinimap") == "1" then
-        Module.rotateFrame:Show()
-        MinimapBorder:Hide()
-    else
-        Module.rotateFrame:Hide()
-        MinimapBorder:Show()
-    end
-
-    MinimapNorthTag:Hide()
-    MinimapCompassTexture:Hide()
-end
-
-local function MinimapRotateFrame_OnUpdate(self)
-    local angle = GetPlayerFacing()
-    self.border:SetRotation(angle)
-end
-
-local function MiniMapLFGFrame_OnUpdate(self, elapsed)
-    AnimateTexCoords(self.texture, 512, 256, 64, 64, 29, elapsed, 1)
-end
-
-function Module:OnEnable()
-    self:RegisterEvent("PLAYER_ENTERING_WORLD")
-
-    self:SecureHook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
-    MiniMapLFGFrameIcon:HookScript('OnUpdate', MiniMapLFGFrame_OnUpdate)
-
-    self.minimapFrame = CreateUIFrame(230, 230, 'MinimapFrame')
-
-    do
-        local rotateFrame = CreateFrame('Frame', MinimapBackdrop)
-        rotateFrame:SetScript("OnUpdate", MinimapRotateFrame_OnUpdate)
-
-        do
-            local texture = rotateFrame:CreateTexture(nil, "BORDER")
-            texture:SetPoint("CENTER", MinimapBorder, "CENTER", 0, -2)
-            texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\MinimapBorder.blp")
-            texture:SetSize(232, 232)
-
-            rotateFrame.border = texture
-        end
-
-        rotateFrame:Hide()
-        self.rotateFrame = rotateFrame
-    end
-
-    if not IsAddOnLoaded('Blizzard_TimeManager') then
-        LoadAddOn('Blizzard_TimeManager')
-    end
-end
-
-function Module:OnDisable()
-    self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-
-    self:Unhook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
-    MiniMapLFGFrameIcon:Unhook('OnUpdate', MiniMapLFGFrame_OnUpdate)
-
-    self.minimapFrame = nil
-    self.rotateFrame = nil
-end
-
-function Module:PLAYER_ENTERING_WORLD()
-    self:RemoveBlizzardFrames()
-    self:ReplaceBlizzardFrames()
-
-    if RUI.DB.profile.widgets.minimap == nil then
-        self:LoadDefaultSettings()
-    end
-
-    self:UpdateWidgets()
-end
-
-local blizzActionBarFrames = {
-    MiniMapWorldMapButton,
-    MiniMapTrackingIcon,
-    MiniMapTrackingIconOverlay,
-    MiniMapMailBorder,
-    MiniMapTrackingButtonBorder,
-    MiniMapLFGFrameBorder
-}
-
-function Module:RemoveBlizzardFrames()
-    for _, frame in pairs(blizzActionBarFrames) do
-        frame:SetAlpha(0)
-    end
-end
-
-function Module:ReplaceBlizzardFrames()
+local function ReplaceBlizzardFrame(frame)
     local minimapCluster = MinimapCluster
     minimapCluster:ClearAllPoints()
 
-    minimapCluster:SetPoint("CENTER", self.minimapFrame, "CENTER", 0, 0)
+    minimapCluster:SetPoint("CENTER", frame, "CENTER", 0, 0)
 
     -- Zone Info Bar
     local minimapBorderTop = MinimapBorderTop
     minimapBorderTop:ClearAllPoints()
-    minimapBorderTop:SetPoint("TOP", 0, 0)
+    minimapBorderTop:SetPoint("TOP", 0, 5)
     minimapBorderTop:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
     minimapBorderTop:SetTexCoord(105 / 512, 360 / 512, 609 / 1024, 636 / 1024)
     minimapBorderTop:SetSize(156, 20)
 
     local minimapZoneButton = MinimapZoneTextButton
     minimapZoneButton:ClearAllPoints()
-    minimapZoneButton:SetPoint("TOP", -23, -4)
+    minimapZoneButton:SetPoint("LEFT", minimapBorderTop, "LEFT", 5, 0)
     minimapZoneButton:SetWidth(95)
 
     local minimapZoneText = MinimapZoneText
@@ -118,7 +30,8 @@ function Module:ReplaceBlizzardFrames()
     local timeClockButton = TimeManagerClockButton
     timeClockButton:GetRegions():Hide()
     timeClockButton:ClearAllPoints()
-    timeClockButton:SetPoint("RIGHT", minimapBorderTop, "RIGHT", 5, 1)
+    timeClockButton:SetPoint("RIGHT", minimapBorderTop, "RIGHT", -5, 1)
+    timeClockButton:SetWidth(30)
 
     -- GameTime (Calendar)
     local gameTimeFrame = GameTimeFrame
@@ -225,7 +138,7 @@ function Module:ReplaceBlizzardFrames()
     -- Minimap Frame
     local minimapFrame = Minimap
     minimapFrame:ClearAllPoints()
-    minimapFrame:SetPoint("CENTER", self.minimapFrame, "CENTER", 0, -30)
+    minimapFrame:SetPoint("CENTER", minimapCluster, "CENTER", 0, -30)
     minimapFrame:SetSize(175, 175)
 
     local minimapBackdrop = MinimapBackdrop
@@ -291,46 +204,105 @@ function Module:ReplaceBlizzardFrames()
     disabledTexture:SetTexCoord(217 / 512, 251 / 512, 520 / 1024, 538 / 1024)
 end
 
+local blizzFrames = {
+    MiniMapWorldMapButton,
+    MiniMapTrackingIcon,
+    MiniMapTrackingIconOverlay,
+    MiniMapMailBorder,
+    MiniMapTrackingButtonBorder,
+    MiniMapLFGFrameBorder
+}
+
+local function RemoveBlizzardFrames()
+    for _, frame in pairs(blizzFrames) do
+        frame:SetAlpha(0)
+    end
+end
+
+local function Minimap_UpdateRotationSetting()
+    if GetCVar("rotateMinimap") == "1" then
+        Module.rotateFrame:Show()
+        MinimapBorder:Hide()
+    else
+        Module.rotateFrame:Hide()
+        MinimapBorder:Show()
+    end
+
+    MinimapNorthTag:Hide()
+    MinimapCompassTexture:Hide()
+end
+
+local function MinimapRotateFrame_OnUpdate(self)
+    local angle = GetPlayerFacing()
+    self.border:SetRotation(angle)
+end
+
+local function MiniMapLFGFrame_OnUpdate(self, elapsed)
+    AnimateTexCoords(self.texture, 512, 256, 64, 64, 29, elapsed, 1)
+end
+
+function Module:OnEnable()
+    self:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+    self:SecureHook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
+    MiniMapLFGFrameIcon:HookScript('OnUpdate', MiniMapLFGFrame_OnUpdate)
+
+    self.minimapFrame = CreateUIFrame(230, 230, 'MinimapFrame')
+
+    do
+        local rotateFrame = CreateFrame('Frame', MinimapBackdrop)
+        rotateFrame:SetScript("OnUpdate", MinimapRotateFrame_OnUpdate)
+
+        do
+            local texture = rotateFrame:CreateTexture(nil, "BORDER")
+            texture:SetPoint("CENTER", MinimapBorder, "CENTER", 0, -2)
+            texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\MinimapBorder.blp")
+            texture:SetSize(232, 232)
+
+            rotateFrame.border = texture
+        end
+
+        rotateFrame:Hide()
+        self.rotateFrame = rotateFrame
+    end
+
+    if not IsAddOnLoaded('Blizzard_TimeManager') then
+        LoadAddOn('Blizzard_TimeManager')
+    end
+end
+
+function Module:OnDisable()
+    self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+
+    self:Unhook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
+    MiniMapLFGFrameIcon:Unhook('OnUpdate', MiniMapLFGFrame_OnUpdate)
+end
+
+function Module:PLAYER_ENTERING_WORLD()
+    RemoveBlizzardFrames()
+    ReplaceBlizzardFrame(self.minimapFrame)
+
+    if RUI.DB.profile.widgets.minimap == nil then
+        self:LoadDefaultSettings()
+    end
+
+    self:UpdateWidgets()
+end
+
 function Module:LoadDefaultSettings()
     RUI.DB.profile.widgets.minimap = { anchor = "TOPRIGHT", posX = 0, posY = 0 }
 end
 
 function Module:UpdateWidgets()
-    do
-        local widgetOptions = RUI.DB.profile.widgets.minimap
-        self.minimapFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    local widgetOptions = RUI.DB.profile.widgets.minimap
+    self.minimapFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreviewForMinimapFrame()
-    local minimapFrame = self.minimapFrame
-
-    minimapFrame:SetMovable(true)
-    minimapFrame:EnableMouse(true)
-
-    minimapFrame.editorTexture:Show()
-    minimapFrame.editorText:Show()
-
-    local hideFrame = MinimapCluster
-    hideFrame:SetAlpha(0)
-    hideFrame:EnableMouse(false)
+function Module:EnableEditorPreview()
+    HideUIFrame(self.minimapFrame)
 end
 
-function Module:DisableEditorPreviewForMinimapFrame()
-    local minimapFrame = self.minimapFrame
-
-    minimapFrame:SetMovable(false)
-    minimapFrame:EnableMouse(false)
-
-    minimapFrame.editorTexture:Hide()
-    minimapFrame.editorText:Hide()
-
-    local hideFrame = MinimapCluster
-    hideFrame:SetAlpha(1)
-    hideFrame:EnableMouse(true)
-
-    local _, _, relativePoint, posX, posY = minimapFrame:GetPoint('CENTER')
-    RUI.DB.profile.widgets.minimap.anchor = relativePoint
-    RUI.DB.profile.widgets.minimap.posX = posX
-    RUI.DB.profile.widgets.minimap.posY = posY
+function Module:DisableEditorPreview()
+    ShowUIFrame(self.minimapFrame)
+    SaveUIFramePosition(self.minimapFrame, 'minimap')
 end

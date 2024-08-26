@@ -29,9 +29,7 @@ function Module:OnEnable()
     self.gridFrame = CreateGridFrame()
 end
 
-function Module:OnDisable()
-    self.gridFrame = nil
-end
+function Module:OnDisable() end
 
 function Module:Show()
     if InCombatLockdown() then
@@ -42,69 +40,49 @@ function Module:Show()
     self.gridFrame:Show()
 
     local ActionBar = RUI:GetModule("ActionBar")
-    ActionBar:EnableEditorPreviewForActionBarFrames()
-    ActionBar:EnableEditorPreviewForBagsFrame()
-    ActionBar:EnableEditorPreviewForMicroMenuBarFrame()
-    ActionBar:EnableEditorPreviewForRepExpBarFrame()
+    ActionBar:EnableEditorPreview()
 
     local UnitFrame = RUI:GetModule("UnitFrame")
-    UnitFrame:EnableEditorPreviewForPlayerFrame()
-    UnitFrame:EnableEditorPreviewForPetFrame()
-    UnitFrame:EnableEditorPreviewForTargetFrame()
-    UnitFrame:EnableEditorPreviewForTargetOfTargetFrame()
-    UnitFrame:EnableEditorPreviewForFocusFrame()
+    UnitFrame:EnableEditorPreview()
 
     local CastBar = RUI:GetModule("CastBar")
-    CastBar:EnableEditorPreviewForPlayerCastBarFrame()
+    CastBar:EnableEditorPreview()
 
     local Minimap = RUI:GetModule("Minimap")
-    Minimap:EnableEditorPreviewForMinimapFrame()
+    Minimap:EnableEditorPreview()
 
     local QuestLog = RUI:GetModule("QuestLog")
-    QuestLog:EnableEditorPreviewForQuestLogFrame()
+    QuestLog:EnableEditorPreview()
 
     local BuffFrame = RUI:GetModule("BuffFrame")
-    BuffFrame:EnableEditorPreviewForBuffFrame()
+    BuffFrame:EnableEditorPreview()
 end
 
 function Module:Hide()
     self.gridFrame:Hide()
 
     local ActionBar = RUI:GetModule("ActionBar")
-    ActionBar:DisableEditorPreviewForActionBarFrames()
-    ActionBar:DisableEditorPreviewForBagsFrame()
-    ActionBar:DisableEditorPreviewForMicroMenuBarFrame()
-    ActionBar:DisableEditorPreviewForRepExpBarFrame()
-
+    ActionBar:DisableEditorPreview()
     ActionBar:UpdateWidgets()
 
     local UnitFrame = RUI:GetModule("UnitFrame")
-    UnitFrame:DisableEditorPreviewForPlayerFrame()
-    UnitFrame:DisableEditorPreviewForPetFrame()
-    UnitFrame:DisableEditorPreviewForTargetFrame()
-    UnitFrame:DisableEditorPreviewForTargetOfTargetFrame()
-    UnitFrame:DisableEditorPreviewForFocusFrame()
-
+    UnitFrame:DisableEditorPreview()
     UnitFrame:UpdateWidgets()
 
     local CastBar = RUI:GetModule("CastBar")
-    CastBar:DisableEditorPreviewForPlayerCastBarFrame()
-
+    CastBar:DisableEditorPreview()
     CastBar:UpdateWidgets()
 
     local Minimap = RUI:GetModule("Minimap")
-    Minimap:DisableEditorPreviewForMinimapFrame()
-
+    Minimap:DisableEditorPreview()
     Minimap:UpdateWidgets()
 
     local QuestLog = RUI:GetModule("QuestLog")
-    QuestLog:DisableEditorPreviewForQuestLogFrame()
-
+    QuestLog:DisableEditorPreview()
     QuestLog:UpdateWidgets()
 
     local BuffFrame = RUI:GetModule("BuffFrame")
-    BuffFrame:DisableEditorPreviewForBuffFrame()
-
+    BuffFrame:DisableEditorPreview()
     BuffFrame:UpdateWidgets()
 end
 
