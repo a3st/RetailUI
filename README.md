@@ -17,9 +17,9 @@ UI inspired by the Retail version. This addon retextures the existing interface.
 
 ## Quick Start
 
-Type ``/dfui edit`` for open grid layout.
+Type ``/rui edit`` for open grid layout.
 
-Type ``/dfui default`` for reset settings.
+Type ``/rui default`` for reset settings.
 
 ## Screenshots
 
