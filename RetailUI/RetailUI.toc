@@ -9,11 +9,12 @@ Libs.xml
 
 Core.lua
 Config.lua
+Atlas.lua
 
 Modules\ActionBar.lua
 Modules\UnitFrame.lua
 Modules\EditorMode.lua
-Modules\CastBar.lua
+Modules\CastingBar.lua
 Modules\Minimap.lua
 Modules\QuestLog.lua
 Modules\BuffFrame.lua

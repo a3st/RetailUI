@@ -1,3 +1,8 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'QuestLog'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
@@ -25,11 +30,7 @@ end
 function Module:PLAYER_ENTERING_WORLD()
     ReplaceBlizzardFrame(self.questLogFrame)
 
-    if RUI.DB.profile.widgets.questLog == nil then
-        self:LoadDefaultSettings()
-    end
-
-    self:UpdateWidgets()
+    CheckSettingsExists(Module, { 'questLog' })
 end
 
 function Module:LoadDefaultSettings()
@@ -41,11 +42,15 @@ function Module:UpdateWidgets()
     self.questLogFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreview()
+function Module:ShowEditorTest()
     HideUIFrame(self.questLogFrame)
 end
 
-function Module:DisableEditorPreview()
+function Module:HideEditorTest(refresh)
     ShowUIFrame(self.questLogFrame)
     SaveUIFramePosition(self.questLogFrame, 'questLog')
+
+    if refresh then
+        self:UpdateWidgets()
+    end
 end

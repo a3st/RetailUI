@@ -1,22 +1,24 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'Minimap'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
 Module.minimapFrame = nil
-Module.rotateFrame = nil
+Module.borderFrame = nil
 
 local function ReplaceBlizzardFrame(frame)
     local minimapCluster = MinimapCluster
     minimapCluster:ClearAllPoints()
-
     minimapCluster:SetPoint("CENTER", frame, "CENTER", 0, 0)
 
-    -- Zone Info Bar
     local minimapBorderTop = MinimapBorderTop
     minimapBorderTop:ClearAllPoints()
     minimapBorderTop:SetPoint("TOP", 0, 5)
-    minimapBorderTop:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    minimapBorderTop:SetTexCoord(105 / 512, 360 / 512, 609 / 1024, 636 / 1024)
+    SetAtlasTexture(minimapBorderTop, 'Minimap-Border-Top')
     minimapBorderTop:SetSize(156, 20)
 
     local minimapZoneButton = MinimapZoneTextButton
@@ -33,7 +35,6 @@ local function ReplaceBlizzardFrame(frame)
     timeClockButton:SetPoint("RIGHT", minimapBorderTop, "RIGHT", -5, 1)
     timeClockButton:SetWidth(30)
 
-    -- GameTime (Calendar)
     local gameTimeFrame = GameTimeFrame
     gameTimeFrame:ClearAllPoints()
     gameTimeFrame:SetPoint("LEFT", minimapBorderTop, "RIGHT", 5, -1)
@@ -42,7 +43,7 @@ local function ReplaceBlizzardFrame(frame)
 
     local dateText = gameTimeFrame:GetFontString()
     dateText:SetAllPoints(gameTimeFrame)
-    dateText:SetPoint("TOPLEFT", -3, 4)
+    dateText:SetPoint("TOPLEFT", -4, 4)
 
     local normalTexture = gameTimeFrame:GetNormalTexture()
     normalTexture:SetAllPoints(gameTimeFrame)
@@ -59,52 +60,45 @@ local function ReplaceBlizzardFrame(frame)
     pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
     pushedTexture:SetTexCoord(0.00390625, 0.0859375, 0.00390625, 0.078125)
 
-    -- Mail
     local minimapFrame = MiniMapMailFrame
     minimapFrame:ClearAllPoints()
     minimapFrame:SetPoint("TOPLEFT", -20, 8)
     minimapFrame:SetSize(24, 20)
     minimapFrame:SetHitRectInsets(0, 0, 0, 0)
 
-    local minimapMailIcon = MiniMapMailIcon
-    minimapMailIcon:SetAllPoints(minimapFrame)
-    minimapMailIcon:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    minimapMailIcon:SetTexCoord(42 / 512, 81 / 512, 520 / 1024, 550 / 1024)
+    local minimapMailIconTexture = MiniMapMailIcon
+    minimapMailIconTexture:SetAllPoints(minimapFrame)
+    SetAtlasTexture(minimapMailIconTexture, 'Minimap-Mail')
 
-    -- PVP
     local minimapBattlefieldFrame = MiniMapBattlefieldFrame
     minimapBattlefieldFrame:ClearAllPoints()
     minimapBattlefieldFrame:SetPoint("BOTTOMLEFT", 8, 2)
 
-    -- Eye
     local minimapLFGFrame = MiniMapLFGFrame
     minimapLFGFrame:ClearAllPoints()
     minimapLFGFrame:SetPoint("BOTTOMLEFT", -5, 15)
     minimapLFGFrame:SetSize(50, 50)
     minimapLFGFrame:SetHitRectInsets(0, 0, 0, 0)
 
-    -- Instance Difficulty
-    local minimapInstance = MiniMapInstanceDifficulty
-    minimapInstance:ClearAllPoints()
-    minimapInstance:SetPoint("TOPRIGHT", -15, -15)
-
     local eyeFrame = _G[minimapLFGFrame:GetName() .. 'Icon']
     eyeFrame:SetAllPoints(minimapLFGFrame)
 
-    local icon = eyeFrame.texture
-    icon:SetAllPoints(eyeFrame)
-    icon:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\EyeGroupFinderFlipbook.blp")
+    local iconTexture = eyeFrame.texture
+    iconTexture:SetAllPoints(eyeFrame)
+    iconTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\EyeGroupFinderFlipbook.blp")
 
-    -- Tracking
+    local minimapInstanceTexture = MiniMapInstanceDifficulty
+    minimapInstanceTexture:ClearAllPoints()
+    minimapInstanceTexture:SetPoint("TOPRIGHT", -15, -15)
+
     local minimapTracking = MiniMapTracking
     minimapTracking:ClearAllPoints()
     minimapTracking:SetPoint("RIGHT", minimapBorderTop, "LEFT", -5, 0)
     minimapTracking:SetSize(26, 24)
 
-    local background = _G[minimapTracking:GetName() .. "Background"]
-    background:SetAllPoints(minimapTracking)
-    background:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    background:SetTexCoord(441 / 512, 480 / 512, 402 / 1024, 440 / 1024)
+    local backgroundTexture = _G[minimapTracking:GetName() .. "Background"]
+    backgroundTexture:SetAllPoints(minimapTracking)
+    SetAtlasTexture(backgroundTexture, 'Minimap-Tracking-Background')
 
     local minimapTrackingButton = _G[minimapTracking:GetName() .. 'Button']
     minimapTrackingButton:ClearAllPoints()
@@ -113,41 +107,36 @@ local function ReplaceBlizzardFrame(frame)
     minimapTrackingButton:SetSize(17, 15)
     minimapTrackingButton:SetHitRectInsets(0, 0, 0, 0)
 
-    local shine = _G[minimapTrackingButton:GetName() .. "Shine"]
-    shine:SetTexture(nil)
+    local shineTexture = _G[minimapTrackingButton:GetName() .. "Shine"]
+    shineTexture:SetTexture(nil)
 
-    local normalTexture = minimapTrackingButton:GetNormalTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
+    normalTexture = minimapTrackingButton:GetNormalTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
     normalTexture:SetAllPoints(minimapTrackingButton)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    normalTexture:SetTexCoord(149 / 512, 179 / 512, 520 / 1024, 548 / 1024)
+    SetAtlasTexture(normalTexture, 'Minimap-Tracking-Normal')
 
     minimapTrackingButton:SetNormalTexture(normalTexture)
 
-    local highlightTexture = minimapTrackingButton:GetHighlightTexture()
+    highlightTexture = minimapTrackingButton:GetHighlightTexture()
     highlightTexture:SetAllPoints(minimapTrackingButton)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    highlightTexture:SetTexCoord(117 / 512, 147 / 512, 520 / 1024, 548 / 1024)
+    SetAtlasTexture(highlightTexture, 'Minimap-Tracking-Highlight')
 
-    local pushedTexture = minimapTrackingButton:GetPushedTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
+    pushedTexture = minimapTrackingButton:GetPushedTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
     pushedTexture:SetAllPoints(minimapTrackingButton)
-    pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    pushedTexture:SetTexCoord(83 / 512, 115 / 512, 520 / 1024, 550 / 1024)
+    SetAtlasTexture(pushedTexture, 'Minimap-Tracking-Pushed')
 
     minimapTrackingButton:SetPushedTexture(pushedTexture)
 
-    -- Minimap Frame
     local minimapFrame = Minimap
     minimapFrame:ClearAllPoints()
     minimapFrame:SetPoint("CENTER", minimapCluster, "CENTER", 0, -30)
     minimapFrame:SetSize(175, 175)
 
-    local minimapBackdrop = MinimapBackdrop
-    minimapBackdrop:ClearAllPoints()
-    minimapBackdrop:SetPoint("CENTER", minimapFrame, "CENTER", 0, 3)
+    local minimapBackdropTexture = MinimapBackdrop
+    minimapBackdropTexture:ClearAllPoints()
+    minimapBackdropTexture:SetPoint("CENTER", minimapFrame, "CENTER", 0, 3)
 
-    local minimapBorder = MinimapBorder
-    minimapBorder:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    minimapBorder:SetTexCoord(1 / 512, 431 / 512, 63 / 1024, 498 / 1024)
+    local minimapBorderTexture = MinimapBorder
+    SetAtlasTexture(minimapBorderTexture, 'Minimap-Border')
 
     local zoomInButton = MinimapZoomIn
     zoomInButton:ClearAllPoints()
@@ -158,23 +147,19 @@ local function ReplaceBlizzardFrame(frame)
 
     normalTexture = zoomInButton:GetNormalTexture()
     normalTexture:SetAllPoints(zoomInButton)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    normalTexture:SetTexCoord(1 / 512, 35 / 512, 552 / 1024, 586 / 1024)
+    SetAtlasTexture(normalTexture, 'Minimap-ZoomIn-Normal')
 
     highlightTexture = zoomInButton:GetHighlightTexture()
     highlightTexture:SetAllPoints(zoomInButton)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    highlightTexture:SetTexCoord(1 / 512, 35 / 512, 624 / 1024, 658 / 1024)
+    SetAtlasTexture(highlightTexture, 'Minimap-ZoomIn-Highlight')
 
     pushedTexture = zoomInButton:GetPushedTexture()
     pushedTexture:SetAllPoints(zoomInButton)
-    pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    pushedTexture:SetTexCoord(1 / 512, 35 / 512, 588 / 1024, 622 / 1024)
+    SetAtlasTexture(pushedTexture, 'Minimap-ZoomIn-Pushed')
 
     local disabledTexture = zoomInButton:GetDisabledTexture()
     disabledTexture:SetAllPoints(zoomInButton)
-    disabledTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    disabledTexture:SetTexCoord(1 / 512, 35 / 512, 588 / 1024, 622 / 1024)
+    SetAtlasTexture(disabledTexture, 'Minimap-ZoomIn-Pushed')
 
     local zoomOutButton = MinimapZoomOut
     zoomOutButton:ClearAllPoints()
@@ -185,86 +170,79 @@ local function ReplaceBlizzardFrame(frame)
 
     normalTexture = zoomOutButton:GetNormalTexture()
     normalTexture:SetAllPoints(zoomOutButton)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    normalTexture:SetTexCoord(181 / 512, 215 / 512, 520 / 1024, 538 / 1024)
+    SetAtlasTexture(normalTexture, 'Minimap-ZoomOut-Normal')
 
     highlightTexture = zoomOutButton:GetHighlightTexture()
     highlightTexture:SetAllPoints(zoomOutButton)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    highlightTexture:SetTexCoord(253 / 512, 287 / 512, 520 / 1024, 538 / 1024)
+    SetAtlasTexture(highlightTexture, 'Minimap-ZoomOut-Highlight')
 
     pushedTexture = zoomOutButton:GetPushedTexture()
     pushedTexture:SetAllPoints(zoomOutButton)
-    pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    pushedTexture:SetTexCoord(217 / 512, 251 / 512, 520 / 1024, 538 / 1024)
+    SetAtlasTexture(pushedTexture, 'Minimap-ZoomOut-Pushed')
 
     disabledTexture = zoomOutButton:GetDisabledTexture()
     disabledTexture:SetAllPoints(zoomOutButton)
-    disabledTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Minimap.blp")
-    disabledTexture:SetTexCoord(217 / 512, 251 / 512, 520 / 1024, 538 / 1024)
+    SetAtlasTexture(disabledTexture, 'Minimap-ZoomOut-Pushed')
 end
 
-local blizzFrames = {
-    MiniMapWorldMapButton,
-    MiniMapTrackingIcon,
-    MiniMapTrackingIconOverlay,
-    MiniMapMailBorder,
-    MiniMapTrackingButtonBorder,
-    MiniMapLFGFrameBorder
-}
+local function CreateMinimapBorderFrame(width, height)
+    local minimapBorderFrame = CreateFrame('Frame', UIParent)
+    minimapBorderFrame:SetSize(width, height)
+    minimapBorderFrame:SetScript("OnUpdate", function(self)
+        local angle = GetPlayerFacing()
+        self.border:SetRotation(angle)
+    end)
+
+    do
+        local texture = minimapBorderFrame:CreateTexture(nil, "BORDER")
+        texture:SetAllPoints(minimapBorderFrame)
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\MinimapBorder.blp")
+
+        minimapBorderFrame.border = texture
+    end
+
+    minimapBorderFrame:Hide()
+    return minimapBorderFrame
+end
 
 local function RemoveBlizzardFrames()
+    local blizzFrames = {
+        MiniMapWorldMapButton,
+        MiniMapTrackingIcon,
+        MiniMapTrackingIconOverlay,
+        MiniMapMailBorder,
+        MiniMapTrackingButtonBorder,
+        MiniMapLFGFrameBorder
+    }
+
     for _, frame in pairs(blizzFrames) do
         frame:SetAlpha(0)
     end
 end
 
 local function Minimap_UpdateRotationSetting()
+    local minimapBorder = MinimapBorder
     if GetCVar("rotateMinimap") == "1" then
-        Module.rotateFrame:Show()
-        MinimapBorder:Hide()
+        Module.borderFrame:Show()
+        minimapBorder:Hide()
     else
-        Module.rotateFrame:Hide()
-        MinimapBorder:Show()
+        Module.borderFrame:Hide()
+        minimapBorder:Show()
     end
 
     MinimapNorthTag:Hide()
     MinimapCompassTexture:Hide()
 end
 
-local function MinimapRotateFrame_OnUpdate(self)
-    local angle = GetPlayerFacing()
-    self.border:SetRotation(angle)
-end
-
-local function MiniMapLFGFrame_OnUpdate(self, elapsed)
-    AnimateTexCoords(self.texture, 512, 256, 64, 64, 29, elapsed, 1)
-end
-
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
     self:SecureHook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
-    MiniMapLFGFrameIcon:HookScript('OnUpdate', MiniMapLFGFrame_OnUpdate)
 
     self.minimapFrame = CreateUIFrame(230, 230, 'MinimapFrame')
 
-    do
-        local rotateFrame = CreateFrame('Frame', MinimapBackdrop)
-        rotateFrame:SetScript("OnUpdate", MinimapRotateFrame_OnUpdate)
-
-        do
-            local texture = rotateFrame:CreateTexture(nil, "BORDER")
-            texture:SetPoint("CENTER", MinimapBorder, "CENTER", 0, -2)
-            texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\MinimapBorder.blp")
-            texture:SetSize(232, 232)
-
-            rotateFrame.border = texture
-        end
-
-        rotateFrame:Hide()
-        self.rotateFrame = rotateFrame
-    end
+    self.borderFrame = CreateMinimapBorderFrame(232, 232)
+    self.borderFrame:SetPoint("CENTER", MinimapBorder, "CENTER", 0, -2)
 
     if not IsAddOnLoaded('Blizzard_TimeManager') then
         LoadAddOn('Blizzard_TimeManager')
@@ -275,18 +253,13 @@ function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
     self:Unhook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
-    MiniMapLFGFrameIcon:Unhook('OnUpdate', MiniMapLFGFrame_OnUpdate)
 end
 
 function Module:PLAYER_ENTERING_WORLD()
     RemoveBlizzardFrames()
     ReplaceBlizzardFrame(self.minimapFrame)
 
-    if RUI.DB.profile.widgets.minimap == nil then
-        self:LoadDefaultSettings()
-    end
-
-    self:UpdateWidgets()
+    CheckSettingsExists(Module, { 'minimap' })
 end
 
 function Module:LoadDefaultSettings()
@@ -298,11 +271,15 @@ function Module:UpdateWidgets()
     self.minimapFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreview()
+function Module:ShowEditorTest()
     HideUIFrame(self.minimapFrame)
 end
 
-function Module:DisableEditorPreview()
+function Module:HideEditorTest(refresh)
     ShowUIFrame(self.minimapFrame)
     SaveUIFramePosition(self.minimapFrame, 'minimap')
+
+    if refresh then
+        self:UpdateWidgets()
+    end
 end

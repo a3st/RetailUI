@@ -1,39 +1,41 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'BuffFrame'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
 Module.buffFrame = nil
-Module.toggleBuffs = true
 
 local function ReplaceBlizzardFrame(frame)
     frame.toggleButton = frame.toggleButton or CreateFrame('Button', nil, UIParent)
     local toggleButton = frame.toggleButton
+    toggleButton.toggle = true
     toggleButton:SetPoint("RIGHT", frame, "RIGHT", 0, -3)
-
-    toggleButton:SetSize(13, 24)
+    toggleButton:SetSize(9, 17)
     toggleButton:SetHitRectInsets(0, 0, 0, 0)
 
     local normalTexture = toggleButton:GetNormalTexture() or toggleButton:CreateTexture(nil, "BORDER")
     normalTexture:SetAllPoints(toggleButton)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
-    normalTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+    SetAtlasTexture(normalTexture, 'CollapseButton-Right')
 
     toggleButton:SetNormalTexture(normalTexture)
 
     local highlightTexture = toggleButton:GetHighlightTexture() or toggleButton:CreateTexture(nil, "HIGHLIGHT")
     highlightTexture:SetAllPoints(toggleButton)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
-    highlightTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+    SetAtlasTexture(highlightTexture, 'CollapseButton-Right')
 
     toggleButton:SetHighlightTexture(highlightTexture)
 
     toggleButton:SetScript("OnClick", function(self)
-        if Module.toggleBuffs then
+        if self.toggle then
             local normalTexture = self:GetNormalTexture()
-            normalTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+            SetAtlasTexture(normalTexture, 'CollapseButton-Left')
 
             local highlightTexture = toggleButton:GetHighlightTexture()
-            highlightTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+            SetAtlasTexture(highlightTexture, 'CollapseButton-Left')
 
             for index = 1, BUFF_ACTUAL_DISPLAY do
                 local button = _G['BuffButton' .. index]
@@ -43,10 +45,10 @@ local function ReplaceBlizzardFrame(frame)
             end
         else
             local normalTexture = self:GetNormalTexture()
-            normalTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+            SetAtlasTexture(normalTexture, 'CollapseButton-Right')
 
             local highlightTexture = toggleButton:GetHighlightTexture()
-            highlightTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+            SetAtlasTexture(highlightTexture, 'CollapseButton-Right')
 
             for index = 1, BUFF_ACTUAL_DISPLAY do
                 local button = _G['BuffButton' .. index]
@@ -56,7 +58,7 @@ local function ReplaceBlizzardFrame(frame)
             end
         end
 
-        Module.toggleBuffs = not Module.toggleBuffs
+        self.toggle = not self.toggle
     end)
 
     local consolidatedBuffFrame = ConsolidatedBuffs
@@ -66,7 +68,7 @@ local function ReplaceBlizzardFrame(frame)
     consolidatedBuffFrame:SetPoint("RIGHT", toggleButton, "LEFT", -6, 0)
 end
 
-local function showToggleButtonIf(condition)
+local function ShowToggleButtonIf(condition)
     if condition then
         Module.buffFrame.toggleButton:Show()
     else
@@ -74,9 +76,22 @@ local function showToggleButtonIf(condition)
     end
 end
 
+local function GetUnitBuffCount(unit, range)
+    local count = 0
+    for index = 1, range do
+        local name = UnitBuff(unit, index)
+        if name then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("UNIT_AURA")
+    self:RegisterEvent("UNIT_ENTERED_VEHICLE")
+    self:RegisterEvent("UNIT_EXITED_VEHICLE")
 
     self.buffFrame = CreateUIFrame(BuffFrame:GetWidth(), BuffFrame:GetHeight(), "BuffFrame")
 end
@@ -84,24 +99,36 @@ end
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
     self:UnregisterEvent("UNIT_AURA")
+    self:UnregisterEvent("UNIT_ENTERED_VEHICLE")
+    self:UnregisterEvent("UNIT_EXITED_VEHICLE")
 end
 
 function Module:PLAYER_ENTERING_WORLD()
     ReplaceBlizzardFrame(self.buffFrame)
 
-    showToggleButtonIf(BUFF_ACTUAL_DISPLAY > 0)
+    ShowToggleButtonIf(GetUnitBuffCount("player", 16) > 0)
 
-    if RUI.DB.profile.widgets.buffs == nil then
-        self:LoadDefaultSettings()
-    end
-
-    self:UpdateWidgets()
+    CheckSettingsExists(Module, { 'buffs' })
 end
 
 function Module:UNIT_AURA(eventName, unit)
+    if unit == 'vehicle' then
+        ShowToggleButtonIf(GetUnitBuffCount("vehicle", 16) > 0)
+    elseif unit == 'player' then
+        ShowToggleButtonIf(GetUnitBuffCount("player", 16) > 0)
+    end
+end
+
+function Module:UNIT_ENTERED_VEHICLE(eventName, unit)
     if unit ~= 'player' then return end
 
-    showToggleButtonIf(BUFF_ACTUAL_DISPLAY > 0)
+    ShowToggleButtonIf(GetUnitBuffCount("vehicle", 16) > 0)
+end
+
+function Module:UNIT_EXITED_VEHICLE(eventName, unit)
+    if unit ~= 'player' then return end
+
+    ShowToggleButtonIf(GetUnitBuffCount("player", 16) > 0)
 end
 
 function Module:LoadDefaultSettings()
@@ -113,11 +140,15 @@ function Module:UpdateWidgets()
     self.buffFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreview()
+function Module:ShowEditorTest()
     HideUIFrame(self.buffFrame)
 end
 
-function Module:DisableEditorPreview()
+function Module:HideEditorTest(refresh)
     ShowUIFrame(self.buffFrame)
     SaveUIFramePosition(self.buffFrame, 'buffs')
+
+    if refresh then
+        self:UpdateWidgets()
+    end
 end

@@ -1,3 +1,8 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 
 RUI.optionsSlash = {
@@ -24,29 +29,30 @@ RUI.optionsSlash = {
             type = 'execute',
             order = 0,
             func = function()
-                local ActionBar = RUI:GetModule('ActionBar')
-                ActionBar:LoadDefaultSettings()
-                ActionBar:UpdateWidgets()
+                local UnitFrameModule  = RUI:GetModule("UnitFrame")
+                local CastingBarModule = RUI:GetModule("CastingBar")
+                local ActionBarModule  = RUI:GetModule("ActionBar")
+                local MinimapModule    = RUI:GetModule("Minimap")
+                local QuestLogModule   = RUI:GetModule("QuestLog")
+                local BuffFrameModule  = RUI:GetModule("BuffFrame")
 
-                local UnitFrame = RUI:GetModule('UnitFrame')
-                UnitFrame:LoadDefaultSettings()
-                UnitFrame:UpdateWidgets()
+                ActionBarModule:LoadDefaultSettings()
+                ActionBarModule:UpdateWidgets()
 
-                local CastBar = RUI:GetModule('CastBar')
-                CastBar:LoadDefaultSettings()
-                CastBar:UpdateWidgets()
+                UnitFrameModule:LoadDefaultSettings()
+                UnitFrameModule:UpdateWidgets()
 
-                local Minimap = RUI:GetModule('Minimap')
-                Minimap:LoadDefaultSettings()
-                Minimap:UpdateWidgets()
+                CastingBarModule:LoadDefaultSettings()
+                CastingBarModule:UpdateWidgets()
 
-                local QuestLog = RUI:GetModule('QuestLog')
-                QuestLog:LoadDefaultSettings()
-                QuestLog:UpdateWidgets()
+                MinimapModule:LoadDefaultSettings()
+                MinimapModule:UpdateWidgets()
 
-                local BuffFrame = RUI:GetModule('BuffFrame')
-                BuffFrame:LoadDefaultSettings()
-                BuffFrame:UpdateWidgets()
+                QuestLogModule:LoadDefaultSettings()
+                QuestLogModule:UpdateWidgets()
+
+                BuffFrameModule:LoadDefaultSettings()
+                BuffFrameModule:UpdateWidgets()
             end,
             dialogHidden = true
         }

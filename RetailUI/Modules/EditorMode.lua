@@ -1,19 +1,27 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'EditorMode'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
-Module.gridFrame = nil
+local UnitFrameModule, CastingBarModule, ActionBarModule, MinimapModule, QuestLogModule, BuffFrameModule
 
-local function CreateGridFrame()
-    local gridFrame = CreateFrame("Frame", 'RUI_GridFrame', UIParent)
-    gridFrame:SetPoint("TOPLEFT", 0, 0)
-    gridFrame:SetSize(GetScreenWidth(), GetScreenHeight())
-    gridFrame:SetFrameLevel(0)
+Module.editorGridFrame = nil
+
+local function CreateEditorGridFrame()
+    local editorGridFrame = CreateFrame("Frame", 'RUI_EditorGridFrame', UIParent)
+    editorGridFrame:SetPoint("TOPLEFT", 0, 0)
+    editorGridFrame:SetSize(GetScreenWidth(), GetScreenHeight())
+    editorGridFrame:SetFrameLevel(0)
+    editorGridFrame:SetFrameStrata("BACKGROUND")
 
     do
-        local texture = gridFrame:CreateTexture(nil, "BACKGROUND")
-        texture:SetAllPoints(gridFrame)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-Grid.blp", "REPEAT", "REPEAT")
+        local texture = editorGridFrame:CreateTexture(nil, "BACKGROUND")
+        texture:SetAllPoints(editorGridFrame)
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\EditorGrid.blp", "REPEAT", "REPEAT")
         texture:SetTexCoord(0, 1, 0, 1)
         texture:SetVertTile(true)
         texture:SetHorizTile(true)
@@ -21,12 +29,19 @@ local function CreateGridFrame()
         texture:SetAlpha(0.4)
     end
 
-    gridFrame:Hide()
-    return gridFrame
+    editorGridFrame:Hide()
+    return editorGridFrame
 end
 
 function Module:OnEnable()
-    self.gridFrame = CreateGridFrame()
+    UnitFrameModule      = RUI:GetModule("UnitFrame")
+    CastingBarModule     = RUI:GetModule("CastingBar")
+    ActionBarModule      = RUI:GetModule("ActionBar")
+    MinimapModule        = RUI:GetModule("Minimap")
+    QuestLogModule       = RUI:GetModule("QuestLog")
+    BuffFrameModule      = RUI:GetModule("BuffFrame")
+
+    self.editorGridFrame = CreateEditorGridFrame()
 end
 
 function Module:OnDisable() end
@@ -37,55 +52,27 @@ function Module:Show()
         return
     end
 
-    self.gridFrame:Show()
+    self.editorGridFrame:Show()
 
-    local ActionBar = RUI:GetModule("ActionBar")
-    ActionBar:EnableEditorPreview()
-
-    local UnitFrame = RUI:GetModule("UnitFrame")
-    UnitFrame:EnableEditorPreview()
-
-    local CastBar = RUI:GetModule("CastBar")
-    CastBar:EnableEditorPreview()
-
-    local Minimap = RUI:GetModule("Minimap")
-    Minimap:EnableEditorPreview()
-
-    local QuestLog = RUI:GetModule("QuestLog")
-    QuestLog:EnableEditorPreview()
-
-    local BuffFrame = RUI:GetModule("BuffFrame")
-    BuffFrame:EnableEditorPreview()
+    ActionBarModule:ShowEditorTest()
+    UnitFrameModule:ShowEditorTest()
+    CastingBarModule:ShowEditorTest()
+    MinimapModule:ShowEditorTest()
+    QuestLogModule:ShowEditorTest()
+    BuffFrameModule:ShowEditorTest()
 end
 
 function Module:Hide()
-    self.gridFrame:Hide()
+    self.editorGridFrame:Hide()
 
-    local ActionBar = RUI:GetModule("ActionBar")
-    ActionBar:DisableEditorPreview()
-    ActionBar:UpdateWidgets()
-
-    local UnitFrame = RUI:GetModule("UnitFrame")
-    UnitFrame:DisableEditorPreview()
-    UnitFrame:UpdateWidgets()
-
-    local CastBar = RUI:GetModule("CastBar")
-    CastBar:DisableEditorPreview()
-    CastBar:UpdateWidgets()
-
-    local Minimap = RUI:GetModule("Minimap")
-    Minimap:DisableEditorPreview()
-    Minimap:UpdateWidgets()
-
-    local QuestLog = RUI:GetModule("QuestLog")
-    QuestLog:DisableEditorPreview()
-    QuestLog:UpdateWidgets()
-
-    local BuffFrame = RUI:GetModule("BuffFrame")
-    BuffFrame:DisableEditorPreview()
-    BuffFrame:UpdateWidgets()
+    ActionBarModule:HideEditorTest(true)
+    UnitFrameModule:HideEditorTest(true)
+    CastingBarModule:HideEditorTest(true)
+    MinimapModule:HideEditorTest(true)
+    QuestLogModule:HideEditorTest(true)
+    BuffFrameModule:HideEditorTest(true)
 end
 
 function Module:IsShown()
-    return self.gridFrame:IsShown()
+    return self.editorGridFrame:IsShown()
 end

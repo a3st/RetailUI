@@ -1,3 +1,8 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):NewAddon('RetailUI', 'AceConsole-3.0')
 local AceConfig = LibStub("AceConfig-3.0")
 local AceDB = LibStub("AceDB-3.0")
@@ -35,7 +40,7 @@ function CreateUIFrame(width, height, frameName)
 	do
 		local texture = frame:CreateTexture(nil, 'BACKGROUND')
 		texture:SetAllPoints(frame)
-		texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+		texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
 		texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
 		texture:Hide()
 
@@ -92,4 +97,14 @@ function SaveUIFramePosition(frame, widgetName)
 	RUI.DB.profile.widgets[widgetName].anchor = relativePoint
 	RUI.DB.profile.widgets[widgetName].posX = posX
 	RUI.DB.profile.widgets[widgetName].posY = posY
+end
+
+function CheckSettingsExists(self, widgets)
+	for _, widget in pairs(widgets) do
+		if RUI.DB.profile.widgets[widget] == nil then
+			self:LoadDefaultSettings()
+			break
+		end
+	end
+	self:UpdateWidgets()
 end

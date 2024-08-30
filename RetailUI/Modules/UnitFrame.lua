@@ -1,3 +1,8 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'UnitFrame'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
@@ -30,140 +35,130 @@ local function UpdateRune(button)
     end
 end
 
+local function UpdateGroupIndicator()
+    local playerFrame = PlayerFrame
+    local groupIndicatorFrame, groupText = _G[playerFrame:GetName() .. 'GroupIndicator'],
+        _G[playerFrame:GetName() .. 'GroupIndicator' .. 'Text']
+    groupIndicatorFrame:Hide()
+    local name, rank, subgroup
+    if GetNumRaidMembers() == 0 then
+        groupIndicatorFrame:Hide()
+        return
+    end
+
+    local numRaidMembers = GetNumRaidMembers()
+    for i = 1, MAX_RAID_MEMBERS do
+        if i <= numRaidMembers then
+            name, rank, subgroup = GetRaidRosterInfo(i)
+            -- Set the player's group number indicator
+            if (name == UnitName("player")) then
+                groupText:SetText(GROUP .. " " .. subgroup)
+                local backgroundTexture = _G[playerFrame:GetName() .. 'GroupIndicator' .. 'Middle']
+                groupIndicatorFrame:SetSize(backgroundTexture:GetWidth(), backgroundTexture:GetHeight())
+                groupIndicatorFrame:Show()
+            end
+        end
+    end
+end
+
 local function ReplaceBlizzardPlayerFrame(frame)
     local playerFrame = PlayerFrame
     playerFrame:ClearAllPoints()
     playerFrame:SetPoint("LEFT", frame, "LEFT", 0)
-
     playerFrame:SetSize(frame:GetWidth(), frame:GetHeight())
     playerFrame:SetHitRectInsets(0, 0, 0, 0)
 
-    -- Main
-    local playerPortraitTexture = PlayerPortrait
-    playerPortraitTexture:ClearAllPoints()
-    playerPortraitTexture:SetPoint("LEFT", 3, -1)
-    playerPortraitTexture:SetSize(58, 58)
-    playerPortraitTexture:SetDrawLayer('BACKGROUND')
+    local portraitTexture = PlayerPortrait
+    portraitTexture:ClearAllPoints()
+    portraitTexture:SetPoint("LEFT", 14, 10)
+    portraitTexture:SetSize(56, 56)
+    portraitTexture:SetDrawLayer('BACKGROUND')
 
     local borderTexture = _G[playerFrame:GetName() .. 'Texture']
-    borderTexture:SetAllPoints(playerFrame)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    borderTexture:SetTexCoord(812 / 1024, 1002 / 1024, 3 / 512, 68 / 512)
+    borderTexture:ClearAllPoints()
+    borderTexture:SetPoint('BOTTOMLEFT', 0, 0)
     borderTexture:SetDrawLayer('BORDER')
 
-    -- Health Bar
-    local playerHealthBar = _G[playerFrame:GetName() .. 'HealthBar']
-    playerHealthBar:SetFrameLevel(playerFrame:GetFrameLevel() + 2)
-    playerHealthBar:ClearAllPoints()
-    playerHealthBar:SetPoint("TOPLEFT", 65, -25)
-    playerHealthBar:SetSize(124, 18)
+    borderTexture = _G[playerFrame:GetName() .. 'VehicleTexture']
+    borderTexture:ClearAllPoints()
+    borderTexture:SetPoint('BOTTOMLEFT', 0, 0)
+    borderTexture:SetDrawLayer('BORDER')
 
-    local statusBarTexture = playerHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(playerHealthBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(687 / 1024, 810 / 1024, 161 / 512, 179 / 512)
+    local healthBar = _G[playerFrame:GetName() .. 'HealthBar']
+    healthBar:SetFrameLevel(playerFrame:GetFrameLevel() + 2)
+    healthBar:ClearAllPoints()
+    healthBar:SetPoint("TOPLEFT", 72, -15)
+    healthBar:SetSize(123, 20)
 
-    -- Mana Bar
-    local playerManaBar = _G[playerFrame:GetName() .. 'ManaBar']
-    playerManaBar:SetFrameLevel(playerFrame:GetFrameLevel() + 2)
-    playerManaBar:ClearAllPoints()
-    playerManaBar:SetPoint("TOPLEFT", 65, -46)
-    playerManaBar:SetSize(124, 9)
+    local statusBarTexture = healthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(healthBar)
+    SetAtlasTexture(statusBarTexture, 'PlayerFrame-StatusBar-Health')
 
-    statusBarTexture = playerManaBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(playerManaBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(699 / 1024, 822 / 1024, 236 / 512, 245 / 512)
+    local manaBar = _G[playerFrame:GetName() .. 'ManaBar']
+    manaBar:SetFrameLevel(playerFrame:GetFrameLevel() + 2)
+    manaBar:ClearAllPoints()
+    manaBar:SetPoint("TOPLEFT", 72, -37)
+    manaBar:SetSize(123, 9)
 
-    -- Font Strings
-    local playerNameText = PlayerName
-    playerNameText:ClearAllPoints()
-    playerNameText:SetPoint("CENTER", 17, 17)
-    playerNameText:SetDrawLayer('OVERLAY')
-    playerNameText:SetJustifyH("LEFT")
-    playerNameText:SetWidth(90)
+    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(manaBar)
+    SetAtlasTexture(statusBarTexture, 'PlayerFrame-StatusBar-Mana')
 
-    local playerLevelText = PlayerLevelText
-    playerLevelText:ClearAllPoints()
-    playerLevelText:SetPoint("CENTER", 80, 17)
-    playerLevelText:SetDrawLayer('OVERLAY')
+    local nameText = PlayerName
+    nameText:SetDrawLayer('OVERLAY')
+    nameText:SetJustifyH("LEFT")
+    nameText:SetWidth(90)
 
-    local playerHealthText = _G[playerFrame:GetName() .. 'HealthBarText']
-    playerHealthText:ClearAllPoints()
-    playerHealthText:SetPoint("CENTER", 30, -1)
-    playerHealthText:SetDrawLayer('OVERLAY')
+    local levelText = PlayerLevelText
+    levelText:ClearAllPoints()
+    levelText:SetPoint("CENTER", 88, 27)
+    levelText:SetDrawLayer('OVERLAY')
 
-    local playerManaText = _G[playerFrame:GetName() .. 'ManaBarText']
-    playerManaText:ClearAllPoints()
-    playerManaText:SetPoint("CENTER", 30, -17)
-    playerManaText:SetDrawLayer('OVERLAY')
+    local healthText = _G[playerFrame:GetName() .. 'HealthBarText']
+    healthText:SetDrawLayer('OVERLAY')
 
-    -- Rest Animation Icon
-    local playerRestIconTexture = PlayerRestIcon
-    playerRestIconTexture:ClearAllPoints()
-    playerRestIconTexture:SetPoint("TOPLEFT", 40, 10)
-    playerRestIconTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\PlayerFrame\\PlayerRestFlipbook.blp")
-    playerRestIconTexture:SetDrawLayer('ARTWORK')
+    local manaText = _G[playerFrame:GetName() .. 'ManaBarText']
+    manaText:SetDrawLayer('OVERLAY')
 
-    local playerStatusTexture = PlayerStatusTexture
-    playerStatusTexture:SetAllPoints(playerFrame)
-    playerStatusTexture:SetPoint("BOTTOM", 0, -1)
-    playerStatusTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    playerStatusTexture:SetTexCoord(201 / 1024, 391 / 1024, 90 / 512, 156 / 512)
-    playerStatusTexture:SetDrawLayer("OVERLAY")
+    local restIconTexture = PlayerRestIcon
+    restIconTexture:ClearAllPoints()
+    restIconTexture:SetPoint("TOPLEFT", 50, 23)
+    restIconTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\PlayerFrame\\PlayerRestFlipbook.blp")
+    restIconTexture:SetDrawLayer('ARTWORK')
 
-    -- Arrow
-    playerFrame.arrowIcon = playerFrame.arrowIcon or playerFrame:CreateTexture(nil, "BORDER")
-    local arrowIconTexture = playerFrame.arrowIcon
-    arrowIconTexture:ClearAllPoints()
-    arrowIconTexture:SetPoint("LEFT", 48, -22)
-    arrowIconTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    arrowIconTexture:SetTexCoord(986 / 1024, 997 / 1024, 144 / 512, 154 / 512)
-    arrowIconTexture:SetSize(12, 12)
-    arrowIconTexture:SetDrawLayer('BORDER')
-
-    local playerPVPIconTexture = PlayerPVPIcon
-    playerPVPIconTexture:ClearAllPoints()
-    playerPVPIconTexture:SetPoint("LEFT", -16, -12)
+    local statusTexture = PlayerStatusTexture
+    statusTexture:ClearAllPoints()
+    statusTexture:SetPoint("BOTTOMLEFT", 0, 0)
+    statusTexture:SetDrawLayer("OVERLAY")
 
     PlayerPVPTimerText:SetPoint("TOPLEFT", -10, 5)
 
-    local playerFrameFlashTexture = PlayerFrameFlash
-    playerFrameFlashTexture:SetAllPoints(playerFrame)
-    playerFrameFlashTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    playerFrameFlashTexture:SetTexCoord(202 / 1024, 392 / 1024, 90 / 512, 154 / 512)
-    playerFrameFlashTexture:SetDrawLayer("OVERLAY")
+    local flashTexture = _G[playerFrame:GetName() .. 'Flash']
+    flashTexture:ClearAllPoints()
+    flashTexture:SetPoint("BOTTOMLEFT", 0, 0)
+    flashTexture:SetDrawLayer("OVERLAY")
 
-    local playerHitText = PlayerHitIndicator
-    playerHitText:ClearAllPoints()
-    playerHitText:SetJustifyH("CENTER")
-    playerHitText:SetPoint("TOPLEFT", 0, 0)
-    playerHitText:SetPoint("BOTTOMRIGHT", -120, 0)
+    local hitText = PlayerHitIndicator
+    hitText:ClearAllPoints()
+    hitText:SetJustifyH("CENTER")
+    hitText:SetPoint("LEFT", 5, 7)
+    hitText:SetWidth(75)
 
-    local playerLeaderIconTexture = PlayerLeaderIcon
-    playerLeaderIconTexture:ClearAllPoints()
-    playerLeaderIconTexture:SetPoint("TOP", -20, 5)
-
-    local playerMasterIconTexture = PlayerMasterIcon
-    playerMasterIconTexture:ClearAllPoints()
-    playerMasterIconTexture:SetPoint("TOP", 0, 7)
-
-    local playerFrameGroup = PlayerFrameGroupIndicator
-    playerFrameGroup:ClearAllPoints()
-    playerFrameGroup:SetPoint("TOPRIGHT", -12, 7)
-    playerFrameGroup:SetSize(60, 18)
-
-    local backgroundTexture = _G['PlayerFrameGroupIndicator' .. 'Middle']
-    backgroundTexture:SetAllPoints(playerFrameGroup)
-    backgroundTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    backgroundTexture:SetTexCoord(948 / 1024, 1022 / 1024, 158 / 512, 175 / 512)
+    local groupIndicatorFrame = _G[playerFrame:GetName() .. 'GroupIndicator']
+    local backgroundTexture = _G[playerFrame:GetName() .. 'GroupIndicator' .. 'Middle']
+    backgroundTexture:SetAllPoints(groupIndicatorFrame)
+    SetAtlasTexture(backgroundTexture, 'PlayerFrame-GroupIndicator')
     backgroundTexture:SetVertexColor(1, 1, 1, 1)
 
-    local playerGroupText = _G['PlayerFrameGroupIndicator' .. 'Text']
-    playerGroupText:ClearAllPoints()
-    playerGroupText:SetPoint("TOPRIGHT", -10, -3)
+    groupIndicatorFrame:SetSize(backgroundTexture:GetWidth(), backgroundTexture:GetHeight())
 
-    -- DK Runes
+    local groupText = _G['PlayerFrameGroupIndicator' .. 'Text']
+    groupText:ClearAllPoints()
+    groupText:SetPoint("CENTER", groupIndicatorFrame, 0, 0)
+    groupText:SetJustifyH("CENTER")
+end
+
+local function ReplaceBlizzardRuneFrame()
     for index = 1, 6 do
         local button = _G['RuneButtonIndividual' .. index]
         button:ClearAllPoints()
@@ -171,130 +166,56 @@ local function ReplaceBlizzardPlayerFrame(frame)
         if index > 1 then
             button:SetPoint('LEFT', _G['RuneButtonIndividual' .. index - 1], 'RIGHT', 4, 0)
         else
-            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -20, -6)
+            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -10, 6)
         end
 
         UpdateRune(button)
     end
 end
 
-local comboPoints = {
-    { anchor = 'TOPRIGHT', x = 0,  y = 0 },
-    { anchor = 'TOP',      x = 9,  y = 3 },
-    { anchor = 'TOP',      x = 4,  y = 1 },
-    { anchor = 'TOP',      x = -1, y = 0 },
-    { anchor = 'TOP',      x = -7, y = 2 }
-}
+local function ReplaceBlizzardTotemFrame()
+    for index = 1, MAX_TOTEMS do
+        local button = _G['TotemFrameTotem' .. index]
+        button:ClearAllPoints()
+        button:SetSize(32, 32)
 
-local function ReplaceBlizzardTargetFrame(frame)
-    local targetFrame = TargetFrame
-    targetFrame:ClearAllPoints()
-    targetFrame:SetPoint("LEFT", frame, "LEFT", 0)
+        local backgroundTexture = _G[button:GetName() .. "Background"]
+        backgroundTexture:SetAllPoints(button)
 
-    targetFrame:SetSize(frame:GetWidth(), frame:GetHeight())
-    targetFrame:SetHitRectInsets(0, 0, 0, 0)
+        for _, children in pairs { button:GetChildren() } do
+            for _, region in pairs { children:GetRegions() } do
+                if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'OVERLAY' then
+                    region:SetAllPoints(button)
+                end
+            end
+        end
 
-    -- Main
-    local borderTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Texture']
-    borderTexture:SetAllPoints(targetFrame)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    borderTexture:SetTexCoord(782 / 1024, 971 / 1024, 88 / 512, 150 / 512)
-    borderTexture:SetDrawLayer('BORDER')
+        local iconTexture = _G[button:GetName() .. "IconTexture"]
+        iconTexture:SetPoint("TOPLEFT", button, "TOPLEFT", 7, -7)
+        iconTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -7, 7)
+        iconTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+        iconTexture:SetDrawLayer('BACKGROUND')
 
-    local targetPortraitTexture = _G[targetFrame:GetName() .. 'Portrait']
-    targetPortraitTexture:ClearAllPoints()
-    targetPortraitTexture:SetPoint("RIGHT", -5, 1)
-    targetPortraitTexture:SetSize(58, 58)
-    targetPortraitTexture:SetDrawLayer('BACKGROUND')
+        if index > 1 then
+            button:SetPoint('LEFT', _G['TotemFrameTotem' .. index - 1], 'RIGHT', 2, 0)
+        else
+            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -8, 2)
+        end
+    end
+end
 
-    local backgroundTexture = _G[targetFrame:GetName() .. 'NameBackground']
-    backgroundTexture:ClearAllPoints()
-    backgroundTexture:SetPoint('TOPLEFT', 2, -8)
-    backgroundTexture:SetPoint('BOTTOMRIGHT', -55, 42)
-    backgroundTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\NameBackground.blp")
-    backgroundTexture:SetTexCoord(5 / 256, 138 / 256, 9 / 32, 22 / 32)
-    backgroundTexture:SetDrawLayer("BACKGROUND")
-    backgroundTexture:SetBlendMode('BLEND')
+local function ReplaceBlizzardComboFrame()
+    local comboPoints = {
+        { anchor = 'TOPRIGHT', x = 0,  y = 0 },
+        { anchor = 'TOP',      x = 9,  y = 3 },
+        { anchor = 'TOP',      x = 4,  y = 1 },
+        { anchor = 'TOP',      x = -1, y = 0 },
+        { anchor = 'TOP',      x = -7, y = 2 }
+    }
 
-    -- Health Bar
-    local targetHealthBar = _G[targetFrame:GetName() .. 'HealthBar']
-    targetHealthBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
-    targetHealthBar:ClearAllPoints()
-    targetHealthBar:SetPoint("TOPLEFT", 4, -24)
-    targetHealthBar:SetSize(124, 20)
-
-    local statusBarTexture = targetHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(targetHealthBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(434 / 1024, 557 / 1024, 183 / 512, 202 / 512)
-
-    -- Mana Bar
-    local targetManaBar = _G[targetFrame:GetName() .. 'ManaBar']
-    targetManaBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
-    targetManaBar:ClearAllPoints()
-    targetManaBar:SetPoint("TOPLEFT", 4, -43)
-    targetManaBar:SetSize(130, 12)
-
-    statusBarTexture = targetManaBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(targetManaBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(466 / 1024, 598 / 1024, 207 / 512, 220 / 512)
-
-    -- Font Strings
-    local targetNameText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Name']
-    targetNameText:ClearAllPoints()
-    targetNameText:SetPoint("CENTER", -14, 18)
-    targetNameText:SetDrawLayer("OVERLAY")
-    targetNameText:SetJustifyH("LEFT")
-    targetNameText:SetWidth(80)
-
-    local targetLevelText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'LevelText']
-    targetLevelText:ClearAllPoints()
-    targetLevelText:SetPoint("CENTER", -80, 18)
-    targetLevelText:SetJustifyH("LEFT")
-    targetLevelText:SetDrawLayer("OVERLAY")
-
-    local targetHealthText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'HealthBarText']
-    targetHealthText:ClearAllPoints()
-    targetHealthText:SetPoint("CENTER", -25, -1)
-    targetHealthText:SetDrawLayer("OVERLAY")
-
-    local targetDeathText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'DeadText']
-    targetDeathText:ClearAllPoints()
-    targetDeathText:SetPoint("CENTER", -25, -1)
-    targetDeathText:SetDrawLayer("OVERLAY")
-
-    local targetManaText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'ManaBarText']
-    targetManaText:ClearAllPoints()
-    targetManaText:SetPoint("CENTER", -25, -18)
-    targetManaText:SetDrawLayer("OVERLAY")
-
-    local targetPVPIconTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'PVPIcon']
-    targetPVPIconTexture:ClearAllPoints()
-    targetPVPIconTexture:SetPoint("RIGHT", 40, -12)
-
-    local targetLeaderIconTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'LeaderIcon']
-    targetLeaderIconTexture:ClearAllPoints()
-    targetLeaderIconTexture:SetPoint("TOPRIGHT", 0, 0)
-
-    local targetFrameFlashTexture = _G[targetFrame:GetName() .. 'Flash']
-    targetFrameFlashTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    targetFrameFlashTexture:SetDrawLayer("OVERLAY")
-
-    targetFrame.elite = targetFrame.elite or
-        _G[targetFrame:GetName() .. 'TextureFrame']:CreateTexture(nil, 'OVERLAY')
-    local eliteTexture = targetFrame.elite
-    eliteTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\BossFrame.blp")
-
-    -- Raid Icon
-    local raidTargetIconTexture = _G['TargetFrame' .. 'TextureFrame' .. 'RaidTargetIcon']
-    raidTargetIconTexture:ClearAllPoints()
-    raidTargetIconTexture:SetPoint("TOPRIGHT", -20, 10)
-
-    -- Combo Points
     local comboFrame = ComboFrame
     comboFrame:ClearAllPoints()
-    comboFrame:SetPoint("CENTER", targetFrame, "CENTER", -31, 23)
+    comboFrame:SetPoint("CENTER", TargetFrame, "CENTER", -31, 23)
 
     for index = 1, MAX_COMBO_POINTS do
         local comboPoint = _G['ComboPoint' .. index]
@@ -326,46 +247,139 @@ local function ReplaceBlizzardTargetFrame(frame)
         highlightTexture:SetTexCoord(55 / 128, 75 / 128, 21 / 64, 41 / 64)
         highlightTexture:SetSize(15, 15)
     end
+end
+
+local function ReplaceBlizzardTargetFrame(frame, target)
+    local targetFrame = target
+    targetFrame:ClearAllPoints()
+    targetFrame:SetPoint("LEFT", frame, "LEFT", 0)
+    targetFrame:SetSize(frame:GetWidth(), frame:GetHeight())
+    targetFrame:SetHitRectInsets(0, 0, 0, 0)
+
+    local borderTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Texture']
+    borderTexture:ClearAllPoints()
+    borderTexture:SetPoint("BOTTOMLEFT", 0, 0)
+    borderTexture:SetDrawLayer('BORDER')
+
+    local portraitTexture = _G[targetFrame:GetName() .. 'Portrait']
+    portraitTexture:ClearAllPoints()
+    portraitTexture:SetPoint("RIGHT", -5, 8)
+    portraitTexture:SetSize(56, 56)
+    portraitTexture:SetDrawLayer('BACKGROUND')
+
+    local backgroundTexture = _G[targetFrame:GetName() .. 'NameBackground']
+    backgroundTexture:ClearAllPoints()
+    backgroundTexture:SetPoint('TOPLEFT', 4, -2)
+    backgroundTexture:SetPoint('BOTTOMRIGHT', -56, 44)
+    backgroundTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\NameBackground.blp")
+    backgroundTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+    backgroundTexture:SetDrawLayer("BACKGROUND")
+    backgroundTexture:SetBlendMode('ADD')
+
+    local healthBar = _G[targetFrame:GetName() .. 'HealthBar']
+    healthBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
+    healthBar:ClearAllPoints()
+    healthBar:SetPoint("TOPLEFT", 5, -16)
+
+    local statusBarTexture = healthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(healthBar)
+    SetAtlasTexture(statusBarTexture, 'TargetFrame-StatusBar-Health')
+
+    local manaBar = _G[targetFrame:GetName() .. 'ManaBar']
+    manaBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
+    manaBar:ClearAllPoints()
+    manaBar:SetPoint("TOPLEFT", 4, -36)
+
+    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(manaBar)
+    SetAtlasTexture(statusBarTexture, 'TargetFrame-StatusBar-Mana')
+
+    local nameText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Name']
+    nameText:ClearAllPoints()
+    nameText:SetPoint("CENTER", -14, 27)
+    nameText:SetDrawLayer("OVERLAY")
+    nameText:SetJustifyH("LEFT")
+    nameText:SetWidth(80)
+
+    local levelText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'LevelText']
+    levelText:ClearAllPoints()
+    levelText:SetPoint("CENTER", -80, 27)
+    levelText:SetJustifyH("LEFT")
+    levelText:SetDrawLayer("OVERLAY")
+
+    local highLevelTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'HighLevelTexture']
+    highLevelTexture:ClearAllPoints()
+    highLevelTexture:SetPoint('CENTER', levelText, "CENTER", 0, 0)
+    SetAtlasTexture(highLevelTexture, 'TargetFrame-HighLevelIcon')
+
+    local healthText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'HealthBarText']
+    healthText:ClearAllPoints()
+    healthText:SetPoint("CENTER", -25, 8)
+    healthText:SetDrawLayer("OVERLAY")
+
+    local deathText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'DeadText']
+    deathText:ClearAllPoints()
+    deathText:SetPoint("CENTER", -25, 8)
+    deathText:SetDrawLayer("OVERLAY")
+
+    local manaText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'ManaBarText']
+    manaText:ClearAllPoints()
+    manaText:SetPoint("CENTER", -25, -8)
+    manaText:SetDrawLayer("OVERLAY")
+
+    local leaderIconTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'LeaderIcon']
+    leaderIconTexture:ClearAllPoints()
+    leaderIconTexture:SetPoint("TOPRIGHT", -3, 5)
+
+    local flashTexture = _G[targetFrame:GetName() .. 'Flash']
+    flashTexture:SetDrawLayer("OVERLAY")
+
+    local raidTargetIconTexture = _G['TargetFrame' .. 'TextureFrame' .. 'RaidTargetIcon']
+    raidTargetIconTexture:ClearAllPoints()
+    raidTargetIconTexture:SetPoint("TOPRIGHT", -20, 18)
 
     targetFrame.ShowTest = function(self)
-        local targetPortraitTexture = _G[self:GetName() .. 'Portrait']
-        SetPortraitTexture(targetPortraitTexture, "player")
+        local portraitTexture = _G[self:GetName() .. 'Portrait']
+        SetPortraitTexture(portraitTexture, "player")
+
+        local borderTexture = _G[self:GetName() .. 'TextureFrame' .. 'Texture']
+        SetAtlasTexture(borderTexture, 'TargetFrame-TextureFrame-Normal')
 
         local backgroundTexture = _G[self:GetName() .. 'NameBackground']
         backgroundTexture:SetVertexColor(UnitSelectionColor('player'))
 
-        local targetDeathText = _G[self:GetName() .. 'TextureFrame' .. 'DeadText']
-        targetDeathText:Hide()
+        local deathText = _G[self:GetName() .. 'TextureFrame' .. 'DeadText']
+        deathText:Hide()
 
         local highLevelTexture = _G[self:GetName() .. 'TextureFrame' .. 'HighLevelTexture']
         highLevelTexture:Hide()
 
-        local targetNameText = _G[self:GetName() .. 'TextureFrame' .. 'Name']
-        targetNameText:SetText(UnitName("player"))
+        local nameText = _G[self:GetName() .. 'TextureFrame' .. 'Name']
+        nameText:SetText(UnitName("player"))
 
-        local targetLevelText = _G[self:GetName() .. 'TextureFrame' .. 'LevelText']
-        targetLevelText:SetText(UnitLevel("player"))
-        targetLevelText:Show()
+        local levelText = _G[self:GetName() .. 'TextureFrame' .. 'LevelText']
+        levelText:SetText(UnitLevel("player"))
+        levelText:Show()
 
-        local targetHealthText = _G[self:GetName() .. 'TextureFrame' .. 'HealthBarText']
+        local healthText = _G[self:GetName() .. 'TextureFrame' .. 'HealthBarText']
         local curHealth = UnitHealth("player")
-        targetHealthText:SetText(curHealth .. "/" .. curHealth)
+        healthText:SetText(curHealth .. "/" .. curHealth)
 
-        local targetManaText = _G[self:GetName() .. 'TextureFrame' .. 'ManaBarText']
+        local manaText = _G[self:GetName() .. 'TextureFrame' .. 'ManaBarText']
         local curMana = UnitPower("player", Mana)
-        targetManaText:SetText(curMana .. "/" .. curMana)
+        manaText:SetText(curMana .. "/" .. curMana)
 
-        local targetHealthBar = _G[self:GetName() .. 'HealthBar']
-        targetHealthBar:SetMinMaxValues(0, curHealth)
-        targetHealthBar:SetStatusBarColor(0.29, 0.69, 0.07)
-        targetHealthBar:SetValue(curHealth)
-        targetHealthBar:Show()
+        local healthBar = _G[self:GetName() .. 'HealthBar']
+        healthBar:SetMinMaxValues(0, curHealth)
+        healthBar:SetStatusBarColor(0.29, 0.69, 0.07)
+        healthBar:SetValue(curHealth)
+        healthBar:Show()
 
-        local targetManaBar = _G[self:GetName() .. 'ManaBar']
-        targetManaBar:SetMinMaxValues(0, curMana)
-        targetManaBar:SetValue(curMana)
-        targetManaBar:SetStatusBarColor(0.02, 0.32, 0.71)
-        targetManaBar:Show()
+        local manaBar = _G[self:GetName() .. 'ManaBar']
+        manaBar:SetMinMaxValues(0, curMana)
+        manaBar:SetValue(curMana)
+        manaBar:SetStatusBarColor(0.02, 0.32, 0.71)
+        manaBar:Show()
 
         self:Show()
     end
@@ -379,292 +393,135 @@ local function ReplaceBlizzardPetFrame(frame)
     local petFrame = PetFrame
     petFrame:ClearAllPoints()
     petFrame:SetPoint("LEFT", frame, "LEFT", 0)
-
     petFrame:SetSize(frame:GetWidth(), frame:GetHeight())
     petFrame:SetHitRectInsets(0, 0, 0, 0)
 
-    -- Main
-    local petPortraitTexture = PetPortrait
-    petPortraitTexture:ClearAllPoints()
-    petPortraitTexture:SetPoint("LEFT", 4, 0)
-    petPortraitTexture:SetSize(34, 34)
-    petPortraitTexture:SetDrawLayer('BACKGROUND')
+    local portraitTexture = PetPortrait
+    portraitTexture:ClearAllPoints()
+    portraitTexture:SetPoint("LEFT", 6, 0)
+    portraitTexture:SetSize(34, 34)
+    portraitTexture:SetDrawLayer('BACKGROUND')
 
     local borderTexture = _G[petFrame:GetName() .. 'Texture']
-    borderTexture:SetAllPoints(petFrame)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    borderTexture:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
+    borderTexture:ClearAllPoints()
+    borderTexture:SetPoint("BOTTOMLEFT", 0, 0)
     borderTexture:SetDrawLayer('BORDER')
 
-    -- Health Bar
-    local petHealthBar = _G[petFrame:GetName() .. 'HealthBar']
-    petHealthBar:SetFrameLevel(petFrame:GetFrameLevel() + 2)
-    petHealthBar:ClearAllPoints()
-    petHealthBar:SetPoint("TOPLEFT", 42, -17)
-    petHealthBar:SetSize(68, 8)
+    local healthBar = _G[petFrame:GetName() .. 'HealthBar']
+    healthBar:SetFrameLevel(petFrame:GetFrameLevel() + 2)
+    healthBar:ClearAllPoints()
+    healthBar:SetPoint("TOPLEFT", 43, -16)
+    healthBar:SetSize(71, 9)
 
-    local statusBarTexture = petHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(petHealthBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(942 / 1024, 1009 / 1024, 181 / 512, 189 / 512)
+    local statusBarTexture = healthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(healthBar)
+    SetAtlasTexture(statusBarTexture, 'PartyFrame-StatusBar-Health')
 
-    -- Mana Bar
-    local petManaBar = _G[petFrame:GetName() .. 'ManaBar']
-    petManaBar:SetFrameLevel(petFrame:GetFrameLevel() + 2)
-    petManaBar:ClearAllPoints()
-    petManaBar:SetPoint("TOPLEFT", 39, -28)
-    petManaBar:SetSize(71, 5)
+    local manaBar = _G[petFrame:GetName() .. 'ManaBar']
+    manaBar:SetFrameLevel(petFrame:GetFrameLevel() + 2)
+    manaBar:ClearAllPoints()
+    manaBar:SetPoint("TOPLEFT", 41, -27)
+    manaBar:SetSize(73, 7)
 
-    statusBarTexture = petManaBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(petManaBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(473 / 1024, 546 / 1024, 247 / 512, 255 / 512)
+    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(manaBar)
+    SetAtlasTexture(statusBarTexture, 'PartyFrame-StatusBar-Mana')
 
-    -- Font Strings
-    local petNameText = PetName
-    petNameText:ClearAllPoints()
-    petNameText:SetPoint("CENTER", 16, 13)
-    petNameText:SetJustifyH("LEFT")
-    petNameText:SetDrawLayer("OVERLAY")
-    petNameText:SetWidth(65)
+    local flashTexture = _G[petFrame:GetName() .. 'Flash']
+    flashTexture:ClearAllPoints()
+    flashTexture:SetPoint("BOTTOMLEFT", 0, 0)
+    SetAtlasTexture(flashTexture, 'PartyFrame-Flash')
+    flashTexture:SetDrawLayer("OVERLAY")
 
-    local petHealthText = _G[petFrame:GetName() .. 'HealthBarText']
-    petHealthText:ClearAllPoints()
-    petHealthText:SetPoint("CENTER", 20, 1)
-    petHealthText:SetDrawLayer("OVERLAY")
+    local attackModeTexture = PetAttackModeTexture
+    attackModeTexture:ClearAllPoints()
+    attackModeTexture:SetPoint("BOTTOMLEFT", 0, 0)
+    SetAtlasTexture(attackModeTexture, 'PartyFrame-Status')
+    attackModeTexture:SetDrawLayer("OVERLAY")
 
-    local petManaText = _G[petFrame:GetName() .. 'ManaBarText']
-    petManaText:ClearAllPoints()
-    petManaText:SetPoint("CENTER", 19, -9)
-    petManaText:SetDrawLayer("OVERLAY")
+    local nameText = PetName
+    nameText:ClearAllPoints()
+    nameText:SetPoint("CENTER", 16, 16)
+    nameText:SetJustifyH("LEFT")
+    nameText:SetDrawLayer("OVERLAY")
+    nameText:SetWidth(65)
 
-    local petHappinessTexture = _G[petFrame:GetName() .. 'Happiness']
-    petHappinessTexture:ClearAllPoints()
-    petHappinessTexture:SetPoint("LEFT", petFrame, "RIGHT", 5, -5)
+    local healthText = _G[petFrame:GetName() .. 'HealthBarText']
+    healthText:ClearAllPoints()
+    healthText:SetPoint("CENTER", 19, 4)
+    healthText:SetDrawLayer("OVERLAY")
+
+    local manaText = _G[petFrame:GetName() .. 'ManaBarText']
+    manaText:ClearAllPoints()
+    manaText:SetPoint("CENTER", 19, -7)
+    manaText:SetDrawLayer("OVERLAY")
+
+    local happinessTexture = _G[petFrame:GetName() .. 'Happiness']
+    happinessTexture:ClearAllPoints()
+    happinessTexture:SetPoint("LEFT", petFrame, "RIGHT", 1, -2)
 end
 
 local function ReplaceBlizzardTOTFrame(frame)
     local targetFrameToT = TargetFrameToT
     targetFrameToT:ClearAllPoints()
     targetFrameToT:SetPoint("LEFT", frame, "LEFT", 0)
-
     targetFrameToT:SetSize(frame:GetWidth(), frame:GetHeight())
     targetFrameToT:SetHitRectInsets(0, 0, 0, 0)
 
-    -- Main
-    local totPortraitTexture = _G[targetFrameToT:GetName() .. 'Portrait']
-    totPortraitTexture:ClearAllPoints()
-    totPortraitTexture:SetPoint("LEFT", 4, 0)
-    totPortraitTexture:SetSize(34, 34)
-    totPortraitTexture:SetDrawLayer("BACKGROUND")
+    local portraitTexture = _G[targetFrameToT:GetName() .. 'Portrait']
+    portraitTexture:ClearAllPoints()
+    portraitTexture:SetPoint("LEFT", 4, 0)
+    portraitTexture:SetSize(34, 34)
+    portraitTexture:SetDrawLayer('BACKGROUND')
 
     local borderTexture = _G[targetFrameToT:GetName() .. 'TextureFrame' .. 'Texture']
-    borderTexture:SetAllPoints(targetFrameToT)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    borderTexture:SetTexCoord(3 / 1024, 117 / 1024, 421 / 512, 463 / 512)
+    borderTexture:ClearAllPoints()
+    borderTexture:SetPoint("BOTTOMLEFT", 0, 0)
+    SetAtlasTexture(borderTexture, 'PartyFrame-TextureFrame-Normal')
     borderTexture:SetDrawLayer('BORDER')
 
-    -- Health Bar
-    local totHealthBar = _G[targetFrameToT:GetName() .. 'HealthBar']
-    totHealthBar:SetFrameLevel(targetFrameToT:GetFrameLevel() + 2)
-    totHealthBar:ClearAllPoints()
-    totHealthBar:SetPoint("TOPLEFT", 42, -17)
-    totHealthBar:SetSize(69, 8)
+    local healthBar = _G[targetFrameToT:GetName() .. 'HealthBar']
+    healthBar:SetFrameLevel(targetFrameToT:GetFrameLevel() + 2)
+    healthBar:ClearAllPoints()
+    healthBar:SetPoint("TOPLEFT", 43, -16)
+    healthBar:SetSize(71, 9)
 
-    local statusBarTexture = totHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(totHealthBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(942 / 1024, 1010 / 1024, 181 / 512, 189 / 512)
+    local statusBarTexture = healthBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(healthBar)
+    SetAtlasTexture(statusBarTexture, 'PartyFrame-StatusBar-Health')
 
-    -- Mana Bar
-    local totManaBar = _G[targetFrameToT:GetName() .. 'ManaBar']
-    totManaBar:SetFrameLevel(targetFrameToT:GetFrameLevel() + 2)
-    totManaBar:ClearAllPoints()
-    totManaBar:SetPoint("TOPLEFT", 39, -28)
-    totManaBar:SetSize(71, 5)
+    local manaBar = _G[targetFrameToT:GetName() .. 'ManaBar']
+    manaBar:SetFrameLevel(targetFrameToT:GetFrameLevel() + 2)
+    manaBar:ClearAllPoints()
+    manaBar:SetPoint("TOPLEFT", 41, -27)
+    manaBar:SetSize(73, 7)
 
-    statusBarTexture = totManaBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(totManaBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(473 / 1024, 546 / 1024, 247 / 512, 255 / 512)
+    statusBarTexture = manaBar:GetStatusBarTexture()
+    statusBarTexture:SetAllPoints(manaBar)
+    SetAtlasTexture(statusBarTexture, 'PartyFrame-StatusBar-Mana')
 
-    -- Font Strings
-    local totNameText = _G[targetFrameToT:GetName() .. 'TextureFrame' .. 'Name']
-    totNameText:ClearAllPoints()
-    totNameText:SetPoint("CENTER", 16, 13)
-    totNameText:SetDrawLayer("OVERLAY")
-    totNameText:SetWidth(65)
+    local nameText = _G[targetFrameToT:GetName() .. 'TextureFrame' .. 'Name']
+    nameText:ClearAllPoints()
+    nameText:SetPoint("CENTER", 16, 16)
+    nameText:SetJustifyH("LEFT")
+    nameText:SetDrawLayer("OVERLAY")
+    nameText:SetWidth(65)
 end
-
-local function ReplaceBlizzardFocusFrame(frame)
-    local focusFrame = FocusFrame
-    focusFrame:ClearAllPoints()
-    focusFrame:SetPoint("LEFT", frame, "LEFT", 0)
-
-    focusFrame:SetSize(frame:GetWidth(), frame:GetHeight())
-    focusFrame:SetHitRectInsets(0, 0, 0, 0)
-
-    -- Main
-    local borderTexture = _G[focusFrame:GetName() .. 'TextureFrame' .. 'Texture']
-    borderTexture:SetAllPoints(focusFrame)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    borderTexture:SetTexCoord(782 / 1024, 970 / 1024, 88 / 512, 150 / 512)
-    borderTexture:SetDrawLayer('BORDER')
-
-    local focusPortraitTexture = _G[focusFrame:GetName() .. 'Portrait']
-    focusPortraitTexture:ClearAllPoints()
-    focusPortraitTexture:SetPoint("RIGHT", -5, 1)
-    focusPortraitTexture:SetSize(58, 58)
-    focusPortraitTexture:SetDrawLayer("BACKGROUND")
-
-    local backgroundTexture = _G[focusFrame:GetName() .. 'NameBackground']
-    backgroundTexture:ClearAllPoints()
-    backgroundTexture:SetPoint('TOPLEFT', 2, -8)
-    backgroundTexture:SetPoint('BOTTOMRIGHT', -55, 42)
-    backgroundTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\NameBackground.blp")
-    backgroundTexture:SetTexCoord(5 / 256, 138 / 256, 9 / 32, 22 / 32)
-    backgroundTexture:SetDrawLayer("BACKGROUND")
-    backgroundTexture:SetBlendMode('BLEND')
-
-    -- Health Bar
-    local focusHealthBar = _G[focusFrame:GetName() .. 'HealthBar']
-    focusHealthBar:SetFrameLevel(focusFrame:GetFrameLevel() + 1)
-    focusHealthBar:ClearAllPoints()
-    focusHealthBar:SetPoint("TOPLEFT", 4, -24)
-    focusHealthBar:SetSize(124, 20)
-
-    local statusBarTexture = focusHealthBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(focusHealthBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(434 / 1024, 557 / 1024, 183 / 512, 202 / 512)
-
-    -- Mana Bar
-    local focusManaBar = _G[focusFrame:GetName() .. 'ManaBar']
-    focusManaBar:SetFrameLevel(focusFrame:GetFrameLevel() + 1)
-    focusManaBar:ClearAllPoints()
-    focusManaBar:SetPoint("TOPLEFT", 4, -43)
-    focusManaBar:SetSize(131, 12)
-
-    statusBarTexture = focusManaBar:GetStatusBarTexture()
-    statusBarTexture:SetAllPoints(focusManaBar)
-    statusBarTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    statusBarTexture:SetTexCoord(466 / 1024, 598 / 1024, 207 / 512, 220 / 512)
-
-    -- Font Strings
-    local focusNameText = _G[focusFrame:GetName() .. 'TextureFrame' .. 'Name']
-    focusNameText:ClearAllPoints()
-    focusNameText:SetPoint("CENTER", -10, 18)
-    focusNameText:SetDrawLayer("OVERLAY")
-    focusNameText:SetJustifyH("LEFT")
-    focusNameText:SetWidth(80)
-    focusNameText:SetFont(TargetFrameTextureFrameName:GetFont())
-
-    local focusLevelText = _G[focusFrame:GetName() .. 'TextureFrame' .. 'LevelText']
-    focusLevelText:ClearAllPoints()
-    focusLevelText:SetPoint("CENTER", -80, 18)
-    focusLevelText:SetDrawLayer("OVERLAY")
-    focusLevelText:SetFont(TargetFrameTextureFrameLevelText:GetFont())
-
-    local focusHealthText = _G[focusFrame:GetName() .. 'TextureFrame' .. 'HealthBarText']
-    focusHealthText:ClearAllPoints()
-    focusHealthText:SetPoint("CENTER", -25, -1)
-    focusHealthText:SetDrawLayer("OVERLAY")
-    focusHealthText:SetFont(TargetFrameTextureFrameHealthBarText:GetFont())
-
-    local focusDeadText = _G[focusFrame:GetName() .. 'TextureFrame' .. 'DeadText']
-    focusDeadText:ClearAllPoints()
-    focusDeadText:SetPoint("CENTER", -25, -1)
-    focusDeadText:SetDrawLayer("OVERLAY")
-    focusDeadText:SetFont(TargetFrameTextureFrameDeadText:GetFont())
-
-    local focusManaText = _G[focusFrame:GetName() .. 'TextureFrame' .. 'ManaBarText']
-    focusManaText:ClearAllPoints()
-    focusManaText:SetPoint("CENTER", -25, -18)
-    focusManaText:SetDrawLayer("OVERLAY")
-    focusManaText:SetFont(TargetFrameTextureFrameManaBarText:GetFont())
-
-    local focusPVPIconTexture = _G[focusFrame:GetName() .. 'TextureFrame' .. 'PVPIcon']
-    focusPVPIconTexture:ClearAllPoints()
-    focusPVPIconTexture:SetPoint("RIGHT", 40, -12)
-
-    local focusLeaderIconTexture = _G[focusFrame:GetName() .. 'TextureFrame' .. 'LeaderIcon']
-    focusLeaderIconTexture:ClearAllPoints()
-    focusLeaderIconTexture:SetPoint("TOPRIGHT", 0, 0)
-
-    focusFrame.elite = focusFrame.elite or
-        _G[focusFrame:GetName() .. 'TextureFrame']:CreateTexture(nil, 'OVERLAY')
-    local eliteTexture = focusFrame.elite
-    eliteTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\BossFrame.blp")
-
-    -- Safe Test Mode
-    focusFrame.testMode = false
-
-    focusFrame.ShowTest = function(self)
-        self.testMode = true
-
-        local focusPortraitTexture = _G[self:GetName() .. 'Portrait']
-        SetPortraitTexture(focusPortraitTexture, "player")
-
-        local backgroundTexture = _G[self:GetName() .. 'NameBackground']
-        backgroundTexture:SetVertexColor(UnitSelectionColor('player'))
-
-        local focusDeathText = _G[self:GetName() .. 'TextureFrame' .. 'DeadText']
-        focusDeathText:Hide()
-
-        local highLevelTexture = _G[self:GetName() .. 'TextureFrame' .. 'HighLevelTexture']
-        highLevelTexture:Hide()
-
-        local focusNameText = _G[self:GetName() .. 'TextureFrame' .. 'Name']
-        focusNameText:SetText(UnitName("player"))
-
-        local focusLevelText = _G[self:GetName() .. 'TextureFrame' .. 'LevelText']
-        focusLevelText:SetText(UnitLevel("player"))
-        focusLevelText:Show()
-
-        local focusHealthText = _G[self:GetName() .. 'TextureFrame' .. 'HealthBarText']
-        local curHealth = UnitHealth("player")
-        focusHealthText:SetText(curHealth .. "/" .. curHealth)
-
-        local focusManaText = _G[self:GetName() .. 'TextureFrame' .. 'ManaBarText']
-        local curMana = UnitPower("player", Mana)
-        focusManaText:SetText(curMana .. "/" .. curMana)
-
-        local focusHealthBar = _G[self:GetName() .. 'HealthBar']
-        focusHealthBar:SetMinMaxValues(0, curHealth)
-        focusHealthBar:SetStatusBarColor(0.29, 0.69, 0.07)
-        focusHealthBar:SetValue(curHealth)
-        focusHealthBar:Show()
-
-        local focusManaBar = _G[self:GetName() .. 'ManaBar']
-        focusManaBar:SetMinMaxValues(0, curMana)
-        focusManaBar:SetValue(curMana)
-        focusManaBar:SetStatusBarColor(0.02, 0.32, 0.71)
-        focusManaBar:Show()
-
-        self:Show()
-    end
-
-    focusFrame.HideTest = function(self)
-        self.testMode = false
-
-        self:Hide()
-    end
-end
-
-local blizzFrames = {
-    PlayerFrameBackground,
-    PlayerAttackBackground,
-    PlayerAttackIcon,
-    TargetFrameBackground,
-    TargetFrameToTBackground,
-    FocusFrameBackground,
-    PlayerFrameRoleIcon,
-    PlayerGuideIcon,
-    PlayerFrameGroupIndicatorLeft,
-    PlayerFrameGroupIndicatorRight
-};
 
 local function RemoveBlizzardFrames()
+    local blizzFrames = {
+        PlayerFrameBackground,
+        PlayerAttackBackground,
+        PlayerAttackIcon,
+        TargetFrameBackground,
+        TargetFrameToTBackground,
+        FocusFrameBackground,
+        PlayerFrameRoleIcon,
+        PlayerGuideIcon,
+        PlayerFrameGroupIndicatorLeft,
+        PlayerFrameGroupIndicatorRight
+    }
+
     for _, blizzFrame in pairs(blizzFrames) do
         blizzFrame:SetAlpha(0)
     end
@@ -680,8 +537,8 @@ local function PlayerFrame_UpdateStatus()
 end
 
 local AURA_OFFSET_Y = 3
-local AURA_START_X = 3
-local AURA_START_Y = 3
+local AURA_START_X = 6
+local AURA_START_Y = 16
 
 local function TargetFrame_UpdateBuffAnchor(self, buffName, index, numDebuffs, anchorIndex, size, offsetX, offsetY)
     local buff = _G[buffName .. index]
@@ -748,45 +605,61 @@ local function TargetFrame_UpdateDebuffAnchor(self, debuffName, index, numBuffs,
 end
 
 local function TargetFrame_CheckClassification(self, forceNormalTexture)
+    local healthBar = _G[self:GetName() .. 'HealthBar']
+    healthBar:SetSize(124, 20)
+
+    local manaBar = _G[self:GetName() .. 'ManaBar']
+    manaBar:SetSize(132, 10)
+
+    local pvpIconTexture = _G[self:GetName() .. 'TextureFrame' .. 'PVPIcon']
+    pvpIconTexture:ClearAllPoints()
+    pvpIconTexture:SetPoint('CENTER', self, "RIGHT", 6, -6)
+
     local classification = UnitClassification(self.unit)
     if classification == "worldboss" or classification == "elite" then
-        self.elite:SetTexCoord(0 / 512, 160 / 512, 161 / 512, 322 / 512)
-        self.elite:SetPoint("RIGHT", 9, 0)
-        self.elite:SetSize(79, 82)
-        self.elite:Show()
+        SetAtlasTexture(self.borderTexture, 'TargetFrame-TextureFrame-Elite')
     elseif classification == "rareelite" then
-        self.elite:SetTexCoord(0 / 512, 196 / 512, 0 / 512, 160 / 512)
-        self.elite:SetPoint("RIGHT", 27, 0)
-        self.elite:SetSize(98, 80)
-        self.elite:Show()
+        SetAtlasTexture(self.borderTexture, 'TargetFrame-TextureFrame-RareElite')
     elseif classification == "rare" then
-        self.elite:SetTexCoord(0 / 512, 160 / 512, 322 / 512, 485 / 512)
-        self.elite:SetPoint("RIGHT", 9, 0)
-        self.elite:SetSize(79, 82)
-        self.elite:Show()
+        SetAtlasTexture(self.borderTexture, 'TargetFrame-TextureFrame-Rare')
     else
-        self.elite:Hide()
+        local isVehicle = UnitVehicleSeatCount(self.unit) > 0
+        if isVehicle then
+            healthBar:SetSize(116, 20)
+            manaBar:SetSize(123, 10)
+            pvpIconTexture:SetPoint('CENTER', self, "RIGHT", 14, -2)
+
+            SetAtlasTexture(self.borderTexture, 'TargetFrame-TextureFrame-Vehicle')
+        else
+            SetAtlasTexture(self.borderTexture, 'TargetFrame-TextureFrame-Normal')
+        end
     end
 
-    self.borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
-    self.threatIndicator:SetAllPoints(self)
-    self.threatIndicator:SetTexCoord(1 / 1024, 187 / 1024, 301 / 512, 361 / 512)
+    self.threatIndicator:ClearAllPoints()
+    self.threatIndicator:SetPoint("BOTTOMLEFT", 0, 0)
+    SetAtlasTexture(self.threatIndicator, 'TargetFrame-Flash')
 end
 
 local function FocusFrame_SetSmallSize(smallSize, onChange)
-    ReplaceBlizzardFocusFrame(Module.focusFrame)
+    ReplaceBlizzardTargetFrame(Module.focusFrame, FocusFrame)
 end
 
 local function UnitFrameHealthBar_Update(statusBar, unit)
-    statusBar.disconnected = not UnitIsConnected(unit)
+    if not statusBar or statusBar.lockValues then
+        return
+    end
 
-    if statusBar.disconnected then
-        if not statusBar.lockColor then
-            statusBar:SetStatusBarColor(0.5, 0.5, 0.5)
-        end
-    else
-        if not statusBar.lockColor then
-            statusBar:SetStatusBarColor(0.29, 0.69, 0.07)
+    if unit == statusBar.unit then
+        statusBar.disconnected = not UnitIsConnected(unit)
+
+        if statusBar.disconnected then
+            if not statusBar.lockColor then
+                statusBar:SetStatusBarColor(0.5, 0.5, 0.5)
+            end
+        else
+            if not statusBar.lockColor then
+                statusBar:SetStatusBarColor(0.48, 0.86, 0.15)
+            end
         end
     end
 end
@@ -812,6 +685,10 @@ powerBarColor[5] = PowerBarColor["RUNES"]
 powerBarColor[6] = PowerBarColor["RUNIC_POWER"]
 
 local function UnitFrameManaBar_UpdateType(manaBar)
+    if not manaBar then
+        return
+    end
+
     local powerType, powerToken, altR, altG, altB = UnitPowerType(manaBar.unit)
     local info = powerBarColor[powerToken]
 
@@ -831,11 +708,165 @@ local function UnitFrameManaBar_UpdateType(manaBar)
 end
 
 local function HealthBar_OnValueChanged(self, value)
-    self:SetStatusBarColor(0.29, 0.69, 0.07)
+    self:SetStatusBarColor(0.48, 0.86, 0.15)
 end
 
 local function PetFrame_Update(self)
-    PetFrameTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-UnitFrame.blp")
+    SetAtlasTexture(PetFrameTexture, 'PartyFrame-TextureFrame-Normal')
+end
+
+local function PlayerFrame_UpdateGroupIndicator()
+    UpdateGroupIndicator()
+end
+
+local function PlayerFrame_ToPlayerArt(self)
+    local playerFrame = PlayerFrame
+
+    local portraitTexture = PlayerPortrait
+    portraitTexture:ClearAllPoints()
+    portraitTexture:SetPoint("LEFT", 14, 10)
+    portraitTexture:SetSize(56, 56)
+
+    local borderTexture = _G[playerFrame:GetName() .. 'Texture']
+    SetAtlasTexture(borderTexture, 'PlayerFrame-TextureFrame-Normal')
+
+    local healthBar = _G[playerFrame:GetName() .. 'HealthBar']
+    healthBar:ClearAllPoints()
+    healthBar:SetPoint("TOPLEFT", 72, -15)
+    healthBar:SetSize(123, 20)
+
+    local manaBar = _G[playerFrame:GetName() .. 'ManaBar']
+    manaBar:ClearAllPoints()
+    manaBar:SetPoint("TOPLEFT", 72, -37)
+    manaBar:SetSize(123, 9)
+
+    local nameText = PlayerName
+    nameText:ClearAllPoints()
+    nameText:SetPoint("CENTER", 25, 27)
+
+    local healthText = _G[playerFrame:GetName() .. 'HealthBarText']
+    healthText:ClearAllPoints()
+    healthText:SetPoint("CENTER", 35, 9)
+
+    local manaText = _G[playerFrame:GetName() .. 'ManaBarText']
+    manaText:ClearAllPoints()
+    manaText:SetPoint("CENTER", 35, -8)
+
+    local statusTexture = PlayerStatusTexture
+    SetAtlasTexture(statusTexture, 'PlayerFrame-Status')
+
+    local leaderIconTexture = PlayerLeaderIcon
+    leaderIconTexture:ClearAllPoints()
+    leaderIconTexture:SetPoint('BOTTOM', playerFrame, "TOP", -15, -3)
+
+    local masterIconTexture = PlayerMasterIcon
+    masterIconTexture:ClearAllPoints()
+    masterIconTexture:SetPoint('BOTTOM', playerFrame, "TOP", 2, -1)
+
+    local flashTexture = PlayerFrameFlash
+    SetAtlasTexture(flashTexture, 'PlayerFrame-Flash')
+
+    local groupIndicatorFrame = PlayerFrameGroupIndicator
+    groupIndicatorFrame:ClearAllPoints()
+    groupIndicatorFrame:SetPoint("BOTTOMLEFT", playerFrame, "TOP", 20, -2)
+
+    local pvpIconTexture = PlayerPVPIcon
+    pvpIconTexture:ClearAllPoints()
+    pvpIconTexture:SetPoint("LEFT", -10, -4)
+
+    for index = 1, 6 do
+        local button = _G['RuneButtonIndividual' .. index]
+        button:Show()
+    end
+
+    UpdateGroupIndicator()
+end
+
+local function PlayerFrame_ToVehicleArt(self, vehicleType)
+    local playerFrame = PlayerFrame
+
+    local portraitTexture = PlayerPortrait
+    portraitTexture:ClearAllPoints()
+    portraitTexture:SetPoint("LEFT", 14, 10)
+    portraitTexture:SetSize(62, 62)
+
+    local borderTexture = _G[playerFrame:GetName() .. 'VehicleTexture']
+    SetAtlasTexture(borderTexture, 'PlayerFrame-TextureFrame-Vehicle')
+
+    local healthBar = _G[playerFrame:GetName() .. 'HealthBar']
+    healthBar:ClearAllPoints()
+    healthBar:SetPoint("TOPLEFT", 78, -15)
+    healthBar:SetSize(117, 20)
+
+    local manaBar = _G[playerFrame:GetName() .. 'ManaBar']
+    manaBar:ClearAllPoints()
+    manaBar:SetPoint("TOPLEFT", 78, -37)
+    manaBar:SetSize(117, 9)
+
+    local nameText = PlayerName
+    nameText:ClearAllPoints()
+    nameText:SetPoint("CENTER", 30, 26)
+
+    local healthText = _G[playerFrame:GetName() .. 'HealthBarText']
+    healthText:ClearAllPoints()
+    healthText:SetPoint("CENTER", 40, 9)
+
+    local manaText = _G[playerFrame:GetName() .. 'ManaBarText']
+    manaText:ClearAllPoints()
+    manaText:SetPoint("CENTER", 40, -8)
+
+    local leaderIconTexture = PlayerLeaderIcon
+    leaderIconTexture:ClearAllPoints()
+    leaderIconTexture:SetPoint('BOTTOM', playerFrame, "TOP", -15, -3)
+
+    local masterIconTexture = PlayerMasterIcon
+    masterIconTexture:ClearAllPoints()
+    masterIconTexture:SetPoint('BOTTOM', playerFrame, "TOP", 2, -1)
+
+    local groupIndicatorFrame = _G[playerFrame:GetName() .. 'GroupIndicator']
+    groupIndicatorFrame:ClearAllPoints()
+    groupIndicatorFrame:SetPoint("BOTTOMLEFT", playerFrame, "TOP", 20, 0)
+
+    local pvpIconTexture = PlayerPVPIcon
+    pvpIconTexture:ClearAllPoints()
+    pvpIconTexture:SetPoint("LEFT", -18, -2)
+
+    for index = 1, 6 do
+        local button = _G['RuneButtonIndividual' .. index]
+        button:Hide()
+    end
+end
+
+local function PlayerFrame_SequenceFinished(self)
+    local playerFrame = PlayerFrame
+    playerFrame:ClearAllPoints()
+    playerFrame:SetPoint("LEFT", Module.playerFrame, "LEFT", 0)
+end
+
+local function PlayerFrame_AnimPos(self, fraction)
+    local _, _, relativePoint, posX, posY = self:GetPoint('CENTER')
+    return relativePoint, posX, posY + 1000
+end
+
+local PlayerFrameAnimTable = {
+    totalTime = 0.0,
+    updateFunc = "SetPoint",
+    getPosFunc = PlayerFrame_AnimPos,
+}
+
+local function PlayerFrame_AnimateOut(self)
+    SetUpAnimation(PlayerFrame, PlayerFrameAnimTable, PlayerFrame_AnimFinished, false)
+end
+
+local function PlayerFrame_UpdateArt(self)
+    if self.animFinished and self.inSeat and self.inSequence then
+        SetUpAnimation(PlayerFrame, PlayerFrameAnimTable, PlayerFrame_SequenceFinished, true)
+        if UnitHasVehicleUI("player") then
+            PlayerFrame_ToVehicleArt(self, UnitVehicleSkin("player"))
+        else
+            PlayerFrame_ToPlayerArt(self)
+        end
+    end
 end
 
 function Module:OnEnable()
@@ -844,9 +875,17 @@ function Module:OnEnable()
 
     PlayerFrame:HookScript('OnUpdate', PlayerFrame_OnUpdate)
     PlayerFrameHealthBar:HookScript('OnValueChanged', HealthBar_OnValueChanged)
-    self:SecureHook('PlayerFrame_UpdateStatus', PlayerFrame_UpdateStatus)
     TargetFrameHealthBar:HookScript('OnValueChanged', HealthBar_OnValueChanged)
     FocusFrameHealthBar:HookScript('OnValueChanged', HealthBar_OnValueChanged)
+    PetFrameHealthBar:HookScript('OnValueChanged', HealthBar_OnValueChanged)
+
+    self:SecureHook('PlayerFrame_UpdateStatus', PlayerFrame_UpdateStatus)
+    self:SecureHook('PlayerFrame_UpdateGroupIndicator', PlayerFrame_UpdateGroupIndicator)
+    self:SecureHook('PlayerFrame_ToPlayerArt', PlayerFrame_ToPlayerArt)
+    self:SecureHook('PlayerFrame_ToVehicleArt', PlayerFrame_ToVehicleArt)
+    self:SecureHook('PlayerFrame_UpdateArt', PlayerFrame_UpdateArt)
+    self:SecureHook('PlayerFrame_SequenceFinished', PlayerFrame_SequenceFinished)
+    self:SecureHook('PlayerFrame_AnimateOut', PlayerFrame_AnimateOut)
     self:SecureHook('TargetFrame_UpdateBuffAnchor', TargetFrame_UpdateBuffAnchor)
     self:SecureHook('TargetFrame_UpdateDebuffAnchor', TargetFrame_UpdateDebuffAnchor)
     self:SecureHook('TargetFrame_CheckClassification', TargetFrame_CheckClassification)
@@ -855,11 +894,11 @@ function Module:OnEnable()
     self:SecureHook('UnitFrameManaBar_UpdateType', UnitFrameManaBar_UpdateType)
     self:SecureHook('PetFrame_Update', PetFrame_Update)
 
-    self.playerFrame = CreateUIFrame(191, 65, "PlayerFrame")
-    self.targetFrame = CreateUIFrame(191, 65, "TargetFrame")
-    self.petFrame = CreateUIFrame(113, 42, "PetFrame")
-    self.targetOfTargetFrame = CreateUIFrame(113, 42, "TOTFrame")
-    self.focusFrame = CreateUIFrame(191, 65, "FocusFrame")
+    self.playerFrame = CreateUIFrame(192, 68, "PlayerFrame")
+    self.targetFrame = CreateUIFrame(192, 68, "TargetFrame")
+    self.focusFrame = CreateUIFrame(192, 68, "FocusFrame")
+    self.petFrame = CreateUIFrame(120, 47, "PetFrame")
+    self.targetOfTargetFrame = CreateUIFrame(120, 47, "TOTFrame")
 end
 
 function Module:OnDisable()
@@ -868,9 +907,17 @@ function Module:OnDisable()
 
     PlayerFrame:Unhook('OnUpdate', PlayerFrame_OnUpdate)
     PlayerFrameHealthBar:Unhook('OnValueChanged', HealthBar_OnValueChanged)
-    self:Unhook('PlayerFrame_UpdateStatus', PlayerFrame_UpdateStatus)
     TargetFrameHealthBar:Unhook('OnValueChanged', HealthBar_OnValueChanged)
     FocusFrameHealthBar:Unhook('OnValueChanged', HealthBar_OnValueChanged)
+    PetFrameHealthBar:Unhook('OnValueChanged', HealthBar_OnValueChanged)
+
+    self:Unhook('PlayerFrame_UpdateStatus', PlayerFrame_UpdateStatus)
+    self:Unhook('PlayerFrame_UpdateGroupIndicator', PlayerFrame_UpdateGroupIndicator)
+    self:Unhook('PlayerFrame_ToPlayerArt', PlayerFrame_ToPlayerArt)
+    self:Unhook('PlayerFrame_ToVehicleArt', PlayerFrame_ToVehicleArt)
+    self:Unhook('PlayerFrame_UpdateArt', PlayerFrame_UpdateArt)
+    self:Unhook('PlayerFrame_SequenceFinished', PlayerFrame_SequenceFinished)
+    self:Unhook('PlayerFrame_AnimateOut', PlayerFrame_AnimateOut)
     self:Unhook('TargetFrame_UpdateBuffAnchor', TargetFrame_UpdateBuffAnchor)
     self:Unhook('TargetFrame_UpdateDebuffAnchor', TargetFrame_UpdateDebuffAnchor)
     self:Unhook('TargetFrame_CheckClassification', TargetFrame_CheckClassification)
@@ -888,79 +935,67 @@ function Module:PLAYER_ENTERING_WORLD()
     RemoveBlizzardFrames()
 
     ReplaceBlizzardPlayerFrame(self.playerFrame)
-    ReplaceBlizzardTargetFrame(self.targetFrame)
+    ReplaceBlizzardRuneFrame()
+    ReplaceBlizzardTotemFrame()
+    ReplaceBlizzardTargetFrame(self.targetFrame, TargetFrame)
+    ReplaceBlizzardComboFrame()
+    ReplaceBlizzardTargetFrame(self.focusFrame, FocusFrame)
     ReplaceBlizzardPetFrame(self.petFrame)
     ReplaceBlizzardTOTFrame(self.targetOfTargetFrame)
-    ReplaceBlizzardFocusFrame(self.focusFrame)
+
+    UpdateGroupIndicator()
 
     local widgets = {
         'player',
         'target',
+        'focus',
         'pet',
-        'targetOfTarget',
-        'focus'
+        'targetOfTarget'
     }
 
-    for _, widget in pairs(widgets) do
-        if RUI.DB.profile.widgets[widget] == nil then
-            self:LoadDefaultSettings()
-            break
-        end
-    end
-
-    self:UpdateWidgets()
+    CheckSettingsExists(Module, widgets)
 end
 
 function Module:LoadDefaultSettings()
-    RUI.DB.profile.widgets.player = { anchor = "TOPLEFT", posX = 25, posY = -15 }
-    RUI.DB.profile.widgets.pet = { anchor = "TOPLEFT", posX = 145, posY = -105 }
-    RUI.DB.profile.widgets.target = { anchor = "TOPLEFT", posX = 230, posY = -15 }
-    RUI.DB.profile.widgets.targetOfTarget = { anchor = "TOPLEFT", posX = 370, posY = -85 }
+    RUI.DB.profile.widgets.player = { anchor = "TOPLEFT", posX = 0, posY = -15 }
+    RUI.DB.profile.widgets.target = { anchor = "TOPLEFT", posX = 210, posY = -15 }
     RUI.DB.profile.widgets.focus = { anchor = "TOPLEFT", posX = 105, posY = -160 }
+    RUI.DB.profile.widgets.pet = { anchor = "TOPLEFT", posX = 90, posY = -95 }
+    RUI.DB.profile.widgets.targetOfTarget = { anchor = "TOPLEFT", posX = 370, posY = -85 }
 end
 
 function Module:UpdateWidgets()
-    do
-        local widgetOptions = RUI.DB.profile.widgets.player
-        self.playerFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    local widgetOptions = RUI.DB.profile.widgets.player
+    self.playerFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 
-    do
-        local widgetOptions = RUI.DB.profile.widgets.pet
-        self.petFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    widgetOptions = RUI.DB.profile.widgets.target
+    self.targetFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 
-    do
-        local widgetOptions = RUI.DB.profile.widgets.target
-        self.targetFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    widgetOptions = RUI.DB.profile.widgets.focus
+    self.focusFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 
-    do
-        local widgetOptions = RUI.DB.profile.widgets.targetOfTarget
-        self.targetOfTargetFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    widgetOptions = RUI.DB.profile.widgets.pet
+    self.petFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 
-    do
-        local widgetOptions = RUI.DB.profile.widgets.focus
-        self.focusFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    widgetOptions = RUI.DB.profile.widgets.targetOfTarget
+    self.targetOfTargetFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
 end
 
-function Module:EnableEditorPreview()
+function Module:ShowEditorTest()
     HideUIFrame(self.playerFrame)
 
     HideUIFrame(self.targetFrame)
     TargetFrame:ShowTest()
 
+    HideUIFrame(self.focusFrame)
+    FocusFrame:ShowTest()
+
     HideUIFrame(self.petFrame)
 
     HideUIFrame(self.targetOfTargetFrame)
-
-    HideUIFrame(self.focusFrame)
-    FocusFrame:ShowTest()
 end
 
-function Module:DisableEditorPreview()
+function Module:HideEditorTest(refresh)
     ShowUIFrame(self.playerFrame)
     SaveUIFramePosition(self.playerFrame, 'player')
 
@@ -968,13 +1003,17 @@ function Module:DisableEditorPreview()
     SaveUIFramePosition(self.targetFrame, 'target')
     TargetFrame:HideTest()
 
+    ShowUIFrame(self.focusFrame)
+    SaveUIFramePosition(self.focusFrame, 'focus')
+    FocusFrame:HideTest()
+
     ShowUIFrame(self.petFrame)
     SaveUIFramePosition(self.petFrame, 'pet')
 
     ShowUIFrame(self.targetOfTargetFrame)
     SaveUIFramePosition(self.targetOfTargetFrame, 'targetOfTarget')
 
-    ShowUIFrame(self.focusFrame)
-    SaveUIFramePosition(self.focusFrame, 'focus')
-    FocusFrame:HideTest()
+    if refresh then
+        self:UpdateWidgets()
+    end
 end

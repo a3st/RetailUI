@@ -1,3 +1,8 @@
+--[[
+    Copyright (c) Dmitriy. All rights reserved.
+    Licensed under the MIT license. See LICENSE file in the project root for details.
+]]
+
 local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'ActionBar'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
@@ -6,7 +11,6 @@ Module.actionBars = {}
 Module.repExpBar = nil
 Module.bagsBar = nil
 Module.microMenuBar = nil
-Module.toggleBags = false
 
 local function verticalString(str)
     local _, len = str:gsub("[^\128-\193]", "")
@@ -25,7 +29,7 @@ local function CreateNineSliceFrame(width, height)
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPLEFT", 10, 7)
         texture:SetPoint("TOPRIGHT", -10, 7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(0, 32 / 512, 145 / 2048, 177 / 2048)
         texture:SetHorizTile(true)
         texture:SetSize(width, 20)
@@ -35,7 +39,7 @@ local function CreateNineSliceFrame(width, height)
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("BOTTOMLEFT", 10, -7)
         texture:SetPoint("BOTTOMRIGHT", -10, -7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(0, 32 / 512, 97 / 2048, 143 / 2048)
         texture:SetHorizTile(true)
         texture:SetSize(width, 20)
@@ -44,7 +48,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPLEFT", -7, 7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(463 / 512, 497 / 512, 475 / 2048, 507 / 2048)
         texture:SetSize(20, 20)
     end
@@ -52,7 +56,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPLEFT", -7, -10)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 405 / 2048)
         texture:SetSize(20, height / 2)
     end
@@ -60,7 +64,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("BOTTOMLEFT", -7, -7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 429 / 2048)
         texture:SetSize(20, 20)
     end
@@ -68,7 +72,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPRIGHT", 7, 7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(463 / 512, 507 / 512, 441 / 2048, 473 / 2048)
         texture:SetSize(20, 20)
     end
@@ -76,7 +80,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("TOPRIGHT", 7, -10)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 359 / 2048)
         texture:SetSize(20, height / 2)
     end
@@ -84,7 +88,7 @@ local function CreateNineSliceFrame(width, height)
     do
         local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
         texture:SetPoint("BOTTOMRIGHT", 7, -7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
+        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
         texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 381 / 2048)
         texture:SetSize(20, 20)
     end
@@ -99,8 +103,7 @@ local function CreateActionFrameBar(barID, buttonCount, buttonSize, gap, vertica
         assert(nil, "The Action Bar cannot contain more than 12 buttons")
     end
 
-    local width
-    local height
+    local width, height
 
     if vertical then
         width = (buttonSize - 2)
@@ -110,20 +113,20 @@ local function CreateActionFrameBar(barID, buttonCount, buttonSize, gap, vertica
         height = (buttonSize - 2)
     end
 
-    -- Default
     frameName = frameName or ('ActionBar' .. barID)
 
     local frameBar = CreateUIFrame(width, height, frameName)
 
-    -- Change text direction if vertical bar
     if vertical then
         frameBar.editorText:SetText(verticalString(frameBar.editorText:GetText()))
     end
 
     if barID == MAIN_ACTION_BAR_ID then
-        frameBar.nineSlice = CreateNineSliceFrame(width, height)
-        frameBar.nineSlice:SetPoint("LEFT", frameBar, "LEFT", 0, 0)
-        MainMenuBarNineSlice = frameBar.nineSlice
+        local nineSliceFrame = CreateNineSliceFrame(width, height)
+        nineSliceFrame:SetParent(MainMenuBar)
+        nineSliceFrame:SetPoint("LEFT", frameBar, "LEFT", 0, 0)
+
+        MainMenuBarNineSlice = nineSliceFrame
     end
 
     frameBar.ID = barID
@@ -140,21 +143,23 @@ BONUS_ACTION_BAR_ID = 6
 SHAPESHIFT_ACTION_BAR_ID = 7
 PET_ACTION_BAR_ID = 8
 POSSESS_ACTION_BAR_ID = 9
-MULTICAST_ACTION_BAR_ID = 10
-
-local blizzActionBars = {
-    'ActionButton',
-    'MultiBarBottomLeftButton',
-    'MultiBarBottomRightButton',
-    'MultiBarRightButton',
-    'MultiBarLeftButton',
-    'BonusActionButton',
-    'ShapeshiftButton',
-    'PetActionButton',
-    'PossessButton'
-}
+VEHICLE_ACTION_BAR_ID = 10
+MULTICAST_ACTION_BAR_ID = 11
 
 local function ReplaceBlizzardActionBarFrame(frameBar)
+    local blizzActionBars = {
+        'ActionButton',
+        'MultiBarBottomLeftButton',
+        'MultiBarBottomRightButton',
+        'MultiBarRightButton',
+        'MultiBarLeftButton',
+        'BonusActionButton',
+        'ShapeshiftButton',
+        'PetActionButton',
+        'PossessButton',
+        'VehicleMenuBarActionButton'
+    }
+
     if frameBar.ID == MAIN_ACTION_BAR_ID then
         local faction = UnitFactionGroup('player')
 
@@ -165,25 +170,12 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         local rightEndCapTexture = MainMenuBarRightEndCap
         rightEndCapTexture:ClearAllPoints()
         rightEndCapTexture:SetPoint("LEFT", frameBar, "RIGHT", -6, 4)
-        rightEndCapTexture:SetSize(92, 92)
 
-        if faction == 'Alliance' then
-            leftEndCapTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-            leftEndCapTexture:SetTexCoord(1 / 512, 357 / 512, 209 / 2048, 543 / 2048)
-            leftEndCapTexture:SetSize(92, 92)
+        SetAtlasTexture(leftEndCapTexture, 'ActionBar-LeftCap-' .. faction)
+        leftEndCapTexture:SetSize(leftEndCapTexture:GetWidth() * 0.28, leftEndCapTexture:GetHeight() * 0.28)
 
-            rightEndCapTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-            rightEndCapTexture:SetTexCoord(1 / 512, 357 / 512, 545 / 2048, 879 / 2048)
-            rightEndCapTexture:SetSize(92, 92)
-        else
-            leftEndCapTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-            leftEndCapTexture:SetTexCoord(1 / 512, 357 / 512, 881 / 2048, 1215 / 2048)
-            leftEndCapTexture:SetSize(104.5, 96)
-
-            rightEndCapTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-            rightEndCapTexture:SetTexCoord(1 / 512, 357 / 512, 1217 / 2048, 1551 / 2048)
-            rightEndCapTexture:SetSize(104.5, 96)
-        end
+        SetAtlasTexture(rightEndCapTexture, 'ActionBar-RightCap-' .. faction)
+        rightEndCapTexture:SetSize(rightEndCapTexture:GetWidth() * 0.28, rightEndCapTexture:GetHeight() * 0.28)
 
         local pageNumberText = _G['MainMenuBarPageNumber']
         pageNumberText:SetPoint("CENTER", frameBar, "LEFT", -18, 0)
@@ -195,20 +187,17 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         local normalTexture = barUpButton:GetNormalTexture()
         normalTexture:SetPoint("TOPLEFT", 7, -6)
         normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        normalTexture:SetTexCoord(359 / 512, 393 / 512, 833 / 2048, 861 / 2048)
+        SetAtlasTexture(normalTexture, 'ActionBar-ButtonUp-Normal')
 
         local pushedTexture = barUpButton:GetPushedTexture()
         pushedTexture:SetPoint("TOPLEFT", 7, -6)
         pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        pushedTexture:SetTexCoord(453 / 512, 487 / 512, 679 / 2048, 707 / 2048)
+        SetAtlasTexture(pushedTexture, 'ActionBar-ButtonUp-Pushed')
 
         local highlightTexture = barUpButton:GetHighlightTexture()
         highlightTexture:SetPoint("TOPLEFT", 7, -6)
         highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        highlightTexture:SetTexCoord(453 / 512, 487 / 512, 709 / 2048, 737 / 2048)
+        SetAtlasTexture(highlightTexture, 'ActionBar-ButtonUp-Highlight')
 
         local barDownButton = _G['ActionBarDownButton']
         barDownButton:SetPoint("CENTER", pageNumberText, "CENTER", 0, -15)
@@ -216,20 +205,17 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         normalTexture = barDownButton:GetNormalTexture()
         normalTexture:SetPoint("TOPLEFT", 7, -6)
         normalTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        normalTexture:SetTexCoord(463 / 512, 497 / 512, 605 / 2048, 633 / 2048)
+        SetAtlasTexture(normalTexture, 'ActionBar-ButtonDown-Normal')
 
         pushedTexture = barDownButton:GetPushedTexture()
         pushedTexture:SetPoint("TOPLEFT", 7, -6)
         pushedTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        pushedTexture:SetTexCoord(463 / 512, 497 / 512, 545 / 2048, 573 / 2048)
+        SetAtlasTexture(pushedTexture, 'ActionBar-ButtonDown-Pushed')
 
         highlightTexture = barDownButton:GetHighlightTexture()
         highlightTexture:SetPoint("TOPLEFT", 7, -6)
         highlightTexture:SetPoint("BOTTOMRIGHT", -7, 6)
-        highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        highlightTexture:SetTexCoord(463 / 512, 497 / 512, 575 / 2048, 603 / 2048)
+        SetAtlasTexture(highlightTexture, 'ActionBar-ButtonDown-Highlight')
     end
 
     for index = 1, frameBar.buttonCount do
@@ -264,8 +250,7 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         backgroundTexture:SetAllPoints(button)
         backgroundTexture:SetPoint("TOPLEFT", -2, 2)
         backgroundTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-        backgroundTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        backgroundTexture:SetTexCoord(359 / 512, 487 / 512, 209 / 2048, 333 / 2048)
+        SetAtlasTexture(backgroundTexture, 'ActionBar-ActionButton-Background')
 
         if frameBar.ID == MAIN_ACTION_BAR_ID or frameBar.ID == BONUS_ACTION_BAR_ID then
             backgroundTexture:Show()
@@ -275,36 +260,31 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
 
         local highlightTexture = button:GetHighlightTexture()
         highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        highlightTexture:SetTexCoord(359 / 512, 451 / 512, 1065 / 2048, 1155 / 2048)
+        SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
         local pushedTexture = button:GetPushedTexture()
         pushedTexture:SetAllPoints(button)
-        pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        pushedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+        SetAtlasTexture(pushedTexture, 'ActionBar-ActionButton-Pushed')
 
         local checkedTexture = button:GetCheckedTexture()
         checkedTexture:SetAllPoints(button)
-        checkedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        checkedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+        SetAtlasTexture(checkedTexture, 'ActionBar-ActionButton-Pushed')
 
         local iconTexture = _G[button:GetName() .. "Icon"]
-        iconTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
-        iconTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+        iconTexture:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+        iconTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -3, 1)
         iconTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
         iconTexture:SetDrawLayer('BORDER')
 
         local borderTexture = _G[button:GetName() .. "Border"]
         borderTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
         borderTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
-        borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        borderTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+        SetAtlasTexture(borderTexture, 'ActionBar-ActionButton-Pushed')
         borderTexture:SetDrawLayer("OVERLAY")
 
         local flashTexture = _G[button:GetName() .. "Flash"]
         flashTexture:SetAllPoints(button)
-        flashTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        flashTexture:SetTexCoord(359 / 512, 451 / 512, 973 / 2048, 1063 / 2048)
+        SetAtlasTexture(flashTexture, 'ActionBar-ActionButton-Flash')
 
         local macroText = _G[button:GetName() .. "Name"]
         macroText:SetPoint("BOTTOM", 0, 5)
@@ -316,7 +296,7 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         hotKeyText:SetPoint("TOPLEFT", 4, -3)
 
         local cooldown = _G[button:GetName() .. "Cooldown"]
-        cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -2)
+        cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
         cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
 
         button.border = button.border or button:CreateTexture(nil, "OVERLAY")
@@ -324,8 +304,7 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         borderTexture:SetAllPoints(button)
         borderTexture:SetPoint("TOPLEFT", -2, 2)
         borderTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-        borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-        borderTexture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
+        SetAtlasTexture(borderTexture, 'ActionBar-ActionButton-Border')
     end
 end
 
@@ -343,8 +322,7 @@ local function ReplaceBlizzardMultiSlotButton(button, frameBar)
     borderTexture:SetAllPoints(button)
     borderTexture:SetPoint("TOPLEFT", -2, 2)
     borderTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    borderTexture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
+    SetAtlasTexture(borderTexture, 'ActionBar-ActionButton-Border')
 end
 
 local function ReplaceBlizzardMultiActionButton(button, frameBar)
@@ -365,18 +343,15 @@ local function ReplaceBlizzardMultiActionButton(button, frameBar)
 
     local highlightTexture = button:GetHighlightTexture()
     highlightTexture:SetAllPoints(button)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    highlightTexture:SetTexCoord(359 / 512, 451 / 512, 1065 / 2048, 1155 / 2048)
+    SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
     local pushedTexture = button:GetPushedTexture()
     pushedTexture:SetAllPoints(button)
-    pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    pushedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+    SetAtlasTexture(pushedTexture, 'ActionBar-ActionButton-Pushed')
 
     local checkedTexture = button:GetCheckedTexture()
     checkedTexture:SetAllPoints(button)
-    checkedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    checkedTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+    SetAtlasTexture(checkedTexture, 'ActionBar-ActionButton-Pushed')
 
     local iconTexture = _G[button:GetName() .. "Icon"]
     iconTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
@@ -387,14 +362,12 @@ local function ReplaceBlizzardMultiActionButton(button, frameBar)
     local borderTexture = _G[button:GetName() .. "Border"]
     borderTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, -1)
     borderTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    borderTexture:SetTexCoord(359 / 512, 451 / 512, 881 / 2048, 971 / 2048)
+    SetAtlasTexture(borderTexture, 'ActionBar-ActionButton-Border')
     borderTexture:SetDrawLayer("OVERLAY")
 
     local flashTexture = _G[button:GetName() .. "Flash"]
     flashTexture:SetAllPoints(button)
-    flashTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    flashTexture:SetTexCoord(359 / 512, 451 / 512, 973 / 2048, 1063 / 2048)
+    SetAtlasTexture(flashTexture, 'ActionBar-ActionButton-Flash')
 
     local macroText = _G[button:GetName() .. "Name"]
     macroText:SetPoint("BOTTOM", 0, 5)
@@ -406,7 +379,7 @@ local function ReplaceBlizzardMultiActionButton(button, frameBar)
     hotKeyText:SetPoint("TOPLEFT", 4, -3)
 
     local cooldown = _G[button:GetName() .. "Cooldown"]
-    cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -2)
+    cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
     cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
 
     button.border = button.border or button:CreateTexture(nil, "BORDER")
@@ -414,14 +387,10 @@ local function ReplaceBlizzardMultiActionButton(button, frameBar)
     borderTexture:SetAllPoints(button)
     borderTexture:SetPoint("TOPLEFT", -2, 2)
     borderTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    borderTexture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
+    SetAtlasTexture(borderTexture, 'ActionBar-ActionButton-Border')
 end
 
-local multiActionBarGap = 0
-
 local function ReplaceBlizzardMultiActionBarFrame(frameBar)
-    -- Page/Summon Button
     local button = MultiCastSummonSpellButton
     button:ClearAllPoints()
     button:SetPoint("LEFT", frameBar, "LEFT", 0, 0)
@@ -434,12 +403,11 @@ local function ReplaceBlizzardMultiActionBarFrame(frameBar)
 
     local normalTexture = flyoutOpenButton:GetNormalTexture()
     normalTexture:SetAllPoints(flyoutOpenButton)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
+    SetAtlasTexture(normalTexture, 'CollapseButton-Up')
 
     local highlightTexture = flyoutOpenButton:GetHighlightTexture()
     highlightTexture:SetAllPoints(flyoutOpenButton)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
-    highlightTexture:SetTexCoord(31 / 64, 63 / 64, 10 / 64, 27 / 64)
+    SetAtlasTexture(highlightTexture, 'CollapseButton-Up')
 
     local flyoutCloseButton = MultiCastFlyoutFrameCloseButton
     flyoutCloseButton:SetSize(24, 13)
@@ -447,12 +415,11 @@ local function ReplaceBlizzardMultiActionBarFrame(frameBar)
 
     normalTexture = flyoutCloseButton:GetNormalTexture()
     normalTexture:SetAllPoints(flyoutCloseButton)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
+    SetAtlasTexture(normalTexture, 'CollapseButton-Down')
 
     highlightTexture = flyoutCloseButton:GetHighlightTexture()
     highlightTexture:SetAllPoints(flyoutCloseButton)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
-    highlightTexture:SetTexCoord(31 / 64, 62 / 64, 37 / 64, 54 / 64)
+    SetAtlasTexture(highlightTexture, 'CollapseButton-Down')
 
     for index = 1, NUM_MULTI_CAST_BUTTONS_PER_PAGE do
         local button = _G['MultiCastSlotButton' .. index]
@@ -484,7 +451,6 @@ local function ReplaceBlizzardMultiActionBarFrame(frameBar)
         end
     end
 
-    -- Recall Button
     button = MultiCastRecallSpellButton
     button:ClearAllPoints()
     local activeSlots = MultiCastActionBarFrame.numActiveSlots
@@ -494,27 +460,22 @@ local function ReplaceBlizzardMultiActionBarFrame(frameBar)
 
     ReplaceBlizzardMultiActionButton(button, frameBar)
 
-    -- Flyout Frame
     local flyoutFrame = MultiCastFlyoutFrame
     for _, region in pairs { flyoutFrame:GetRegions() } do
         if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
             region:Hide()
         end
     end
-
-    multiActionBarGap = frameBar.gap
 end
 
 local function ReplaceBlizzardRepExpBarFrame(frameBar)
     local mainMenuExpBar = MainMenuExpBar
     mainMenuExpBar:ClearAllPoints()
-
     mainMenuExpBar:SetWidth(frameBar:GetWidth())
 
     for _, region in pairs { mainMenuExpBar:GetRegions() } do
         if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
-            region:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ExperienceBar.blp")
-            region:SetTexCoord(0.00088878125, 570 / 2048, 20 / 64, 29 / 64)
+            SetAtlasTexture(region, 'ExperienceBar-Background')
         end
     end
 
@@ -525,8 +486,7 @@ local function ReplaceBlizzardRepExpBarFrame(frameBar)
     borderTexture:SetAllPoints(mainMenuExpBar)
     borderTexture:SetPoint("TOPLEFT", mainMenuExpBar, "TOPLEFT", -3, 3)
     borderTexture:SetPoint("BOTTOMRIGHT", mainMenuExpBar, "BOTTOMRIGHT", 3, -6)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ExperienceBar.blp")
-    borderTexture:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
+    SetAtlasTexture(borderTexture, 'ExperienceBar-Border')
 
     local expText = MainMenuBarExpText
     expText:SetPoint("CENTER", mainMenuExpBar, "CENTER", 0, 2)
@@ -543,100 +503,41 @@ local function ReplaceBlizzardRepExpBarFrame(frameBar)
 
     local backgroundTexture = _G[repStatusBar:GetName() .. "Background"]
     backgroundTexture:SetAllPoints(repStatusBar)
-    backgroundTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ExperienceBar.blp")
-    backgroundTexture:SetTexCoord(0.00088878125, 570 / 2048, 20 / 64, 29 / 64)
+    SetAtlasTexture(backgroundTexture, 'ExperienceBar-Background')
 
     borderTexture = ReputationXPBarTexture0
     borderTexture:SetAllPoints(repStatusBar)
     borderTexture:SetPoint("TOPLEFT", repStatusBar, "TOPLEFT", -3, 2)
     borderTexture:SetPoint("BOTTOMRIGHT", repStatusBar, "BOTTOMRIGHT", 3, -7)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ExperienceBar.blp")
-    borderTexture:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
+    SetAtlasTexture(borderTexture, 'ExperienceBar-Border')
 
     borderTexture = ReputationWatchBarTexture0
     borderTexture:SetAllPoints(repStatusBar)
     borderTexture:SetPoint("TOPLEFT", repStatusBar, "TOPLEFT", -3, 2)
     borderTexture:SetPoint("BOTTOMRIGHT", repStatusBar, "BOTTOMRIGHT", 3, -7)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ExperienceBar.blp")
-    borderTexture:SetTexCoord(1 / 2048, 572 / 2048, 1 / 64, 18 / 64)
+    SetAtlasTexture(borderTexture, 'ExperienceBar-Border')
 end
 
-local microMenuButtons = {
-    CharacterMicroButton,
-    SpellbookMicroButton,
-    TalentMicroButton,
-    AchievementMicroButton,
-    QuestLogMicroButton,
-    SocialsMicroButton,
-    PVPMicroButton,
-    LFDMicroButton,
-    MainMenuMicroButton,
-    HelpMicroButton
-}
-
-local microMenuStyles = {
-    {
-        normalTexture = { left = 1 / 256, right = 39 / 256, top = 325 / 512, bottom = 377 / 512 },
-        pushedTexture = { left = 121 / 256, right = 159 / 256, top = 163 / 512, bottom = 215 / 512 },
-        highlightTexture = { left = 81 / 256, right = 119 / 256, top = 217 / 512, bottom = 269 / 512 }
-    },
-    {
-        normalTexture = { left = 121 / 256, right = 159 / 256, top = 55 / 512, bottom = 107 / 512 },
-        pushedTexture = { left = 81 / 256, right = 119 / 256, top = 433 / 512, bottom = 485 / 512 },
-        highlightTexture = { left = 189 / 256, right = 227 / 256, top = 433 / 512, bottom = 485 / 512 }
-    },
-    {
-        normalTexture = { left = 161 / 256, right = 199 / 256, top = 1 / 512, bottom = 53 / 512 },
-        pushedTexture = { left = 81 / 256, right = 119 / 256, top = 271 / 512, bottom = 323 / 512 },
-        highlightTexture = { left = 81 / 256, right = 119 / 256, top = 1 / 512, bottom = 53 / 512 },
-        disabledTexture = { left = 81 / 256, right = 119 / 256, top = 55 / 512, bottom = 107 / 512 }
-    },
-    {
-        normalTexture = { left = 161 / 256, right = 199 / 256, top = 109 / 512, bottom = 161 / 512 },
-        pushedTexture = { left = 161 / 256, right = 199 / 256, top = 55 / 512, bottom = 107 / 512 },
-        highlightTexture = { left = 201 / 256, right = 239 / 256, top = 55 / 512, bottom = 107 / 512 },
-        disabledTexture = { left = 201 / 256, right = 239 / 256, top = 109 / 512, bottom = 161 / 512 }
-    },
-    {
-        normalTexture = { left = 201 / 256, right = 239 / 256, top = 271 / 512, bottom = 323 / 512 },
-        pushedTexture = { left = 121 / 256, right = 159 / 256, top = 271 / 512, bottom = 323 / 512 },
-        highlightTexture = { left = 41 / 256, right = 79 / 256, top = 433 / 512, bottom = 485 / 512 }
-    },
-    {
-        normalTexture = { left = 41 / 256, right = 79 / 256, top = 55 / 512, bottom = 107 / 512 },
-        pushedTexture = { left = 1 / 256, right = 39 / 256, top = 1 / 512, bottom = 53 / 512 },
-        highlightTexture = { left = 41 / 256, right = 79 / 256, top = 1 / 512, bottom = 53 / 512 }
-    },
-    {
-        normalTexture = { left = 1 / 256, right = 39 / 256, top = 271 / 512, bottom = 323 / 512 },
-        pushedTexture = { left = 201 / 256, right = 239 / 256, top = 163 / 512, bottom = 215 / 512 },
-        highlightTexture = { left = 1 / 256, right = 39 / 256, top = 271 / 512, bottom = 323 / 512 },
-        disabledTexture = { left = 81 / 256, right = 119 / 256, top = 163 / 512, bottom = 215 / 512 }
-    },
-    {
-        normalTexture = { left = 1 / 256, right = 39 / 256, top = 163 / 512, bottom = 215 / 512 },
-        pushedTexture = { left = 81 / 256, right = 119 / 256, top = 109 / 512, bottom = 161 / 512 },
-        highlightTexture = { left = 41 / 256, right = 79 / 256, top = 109 / 512, bottom = 161 / 512 },
-        disabledTexture = { left = 41 / 256, right = 79 / 256, top = 271 / 512, bottom = 323 / 512 }
-    },
-    {
-        normalTexture = { left = 1 / 256, right = 39 / 256, top = 109 / 512, bottom = 161 / 512 },
-        pushedTexture = { left = 161 / 256, right = 199 / 256, top = 271 / 512, bottom = 323 / 512 },
-        highlightTexture = { left = 121 / 256, right = 159 / 256, top = 325 / 512, bottom = 377 / 512 }
-    },
-    {
-        normalTexture = { left = 201 / 256, right = 239 / 256, top = 217 / 512, bottom = 269 / 512 },
-        pushedTexture = { left = 121 / 256, right = 159 / 256, top = 217 / 512, bottom = 269 / 512 },
-        highlightTexture = { left = 161 / 256, right = 199 / 256, top = 217 / 512, bottom = 269 / 512 }
-    }
-}
-
 local function ReplaceBlizzardMicroMenuBarFrame(frameBar)
-    for index, button in pairs(microMenuButtons) do
+    local microMenu = {
+        'Character',
+        'Spellbook',
+        'Talent',
+        'Achievement',
+        'QuestLog',
+        'Socials',
+        'PVP',
+        'LFD',
+        'MainMenu',
+        'Help'
+    }
+
+    for index, element in pairs(microMenu) do
+        local button = _G[element .. 'MicroButton']
         button:ClearAllPoints()
 
         if index > 1 then
-            button:SetPoint("LEFT", microMenuButtons[index - 1], "RIGHT", frameBar.gap, 0)
+            button:SetPoint("LEFT", _G[microMenu[index - 1] .. 'MicroButton'], "RIGHT", frameBar.gap, 0)
         else
             button:SetPoint("LEFT", frameBar, "LEFT", 0, 0)
         end
@@ -644,56 +545,89 @@ local function ReplaceBlizzardMicroMenuBarFrame(frameBar)
         button:SetSize(21, 29)
         button:SetHitRectInsets(0, 0, 0, 0)
 
-        local normalTexture = button:GetNormalTexture()
-        normalTexture:SetAllPoints(button)
-        normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-MicroMenu.blp")
-        normalTexture:SetTexCoord(microMenuStyles[index].normalTexture.left, microMenuStyles[index].normalTexture.right,
-            microMenuStyles[index].normalTexture.top, microMenuStyles[index].normalTexture.bottom)
+        if element == 'Character' or element == 'PVP' then
+            local normalTexture = button:GetNormalTexture()
+            normalTexture:SetAllPoints(button)
+            SetAtlasTexture(normalTexture, 'MicroMenu-Empty')
 
-        local highlightTexture = button:GetHighlightTexture()
-        highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-MicroMenu.blp")
-        highlightTexture:SetTexCoord(microMenuStyles[index].highlightTexture.left,
-            microMenuStyles[index].highlightTexture.right, microMenuStyles[index].highlightTexture.top,
-            microMenuStyles[index].highlightTexture.bottom)
+            local highlightTexture = button:GetHighlightTexture()
+            highlightTexture:SetAllPoints(button)
+            SetAtlasTexture(highlightTexture, 'MicroMenu-Empty')
 
-        local pushedTexture = button:GetPushedTexture()
-        pushedTexture:SetAllPoints(button)
-        pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-MicroMenu.blp")
-        pushedTexture:SetTexCoord(microMenuStyles[index].pushedTexture.left,
-            microMenuStyles[index].pushedTexture.right, microMenuStyles[index].pushedTexture.top,
-            microMenuStyles[index].pushedTexture.bottom)
+            local pushedTexture = button:GetPushedTexture()
+            pushedTexture:SetAllPoints(button)
+            SetAtlasTexture(pushedTexture, 'MicroMenu-Empty')
+        else
+            local normalTexture = button:GetNormalTexture()
+            normalTexture:SetAllPoints(button)
+            SetAtlasTexture(normalTexture, 'MicroMenu-' .. element .. '-Normal')
 
-        if microMenuStyles[index].disabledTexture ~= nil then
-            local disabledTexture = button:GetDisabledTexture() or button:CreateTexture(nil, "OVERLAY")
-            disabledTexture:SetAllPoints(button)
-            disabledTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-MicroMenu.blp")
-            disabledTexture:SetTexCoord(microMenuStyles[index].disabledTexture.left,
-                microMenuStyles[index].disabledTexture.right, microMenuStyles[index].disabledTexture.top,
-                microMenuStyles[index].disabledTexture.bottom)
+            local highlightTexture = button:GetHighlightTexture()
+            highlightTexture:SetAllPoints(button)
+            SetAtlasTexture(highlightTexture, 'MicroMenu-' .. element .. '-Highlight')
 
-            button:SetDisabledTexture(disabledTexture)
+            local pushedTexture = button:GetPushedTexture()
+            pushedTexture:SetAllPoints(button)
+            SetAtlasTexture(pushedTexture, 'MicroMenu-' .. element .. '-Pushed')
+
+            if element == 'LFD' or element == 'Talent' or element == 'Achievement' then
+                local disabledTexture = button:GetDisabledTexture()
+                disabledTexture:SetAllPoints(button)
+                SetAtlasTexture(disabledTexture, 'MicroMenu-' .. element .. '-Disabled')
+            end
         end
     end
 
-    -- Portrait
-    local playerPortraitTexture = MicroButtonPortrait
-    playerPortraitTexture:Hide()
+    local portraitTexture = MicroButtonPortrait
+    portraitTexture:ClearAllPoints()
+    portraitTexture:SetPoint('CENTER', CharacterMicroButton, 'CENTER', 0, 0)
+    portraitTexture:SetSize(15, 20)
 
-    -- PVP Flag
     local pvpButtonTexture = _G['PVPMicroButton' .. "Texture"]
-    pvpButtonTexture:Hide()
+    pvpButtonTexture:SetAllPoints(PVPMicroButton)
+    pvpButtonTexture:SetPoint('TOPLEFT', 1, -5)
+    pvpButtonTexture:SetPoint('BOTTOMRIGHT', 9, -10)
+
+    local helpButton = HelpMicroButton
+    helpButton.performanceFrame = helpButton.performanceFrame or CreateFrame('Frame', nil, helpButton)
+    local performanceFrame = helpButton.performanceFrame
+    performanceFrame.updateInterval = 0
+    performanceFrame.texture = performanceFrame.texture or performanceFrame:CreateTexture(nil, "OVERLAY")
+    local performanceTexture = performanceFrame.texture
+    performanceTexture:SetTexture('Interface\\MainMenuBar\\UI-MainMenuBar-PerformanceBar.blp')
+    performanceTexture:SetPoint('TOP', HelpMicroButton, "BOTTOM", 4, -2)
+    performanceTexture:SetSize(16, 5)
+
+    performanceFrame:SetScript('OnUpdate', function(self, elapsed)
+        local PERFORMANCEBAR_LOW_LATENCY = 300
+        local PERFORMANCEBAR_MEDIUM_LATENCY = 600
+        local PERFORMANCEBAR_UPDATE_INTERVAL = 10
+
+        if self.updateInterval > 0 then
+            self.updateInterval = self.updateInterval - elapsed
+        else
+            self.updateInterval = PERFORMANCEBAR_UPDATE_INTERVAL
+            local bandwidthIn, bandwidthOut, latency = GetNetStats()
+            if latency > PERFORMANCEBAR_MEDIUM_LATENCY then
+                self.texture:SetVertexColor(1, 0, 0)
+            elseif latency > PERFORMANCEBAR_LOW_LATENCY then
+                self.texture:SetVertexColor(1, 1, 0)
+            else
+                self.texture:SetVertexColor(0, 1, 0)
+            end
+        end
+    end)
 end
 
-local bagSlotButtons = {
-    KeyRingButton,
-    CharacterBag3Slot,
-    CharacterBag2Slot,
-    CharacterBag1Slot,
-    CharacterBag0Slot
-}
-
 local function ReplaceBlizzardBagsBarFrame(frameBar)
+    local bagSlotButtons = {
+        KeyRingButton,
+        CharacterBag3Slot,
+        CharacterBag2Slot,
+        CharacterBag1Slot,
+        CharacterBag0Slot
+    }
+
     for index, button in pairs(bagSlotButtons) do
         button:ClearAllPoints()
 
@@ -710,13 +644,11 @@ local function ReplaceBlizzardBagsBarFrame(frameBar)
 
         local highlightTexture = button:GetHighlightTexture()
         highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-BagSlots.blp")
-        highlightTexture:SetTexCoord(358 / 512, 419 / 512, 1 / 128, 62 / 128)
+        SetAtlasTexture(highlightTexture, 'BagsBar-SlotButton-Highlight')
 
         local checkedTexture = button:GetCheckedTexture() or button:CreateTexture(nil, 'OVERLAY')
         checkedTexture:SetAllPoints(button)
-        checkedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-BagSlots.blp")
-        checkedTexture:SetTexCoord(358 / 512, 419 / 512, 1 / 128, 62 / 128)
+        SetAtlasTexture(checkedTexture, 'BagsBar-SlotButton-Highlight')
 
         button:SetCheckedTexture(checkedTexture)
 
@@ -734,11 +666,9 @@ local function ReplaceBlizzardBagsBarFrame(frameBar)
         borderTexture:SetAllPoints(button)
 
         if index == 1 then -- Keys
-            borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-BagSlotsKey.blp")
-            borderTexture:SetTexCoord(3 / 128, 63 / 128, 64 / 128, 125 / 128)
-        else -- Bags
-            borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-BagSlots.blp")
-            borderTexture:SetTexCoord(295 / 512, 356 / 512, 1 / 128, 62 / 128)
+            SetAtlasTexture(borderTexture, 'BagsBar-KeySlot-Normal')
+        else               -- Bags
+            SetAtlasTexture(borderTexture, 'BagsBar-SlotButton-Border')
 
             local slotsText = _G[button:GetName() .. 'Count']
             slotsText:ClearAllPoints()
@@ -750,107 +680,102 @@ local function ReplaceBlizzardBagsBarFrame(frameBar)
 
     frameBar.toggleButton = frameBar.toggleButton or CreateFrame('Button', nil, UIParent)
     local toggleButton = frameBar.toggleButton
-    toggleButton:SetPoint("LEFT", CharacterBag0Slot, "RIGHT", frameBar.gap, 0)
-
-    toggleButton:SetSize(13, 24)
+    toggleButton.toggle = false
+    toggleButton:SetPoint("LEFT", CharacterBag0Slot, "RIGHT", frameBar.gap, 1)
+    toggleButton:SetSize(9, 17)
     toggleButton:SetHitRectInsets(0, 0, 0, 0)
 
     local normalTexture = toggleButton:GetNormalTexture() or toggleButton:CreateTexture(nil, "BORDER")
     normalTexture:SetAllPoints(toggleButton)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
-    normalTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+    SetAtlasTexture(normalTexture, 'CollapseButton-Left')
 
     toggleButton:SetNormalTexture(normalTexture)
 
     local highlightTexture = toggleButton:GetHighlightTexture() or toggleButton:CreateTexture(nil, "HIGHLIGHT")
     highlightTexture:SetAllPoints(toggleButton)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-CollapseButton.blp")
-    highlightTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+    SetAtlasTexture(highlightTexture, 'CollapseButton-Left')
 
     toggleButton:SetHighlightTexture(highlightTexture)
 
     toggleButton:SetScript("OnClick", function(self)
-        if Module.toggleBags then
+        if self.toggle then
             local normalTexture = self:GetNormalTexture()
-            normalTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+            SetAtlasTexture(normalTexture, 'CollapseButton-Left')
 
             local highlightTexture = toggleButton:GetHighlightTexture()
-            highlightTexture:SetTexCoord(4 / 64, 22 / 64, 0 / 64, 31 / 64)
+            SetAtlasTexture(highlightTexture, 'CollapseButton-Left')
 
             for _, button in pairs(bagSlotButtons) do
                 button:Hide()
             end
         else
             local normalTexture = self:GetNormalTexture()
-            normalTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+            SetAtlasTexture(normalTexture, 'CollapseButton-Right')
 
             local highlightTexture = toggleButton:GetHighlightTexture()
-            highlightTexture:SetTexCoord(5 / 64, 22 / 64, 31 / 64, 62 / 64)
+            SetAtlasTexture(highlightTexture, 'CollapseButton-Right')
 
             for _, button in pairs(bagSlotButtons) do
                 button:Show()
             end
         end
 
-        Module.toggleBags = not Module.toggleBags
+        self.toggle = not self.toggle
     end)
 
-    do
-        local button = MainMenuBarBackpackButton
-        button:ClearAllPoints()
-        button:SetPoint("LEFT", toggleButton, "RIGHT", frameBar.gap, 0)
+    local backpackButton = MainMenuBarBackpackButton
+    backpackButton:ClearAllPoints()
+    backpackButton:SetPoint("LEFT", toggleButton, "RIGHT", frameBar.gap, 0)
+    backpackButton:SetSize(50, 50)
 
-        button:SetSize(50, 50)
+    backpackButton:SetNormalTexture(nil)
+    backpackButton:SetPushedTexture(nil)
 
-        button:SetNormalTexture(nil)
-        button:SetPushedTexture(nil)
+    highlightTexture = backpackButton:GetHighlightTexture()
+    highlightTexture:SetAllPoints(backpackButton)
+    SetAtlasTexture(highlightTexture, 'BagsBar-MainSlot-Highlight')
 
-        highlightTexture = button:GetHighlightTexture()
-        highlightTexture:SetAllPoints(button)
-        highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-BagSlots.blp")
-        highlightTexture:SetTexCoord(99 / 512, 195 / 512, 1 / 128, 97 / 128)
+    local checkedTexture = backpackButton:GetCheckedTexture()
+    checkedTexture:SetAllPoints(backpackButton)
+    SetAtlasTexture(checkedTexture, 'BagsBar-MainSlot-Highlight')
 
-        button:SetCheckedTexture(highlightTexture)
-        button:SetHighlightTexture(highlightTexture)
-
-        local iconTexture = _G[button:GetName() .. 'IconTexture']
-        iconTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-BagSlots.blp")
-        iconTexture:SetTexCoord(1 / 512, 97 / 512, 1 / 128, 97 / 128)
-    end
+    local iconTexture = _G[backpackButton:GetName() .. 'IconTexture']
+    iconTexture:SetAllPoints(backpackButton)
+    SetAtlasTexture(iconTexture, 'BagsBar-MainSlot-Normal')
 
     local backpackSlotsText = MainMenuBarBackpackButtonCount
     backpackSlotsText:ClearAllPoints()
     backpackSlotsText:SetPoint("BOTTOM", 0, 8)
 end
 
-local blizzFrames = {
-    MainMenuBarPerformanceBar,
-    MainMenuBarTexture0,
-    MainMenuBarTexture1,
-    MainMenuBarTexture2,
-    MainMenuBarTexture3,
-    MainMenuBarMaxLevelBar,
-    ReputationXPBarTexture1,
-    ReputationXPBarTexture2,
-    ReputationXPBarTexture3,
-    ReputationWatchBarTexture1,
-    ReputationWatchBarTexture2,
-    ReputationWatchBarTexture3,
-    MainMenuXPBarTexture1,
-    MainMenuXPBarTexture2,
-    MainMenuXPBarTexture3,
-    SlidingActionBarTexture0,
-    SlidingActionBarTexture1,
-    BonusActionBarTexture0,
-    BonusActionBarTexture1,
-    ShapeshiftBarLeft,
-    ShapeshiftBarMiddle,
-    ShapeshiftBarRight,
-    PossessBackground1,
-    PossessBackground2
-}
-
 local function RemoveBlizzardFrames()
+    local blizzFrames = {
+        MainMenuBarPerformanceBar,
+        MainMenuBarTexture0,
+        MainMenuBarTexture1,
+        MainMenuBarTexture2,
+        MainMenuBarTexture3,
+        MainMenuBarMaxLevelBar,
+        ReputationXPBarTexture1,
+        ReputationXPBarTexture2,
+        ReputationXPBarTexture3,
+        ReputationWatchBarTexture1,
+        ReputationWatchBarTexture2,
+        ReputationWatchBarTexture3,
+        MainMenuXPBarTexture1,
+        MainMenuXPBarTexture2,
+        MainMenuXPBarTexture3,
+        SlidingActionBarTexture0,
+        SlidingActionBarTexture1,
+        BonusActionBarTexture0,
+        BonusActionBarTexture1,
+        ShapeshiftBarLeft,
+        ShapeshiftBarMiddle,
+        ShapeshiftBarRight,
+        PossessBackground1,
+        PossessBackground2
+    }
+
     for _, frame in pairs(blizzFrames) do
         frame:SetAlpha(0)
     end
@@ -945,16 +870,14 @@ local function ReplaceBlizzardFlyoutButton(button, buttonSize, replaceUV)
 
     local highlightTexture = button:GetHighlightTexture()
     highlightTexture:SetAllPoints(button)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    highlightTexture:SetTexCoord(359 / 512, 451 / 512, 1065 / 2048, 1155 / 2048)
+    SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
     button.border = button.border or button:CreateTexture(nil, "BORDER")
     local borderTexture = button.border
     borderTexture:SetAllPoints(button)
     borderTexture:SetPoint("TOPLEFT", -2, 2)
     borderTexture:SetPoint("BOTTOMRIGHT", 2, -2)
-    borderTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI-ActionBar.blp")
-    borderTexture:SetTexCoord(359 / 512, 451 / 512, 649 / 2048, 739 / 2048)
+    SetAtlasTexture(borderTexture, 'ActionBar-ActionButton-Border')
 end
 
 local function MultiCastFlyoutFrame_LoadPageSpells(self)
@@ -999,9 +922,11 @@ local function MultiCastSummonSpellButton_Update(self)
         button:ClearAllPoints()
 
         if index > 1 then
-            button:SetPoint("LEFT", _G['MultiCastSlotButton' .. index - 1], "RIGHT", multiActionBarGap, 0)
+            button:SetPoint("LEFT", _G['MultiCastSlotButton' .. index - 1], "RIGHT",
+                Module.actionBars[MULTICAST_ACTION_BAR_ID].gap, 0)
         else
-            button:SetPoint("LEFT", MultiCastSummonSpellButton, "RIGHT", multiActionBarGap, 0)
+            button:SetPoint("LEFT", MultiCastSummonSpellButton, "RIGHT", Module.actionBars[MULTICAST_ACTION_BAR_ID].gap,
+                0)
         end
     end
 end
@@ -1010,8 +935,68 @@ local function MultiCastRecallSpellButton_Update(self)
     local activeSlots = MultiCastActionBarFrame.numActiveSlots
     if activeSlots > 0 then
         self:ClearAllPoints()
-        self:SetPoint("LEFT", _G["MultiCastSlotButton" .. activeSlots], "RIGHT", multiActionBarGap, 0)
+        self:SetPoint("LEFT", _G["MultiCastSlotButton" .. activeSlots], "RIGHT",
+            Module.actionBars[MULTICAST_ACTION_BAR_ID].gap, 0)
     end
+end
+
+local function VehicleMenuBar_MoveMicroButtons(skinName)
+    local microMenuButtons = {
+        CharacterMicroButton,
+        SpellbookMicroButton,
+        TalentMicroButton,
+        AchievementMicroButton,
+        QuestLogMicroButton,
+        SocialsMicroButton,
+        PVPMicroButton,
+        LFDMicroButton,
+        MainMenuMicroButton,
+        HelpMicroButton
+    }
+
+    if not skinName then
+        for index, button in pairs(microMenuButtons) do
+            button:ClearAllPoints()
+
+            if index > 1 then
+                button:SetPoint("LEFT", microMenuButtons[index - 1], "RIGHT", Module.microMenuBar.gap, 0)
+            else
+                button:SetPoint("LEFT", Module.microMenuBar, "LEFT", 0, 0)
+            end
+        end
+
+        UpdateMicroButtons()
+    elseif skinName == "Mechanical" then
+        for _, frame in pairs(microMenuButtons) do
+            frame:SetParent(VehicleMenuBarArtFrame)
+            frame:Show();
+        end
+        CharacterMicroButton:ClearAllPoints()
+        CharacterMicroButton:SetPoint("BOTTOMLEFT", VehicleMenuBar, "BOTTOMRIGHT", -340, 41)
+        SocialsMicroButton:ClearAllPoints()
+        SocialsMicroButton:SetPoint("TOPLEFT", CharacterMicroButton, "BOTTOMLEFT", 0, 20)
+
+        UpdateMicroButtons()
+    elseif skinName == "Natural" then
+        for _, frame in pairs(microMenuButtons) do
+            frame:SetParent(VehicleMenuBarArtFrame)
+            frame:Show()
+        end
+        CharacterMicroButton:ClearAllPoints()
+        CharacterMicroButton:SetPoint("BOTTOMLEFT", VehicleMenuBar, "BOTTOMRIGHT", -360, 41)
+        SocialsMicroButton:ClearAllPoints()
+        SocialsMicroButton:SetPoint("TOPLEFT", CharacterMicroButton, "BOTTOMLEFT", 0, -4)
+
+        UpdateMicroButtons()
+    end
+end
+
+local function MainMenuBar_ToVehicleArt()
+    Module.bagsBar.toggleButton:Hide()
+end
+
+local function MainMenuBar_ToPlayerArt()
+    Module.bagsBar.toggleButton:Show()
 end
 
 function Module:OnEnable()
@@ -1029,6 +1014,9 @@ function Module:OnEnable()
     self:SecureHook('MultiCastFlyoutFrame_LoadSlotSpells', MultiCastFlyoutFrame_LoadSlotSpells)
     self:SecureHook('MultiCastSummonSpellButton_Update', MultiCastSummonSpellButton_Update)
     self:SecureHook('MultiCastRecallSpellButton_Update', MultiCastRecallSpellButton_Update)
+    self:SecureHook('VehicleMenuBar_MoveMicroButtons', VehicleMenuBar_MoveMicroButtons)
+    self:SecureHook('MainMenuBar_ToVehicleArt', MainMenuBar_ToVehicleArt)
+    self:SecureHook('MainMenuBar_ToPlayerArt', MainMenuBar_ToPlayerArt)
 
     -- Main
     self.actionBars[MAIN_ACTION_BAR_ID] = CreateActionFrameBar(MAIN_ACTION_BAR_ID, 12, 42, 4, false)
@@ -1070,6 +1058,9 @@ function Module:OnEnable()
     -- Pet
     self.actionBars[PET_ACTION_BAR_ID] = CreateActionFrameBar(PET_ACTION_BAR_ID, 10, 36, 4, false)
 
+    -- Vehicle
+    self.actionBars[VEHICLE_ACTION_BAR_ID] = CreateActionFrameBar(VEHICLE_ACTION_BAR_ID, 6, 60, 4, false)
+
     -- MultiCast
     self.actionBars[MULTICAST_ACTION_BAR_ID] = CreateActionFrameBar(MULTICAST_ACTION_BAR_ID, 6, 36, 6, false)
 
@@ -1095,6 +1086,9 @@ function Module:OnDisable()
     self:Unhook('MultiCastFlyoutFrame_LoadSlotSpells', MultiCastFlyoutFrame_LoadSlotSpells)
     self:Unhook('MultiCastSummonSpellButton_Update', MultiCastSummonSpellButton_Update)
     self:Unhook('MultiCastRecallSpellButton_Update', MultiCastRecallSpellButton_Update)
+    self:Unhook('VehicleMenuBar_MoveMicroButtons', VehicleMenuBar_MoveMicroButtons)
+    self:Unhook('MainMenuBar_ToVehicleArt', MainMenuBar_ToVehicleArt)
+    self:Unhook('MainMenuBar_ToPlayerArt', MainMenuBar_ToPlayerArt)
 end
 
 function Module:PLAYER_ENTERING_WORLD()
@@ -1122,19 +1116,13 @@ function Module:PLAYER_ENTERING_WORLD()
         'actionBar' .. 8,
         'actionBar' .. 9,
         'actionBar' .. 10,
+        'actionBar' .. 11,
         'bagsBar',
         'microMenuBar',
         'repExpBar'
     }
 
-    for _, widget in pairs(widgets) do
-        if RUI.DB.profile.widgets[widget] == nil then
-            self:LoadDefaultSettings()
-            break
-        end
-    end
-
-    self:UpdateWidgets()
+    CheckSettingsExists(Module, widgets)
 end
 
 local petBarInitialized = false
@@ -1146,47 +1134,6 @@ function Module:PET_BAR_UPDATE()
     end
 
     petBarInitialized = true
-end
-
-function Module:EnableEditorPreview()
-    local hideMainActionBarFrames = {
-        MainMenuBarNineSlice,
-        MainMenuBarPageNumber,
-        MainMenuBarLeftEndCap,
-        MainMenuBarRightEndCap,
-        ActionBarUpButton,
-        ActionBarDownButton
-    }
-
-    HideUIFrame(self.actionBars[MAIN_ACTION_BAR_ID], hideMainActionBarFrames)
-
-    for index, actionBar in pairs(self.actionBars) do
-        if index ~= MAIN_ACTION_BAR_ID and index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and index ~= MULTICAST_ACTION_BAR_ID then
-            HideUIFrame(actionBar)
-        end
-    end
-
-    HideUIFrame(self.bagsBar)
-    HideUIFrame(self.microMenuBar)
-    HideUIFrame(self.repExpBar)
-end
-
-function Module:DisableEditorPreview()
-    for index, actionBar in pairs(self.actionBars) do
-        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and index ~= MULTICAST_ACTION_BAR_ID then
-            ShowUIFrame(actionBar)
-            SaveUIFramePosition(actionBar, 'actionBar' .. index)
-        end
-    end
-
-    ShowUIFrame(self.bagsBar)
-    SaveUIFramePosition(self.bagsBar, 'bagsBar')
-
-    ShowUIFrame(self.microMenuBar)
-    SaveUIFramePosition(self.microMenuBar, 'microMenuBar')
-
-    ShowUIFrame(self.repExpBar)
-    SaveUIFramePosition(self.repExpBar, 'repExpBar')
 end
 
 function Module:LoadDefaultSettings()
@@ -1216,7 +1163,7 @@ function Module:LoadDefaultSettings()
     }
 
     RUI.DB.profile.widgets.microMenuBar = { anchor = "BOTTOMRIGHT", posX = 50, posY = 10 }
-    RUI.DB.profile.widgets.bagsBar = { anchor = "BOTTOMRIGHT", posX = 5, posY = 45 }
+    RUI.DB.profile.widgets.bagsBar = { anchor = "BOTTOMRIGHT", posX = 13, posY = 45 }
     RUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 30 }
 
     -- Static
@@ -1251,23 +1198,61 @@ function Module:UpdateWidgets()
         actionBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
     end
 
-    do
-        local widgetOptions = RUI.DB.profile.widgets.microMenuBar
-        self.microMenuBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    local widgetOptions = RUI.DB.profile.widgets.microMenuBar
+    self.microMenuBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+
+    widgetOptions = RUI.DB.profile.widgets.bagsBar
+    self.bagsBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+
+    widgetOptions = RUI.DB.profile.widgets.repExpBar
+    self.repExpBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+
+    self.actionBars[BONUS_ACTION_BAR_ID]:SetPoint('LEFT', self.actionBars[MAIN_ACTION_BAR_ID], 'LEFT', 0, 0)
+
+    self.actionBars[VEHICLE_ACTION_BAR_ID]:SetPoint('LEFT', VehicleMenuBarActionButtonFrame, 'LEFT', 0, 25)
+end
+
+function Module:ShowEditorTest()
+    local hideMainActionBarFrames = {
+        MainMenuBarNineSlice,
+        MainMenuBarPageNumber,
+        MainMenuBarLeftEndCap,
+        MainMenuBarRightEndCap,
+        ActionBarUpButton,
+        ActionBarDownButton
+    }
+
+    HideUIFrame(self.actionBars[MAIN_ACTION_BAR_ID], hideMainActionBarFrames)
+
+    for index, actionBar in pairs(self.actionBars) do
+        if index ~= MAIN_ACTION_BAR_ID and index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and index ~= MULTICAST_ACTION_BAR_ID then
+            HideUIFrame(actionBar)
+        end
     end
 
-    do
-        local widgetOptions = RUI.DB.profile.widgets.bagsBar
-        self.bagsBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    HideUIFrame(self.bagsBar)
+    HideUIFrame(self.microMenuBar)
+    HideUIFrame(self.repExpBar)
+end
+
+function Module:HideEditorTest(refresh)
+    for index, actionBar in pairs(self.actionBars) do
+        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and index ~= MULTICAST_ACTION_BAR_ID then
+            ShowUIFrame(actionBar)
+            SaveUIFramePosition(actionBar, 'actionBar' .. index)
+        end
     end
 
-    do
-        local widgetOptions = RUI.DB.profile.widgets.repExpBar
-        self.repExpBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
-    end
+    ShowUIFrame(self.bagsBar)
+    SaveUIFramePosition(self.bagsBar, 'bagsBar')
 
-    -- Static
-    do
-        self.actionBars[BONUS_ACTION_BAR_ID]:SetPoint('LEFT', self.actionBars[MAIN_ACTION_BAR_ID], 'LEFT', 0, 0)
+    ShowUIFrame(self.microMenuBar)
+    SaveUIFramePosition(self.microMenuBar, 'microMenuBar')
+
+    ShowUIFrame(self.repExpBar)
+    SaveUIFramePosition(self.repExpBar, 'repExpBar')
+
+    if refresh then
+        self:UpdateWidgets()
     end
 end
