@@ -60,6 +60,11 @@ local function ReplaceBlizzardCastingBarFrame(castingBarFrame, attachTo)
     backgroundTexture:SetPoint("BOTTOMRIGHT", 1, -16)
     SetAtlasTexture(backgroundTexture, 'CastingBar-MainBackground')
 
+    local iconTexture = _G[statusBar:GetName() .. "Icon"]
+    iconTexture:ClearAllPoints()
+    iconTexture:SetPoint("RIGHT", backgroundTexture, "LEFT", -5, 0)
+    iconTexture:SetSize(24, 24)
+
     statusBar.castingTime = statusBar.castingTime or statusBar:CreateFontString(nil, "BORDER", 'GameFontHighlightSmall')
     local castTimeText = statusBar.castingTime
     castTimeText:SetPoint("BOTTOMRIGHT", -4, -14)
@@ -73,7 +78,7 @@ local function ReplaceBlizzardCastingBarFrame(castingBarFrame, attachTo)
     borderShieldTexture:SetPoint("CENTER", _G[statusBar:GetName() .. 'Icon'], "CENTER", 0, 0)
     SetAtlasTexture(borderShieldTexture, 'CastingBar-BorderShield')
     borderShieldTexture:SetDrawLayer("BACKGROUND")
-    borderShieldTexture:SetSize(borderShieldTexture:GetWidth() / 3.5, borderShieldTexture:GetHeight() / 3.5)
+    borderShieldTexture:SetSize(borderShieldTexture:GetWidth() / 2.5, borderShieldTexture:GetHeight() / 2.5)
 
     statusBar.ShowTest = function(self)
         SetAtlasTexture(self:GetStatusBarTexture(), 'CastingBar-StatusBar-Casting')
@@ -174,10 +179,12 @@ function Module:OnEnable()
     CastingBarFrame:UnregisterAllEvents()
     FocusFrameSpellBar:UnregisterAllEvents()
     TargetFrameSpellBar:UnregisterAllEvents()
+    PetCastingBarFrame:UnregisterAllEvents()
 
     CastingBarFrame:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
     TargetFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
     FocusFrameSpellBar:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
+    PetCastingBarFrame:HookScript("OnUpdate", CastingBarFrame_OnUpdate)
 
     self:SecureHook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
 
@@ -203,6 +210,7 @@ function Module:OnDisable()
     CastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
     TargetFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
     FocusFrameSpellBar:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
+    PetCastingBarFrame:Unhook("OnUpdate", CastingBarFrame_OnUpdate)
 
     self:Unhook('Target_Spellbar_AdjustPosition', Target_Spellbar_AdjustPosition)
 end
@@ -254,6 +262,8 @@ function Module:UNIT_SPELLCAST_START(eventName, unit)
     elseif unit == 'focus' then
         statusBar = FocusFrameSpellBar
         statusBar.unit = UnitGUID("focus")
+    elseif unit == 'pet' then
+        statusBar = PetCastingBarFrame
     else
         return
     end
@@ -312,6 +322,8 @@ function Module:UNIT_SPELLCAST_STOP(eventName, unit)
         if statusBar.unit ~= UnitGUID('focus') then
             return
         end
+    elseif unit == 'pet' then
+        statusBar = PetCastingBarFrame
     else
         return
     end
@@ -347,6 +359,8 @@ function Module:UNIT_SPELLCAST_FAILED(eventName, unit)
         if statusBar.unit ~= UnitGUID('focus') then
             return
         end
+    elseif unit == 'pet' then
+        statusBar = PetCastingBarFrame
     else
         return
     end
@@ -374,6 +388,8 @@ function Module:UNIT_SPELLCAST_INTERRUPTED(eventName, unit)
         if statusBar.unit ~= UnitGUID('focus') then
             return
         end
+    elseif unit == 'pet' then
+        statusBar = PetCastingBarFrame
     else
         return
     end
@@ -411,6 +427,8 @@ function Module:UNIT_SPELLCAST_DELAYED(eventName, unit)
         if statusBar.unit ~= UnitGUID('focus') then
             return
         end
+    elseif unit == 'pet' then
+        statusBar = PetCastingBarFrame
     else
         return
     end
@@ -445,6 +463,8 @@ function Module:UNIT_SPELLCAST_INTERRUPTIBLE(unit)
         if statusBar.unit ~= UnitGUID('focus') then
             return
         end
+    elseif unit == 'pet' then
+        statusBar = PetCastingBarFrame
     else
         return
     end
@@ -465,6 +485,8 @@ function Module:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(unit)
         if statusBar.unit ~= UnitGUID('focus') then
             return
         end
+    elseif unit == 'pet' then
+        statusBar = PetCastingBarFrame
     else
         return
     end

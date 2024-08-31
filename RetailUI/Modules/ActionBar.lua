@@ -259,16 +259,19 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         end
 
         local highlightTexture = button:GetHighlightTexture()
-        highlightTexture:SetAllPoints(button)
+        highlightTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+        highlightTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
         SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
         local pushedTexture = button:GetPushedTexture()
-        pushedTexture:SetAllPoints(button)
+        pushedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
+        pushedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
         SetAtlasTexture(pushedTexture, 'ActionBar-ActionButton-Pushed')
 
         local checkedTexture = button:GetCheckedTexture()
-        checkedTexture:SetAllPoints(button)
-        SetAtlasTexture(checkedTexture, 'ActionBar-ActionButton-Pushed')
+        checkedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+        checkedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
+        SetAtlasTexture(checkedTexture, 'ActionBar-ActionButton-Highlight')
 
         local iconTexture = _G[button:GetName() .. "Icon"]
         iconTexture:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
@@ -293,13 +296,13 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         countText:SetPoint("BOTTOMRIGHT", -4, 3)
 
         local hotKeyText = _G[button:GetName() .. "HotKey"]
-        hotKeyText:SetPoint("TOPLEFT", 4, -3)
+        hotKeyText:SetPoint("TOPLEFT", 1, -3)
 
         local cooldown = _G[button:GetName() .. "Cooldown"]
-        cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+        cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -1)
         cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
 
-        button.border = button.border or button:CreateTexture(nil, "OVERLAY")
+        button.border = button.border or button:CreateTexture(nil, "ARTWORK")
         borderTexture = button.border
         borderTexture:SetAllPoints(button)
         borderTexture:SetPoint("TOPLEFT", -2, 2)
@@ -317,7 +320,7 @@ local function ReplaceBlizzardMultiSlotButton(button, frameBar)
         end
     end
 
-    button.border = button.border or button:CreateTexture(nil, "BORDER")
+    button.border = button.border or button:CreateTexture(nil, "ARTWORK")
     local borderTexture = button.border
     borderTexture:SetAllPoints(button)
     borderTexture:SetPoint("TOPLEFT", -2, 2)
@@ -342,15 +345,18 @@ local function ReplaceBlizzardMultiActionButton(button, frameBar)
     normalTexture:SetAlpha(0)
 
     local highlightTexture = button:GetHighlightTexture()
-    highlightTexture:SetAllPoints(button)
+    highlightTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+    highlightTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
     SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
     local pushedTexture = button:GetPushedTexture()
-    pushedTexture:SetAllPoints(button)
+    pushedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
+    pushedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
     SetAtlasTexture(pushedTexture, 'ActionBar-ActionButton-Pushed')
 
     local checkedTexture = button:GetCheckedTexture()
-    checkedTexture:SetAllPoints(button)
+    checkedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+    checkedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
     SetAtlasTexture(checkedTexture, 'ActionBar-ActionButton-Pushed')
 
     local iconTexture = _G[button:GetName() .. "Icon"]
@@ -376,13 +382,13 @@ local function ReplaceBlizzardMultiActionButton(button, frameBar)
     countText:SetPoint("BOTTOMRIGHT", -4, 3)
 
     local hotKeyText = _G[button:GetName() .. "HotKey"]
-    hotKeyText:SetPoint("TOPLEFT", 4, -3)
+    hotKeyText:SetPoint("TOPLEFT", 1, -3)
 
     local cooldown = _G[button:GetName() .. "Cooldown"]
-    cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+    cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -1)
     cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
 
-    button.border = button.border or button:CreateTexture(nil, "BORDER")
+    button.border = button.border or button:CreateTexture(nil, "ARTWORK")
     borderTexture = button.border
     borderTexture:SetAllPoints(button)
     borderTexture:SetPoint("TOPLEFT", -2, 2)
@@ -792,6 +798,34 @@ local function ShowBackgroundActionButton(button)
     normalTexture:SetAlpha(0)
 end
 
+local function ActionButton_UpdateHotkeys(self, actionButtonType)
+    local id
+    if not actionButtonType then
+        actionButtonType = "ACTIONBUTTON"
+        id = self:GetID()
+    else
+        if actionButtonType == "MULTICASTACTIONBUTTON" then
+            id = self.buttonIndex
+        else
+            id = self:GetID()
+        end
+    end
+
+    local hotKeyText = _G[self:GetName() .. "HotKey"]
+    local key = GetBindingKey(actionButtonType .. id) or GetBindingKey("CLICK " .. self:GetName() .. ":LeftButton")
+
+    local text = GetBindingText(key, "KEY_", 1)
+    if text == "" then
+        hotKeyText:SetText(RANGE_INDICATOR);
+        hotKeyText:SetPoint("TOPLEFT", 1, -3)
+        hotKeyText:Hide()
+    else
+        hotKeyText:SetText(text)
+        hotKeyText:SetPoint("TOPLEFT", 1, -3)
+        hotKeyText:Show()
+    end
+end
+
 local function ActionButton_ShowGrid(button)
     ShowBackgroundActionButton(button)
     button:Show()
@@ -869,10 +903,11 @@ local function ReplaceBlizzardFlyoutButton(button, buttonSize, replaceUV)
     iconTexture:SetDrawLayer('BACKGROUND')
 
     local highlightTexture = button:GetHighlightTexture()
-    highlightTexture:SetAllPoints(button)
+    highlightTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+    highlightTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
     SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
-    button.border = button.border or button:CreateTexture(nil, "BORDER")
+    button.border = button.border or button:CreateTexture(nil, "ARTWORK")
     local borderTexture = button.border
     borderTexture:SetAllPoints(button)
     borderTexture:SetPoint("TOPLEFT", -2, 2)
@@ -1003,6 +1038,7 @@ function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("PET_BAR_UPDATE")
 
+    self:SecureHook('ActionButton_UpdateHotkeys', ActionButton_UpdateHotkeys)
     self:SecureHook('ActionButton_ShowGrid', ActionButton_ShowGrid)
     self:SecureHook('ActionButton_Update', ActionButton_Update)
     self:SecureHook('ReputationWatchBar_Update', ReputationWatchBar_Update)
@@ -1028,7 +1064,7 @@ function Module:OnEnable()
     end
 
     -- RepExp
-    self.repExpBar = CreateUIFrame(self.actionBars[MAIN_ACTION_BAR_ID]:GetWidth(), 16, "RepExpBar")
+    self.repExpBar = CreateUIFrame(self.actionBars[MAIN_ACTION_BAR_ID]:GetWidth(), 10, "RepExpBar")
 
     -- Bottom Side
     for index = 2, 3 do
@@ -1050,10 +1086,10 @@ function Module:OnEnable()
     end
 
     -- Stance (Shapeshift)
-    self.actionBars[SHAPESHIFT_ACTION_BAR_ID] = CreateActionFrameBar(SHAPESHIFT_ACTION_BAR_ID, 10, 40, 4, false)
+    self.actionBars[SHAPESHIFT_ACTION_BAR_ID] = CreateActionFrameBar(SHAPESHIFT_ACTION_BAR_ID, 10, 36, 4, false)
 
     -- Possess
-    self.actionBars[POSSESS_ACTION_BAR_ID] = CreateActionFrameBar(POSSESS_ACTION_BAR_ID, 2, 40, 4, false)
+    self.actionBars[POSSESS_ACTION_BAR_ID] = CreateActionFrameBar(POSSESS_ACTION_BAR_ID, 2, 36, 4, false)
 
     -- Pet
     self.actionBars[PET_ACTION_BAR_ID] = CreateActionFrameBar(PET_ACTION_BAR_ID, 10, 36, 4, false)
@@ -1158,13 +1194,13 @@ function Module:LoadDefaultSettings()
 
     RUI.DB.profile.widgets['actionBar' .. SHAPESHIFT_ACTION_BAR_ID] = {
         anchor = "BOTTOM",
-        posX = -54,
+        posX = -74,
         posY = 200
     }
 
     RUI.DB.profile.widgets.microMenuBar = { anchor = "BOTTOMRIGHT", posX = 50, posY = 10 }
     RUI.DB.profile.widgets.bagsBar = { anchor = "BOTTOMRIGHT", posX = 13, posY = 45 }
-    RUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 30 }
+    RUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 35 }
 
     -- Static
     RUI.DB.profile.widgets['actionBar' .. PET_ACTION_BAR_ID] = {

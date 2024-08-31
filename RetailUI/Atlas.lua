@@ -14,6 +14,7 @@ local ExperienceBar = addonPath .. 'Textures\\UI\\ExperienceBar.blp'
 local BagSlotsAsset = addonPath .. 'Textures\\UI\\BagSlots.blp'
 local BagSlotsKeyAsset = addonPath .. 'Textures\\UI\\BagSlotsKey.blp'
 local MicroMenuAsset = addonPath .. 'Textures\\UI\\MicroMenu.blp'
+local CalendarAsset = addonPath .. 'Textures\\Minimap\\Calendar.blp'
 
 local atlasTextures = {
     ['TargetFrame-TextureFrame-Normal'] = {
@@ -37,8 +38,11 @@ local atlasTextures = {
     ['TargetFrame-StatusBar-Mana'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 130, 264, 459, 471 }
     },
-    ['TargetFrame-Flash'] = {
+    ['TargetFrame-Status'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 0, 209, 275, 365 }
+    },
+    ['TargetFrame-Flash'] = {
+        asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 211, 422, 275, 365 }
     },
     ['TargetFrame-HighLevelIcon'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 252, 262, 490, 503 }
@@ -56,10 +60,10 @@ local atlasTextures = {
     ['PlayerFrame-StatusBar-Mana'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 130, 256, 474, 485 }
     },
-    ['PlayerFrame-Status'] = {
+    ['PlayerFrame-Flash'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 212, 421, 184, 273 }
     },
-    ['PlayerFrame-Flash'] = {
+    ['PlayerFrame-Status'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 0, 209, 184, 273 }
     },
     ['PlayerFrame-GroupIndicator'] = {
@@ -126,8 +130,20 @@ local atlasTextures = {
     ['Minimap-Border-Top'] = {
         asset = { MinimapAsset, 512, 1024 }, texcoord = { 105, 360, 609, 636 }
     },
-    ['Minimap-Mail'] = {
-        asset = { MinimapAsset, 512, 1024 }, texcoord = { 42, 81, 520, 550 }
+    ['Minimap-Mail-Normal'] = {
+        asset = { MinimapAsset, 512, 1024 }, texcoord = { 42, 80, 521, 548 }
+    },
+    ['Minimap-Mail-Highlight'] = {
+        asset = { MinimapAsset, 512, 1024 }, texcoord = { 1, 39, 521, 548 }
+    },
+    ['Minimap-Calendar-Normal'] = {
+        asset = { CalendarAsset, 256, 256 }, texcoord = { 0.18359375 * 256, 0.265625 * 256, 0.00390625 * 256, 0.078125 * 256 }
+    },
+    ['Minimap-Calendar-Highlight'] = {
+        asset = { CalendarAsset, 256, 256 }, texcoord = { 0.09375 * 256, 0.17578125 * 256, 0.00390625 * 256, 0.078125 * 256 }
+    },
+    ['Minimap-Calendar-Pushed'] = {
+        asset = { CalendarAsset, 256, 256 }, texcoord = { 0.00390625 * 256, 0.0859375 * 256, 0.00390625 * 256, 0.078125 * 256 }
     },
     ['Minimap-Tracking-Background'] = {
         asset = { MinimapAsset, 512, 1024 }, texcoord = { 441, 480, 402, 440 }

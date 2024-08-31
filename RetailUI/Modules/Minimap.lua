@@ -23,11 +23,12 @@ local function ReplaceBlizzardFrame(frame)
 
     local minimapZoneButton = MinimapZoneTextButton
     minimapZoneButton:ClearAllPoints()
-    minimapZoneButton:SetPoint("LEFT", minimapBorderTop, "LEFT", 5, 0)
-    minimapZoneButton:SetWidth(95)
+    minimapZoneButton:SetPoint("LEFT", minimapBorderTop, "LEFT", 7, 1)
+    minimapZoneButton:SetWidth(108)
 
     local minimapZoneText = MinimapZoneText
     minimapZoneText:SetAllPoints(minimapZoneButton)
+    minimapZoneText:SetJustifyH("LEFT")
 
     local timeClockButton = TimeManagerClockButton
     timeClockButton:GetRegions():Hide()
@@ -37,38 +38,26 @@ local function ReplaceBlizzardFrame(frame)
 
     local gameTimeFrame = GameTimeFrame
     gameTimeFrame:ClearAllPoints()
-    gameTimeFrame:SetPoint("LEFT", minimapBorderTop, "RIGHT", 5, -1)
+    gameTimeFrame:SetPoint("LEFT", minimapBorderTop, "RIGHT", 3, -1)
     gameTimeFrame:SetSize(26, 24)
     gameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
 
     local dateText = gameTimeFrame:GetFontString()
     dateText:SetAllPoints(gameTimeFrame)
     dateText:SetPoint("TOPLEFT", -4, 4)
+    dateText:SetJustifyH("CENTER")
 
     local normalTexture = gameTimeFrame:GetNormalTexture()
     normalTexture:SetAllPoints(gameTimeFrame)
-    normalTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
-    normalTexture:SetTexCoord(0.18359375, 0.265625, 0.00390625, 0.078125)
+    SetAtlasTexture(normalTexture, 'Minimap-Calendar-Normal')
 
     local highlightTexture = gameTimeFrame:GetHighlightTexture()
     highlightTexture:SetAllPoints(gameTimeFrame)
-    highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
-    highlightTexture:SetTexCoord(0.09375, 0.17578125, 0.00390625, 0.078125)
+    SetAtlasTexture(highlightTexture, 'Minimap-Calendar-Highlight')
 
     local pushedTexture = gameTimeFrame:GetPushedTexture()
     pushedTexture:SetAllPoints(gameTimeFrame)
-    pushedTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\Calendar.blp")
-    pushedTexture:SetTexCoord(0.00390625, 0.0859375, 0.00390625, 0.078125)
-
-    local minimapFrame = MiniMapMailFrame
-    minimapFrame:ClearAllPoints()
-    minimapFrame:SetPoint("TOPLEFT", -20, 8)
-    minimapFrame:SetSize(24, 20)
-    minimapFrame:SetHitRectInsets(0, 0, 0, 0)
-
-    local minimapMailIconTexture = MiniMapMailIcon
-    minimapMailIconTexture:SetAllPoints(minimapFrame)
-    SetAtlasTexture(minimapMailIconTexture, 'Minimap-Mail')
+    SetAtlasTexture(pushedTexture, 'Minimap-Calendar-Pushed')
 
     local minimapBattlefieldFrame = MiniMapBattlefieldFrame
     minimapBattlefieldFrame:ClearAllPoints()
@@ -93,8 +82,18 @@ local function ReplaceBlizzardFrame(frame)
 
     local minimapTracking = MiniMapTracking
     minimapTracking:ClearAllPoints()
-    minimapTracking:SetPoint("RIGHT", minimapBorderTop, "LEFT", -5, 0)
+    minimapTracking:SetPoint("RIGHT", minimapBorderTop, "LEFT", -3, 0)
     minimapTracking:SetSize(26, 24)
+
+    local minimapMailFrame = MiniMapMailFrame
+    minimapMailFrame:ClearAllPoints()
+    minimapMailFrame:SetPoint("TOP", minimapTracking, "BOTTOM", 0, -3)
+    minimapMailFrame:SetSize(24, 18)
+    minimapMailFrame:SetHitRectInsets(0, 0, 0, 0)
+
+    local minimapMailIconTexture = MiniMapMailIcon
+    minimapMailIconTexture:SetAllPoints(minimapMailFrame)
+    SetAtlasTexture(minimapMailIconTexture, 'Minimap-Mail-Normal')
 
     local backgroundTexture = _G[minimapTracking:GetName() .. "Background"]
     backgroundTexture:SetAllPoints(minimapTracking)
@@ -234,10 +233,25 @@ local function Minimap_UpdateRotationSetting()
     MinimapCompassTexture:Hide()
 end
 
+local function MiniMapMailFrame_OnEnter(self)
+    local minimapMailIconTexture = MiniMapMailIcon
+    minimapMailIconTexture:SetAllPoints(MiniMapMailFrame)
+    SetAtlasTexture(minimapMailIconTexture, 'Minimap-Mail-Highlight')
+end
+
+local function MiniMapMailFrame_OnLeave(self)
+    local minimapMailIconTexture = MiniMapMailIcon
+    minimapMailIconTexture:SetAllPoints(MiniMapMailFrame)
+    SetAtlasTexture(minimapMailIconTexture, 'Minimap-Mail-Normal')
+end
+
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
     self:SecureHook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
+
+    MiniMapMailFrame:HookScript("OnEnter", MiniMapMailFrame_OnEnter)
+    MiniMapMailFrame:HookScript("OnLeave", MiniMapMailFrame_OnLeave)
 
     self.minimapFrame = CreateUIFrame(230, 230, 'MinimapFrame')
 
@@ -253,6 +267,9 @@ function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
     self:Unhook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
+
+    MiniMapMailFrame:Unhook("OnEnter", MiniMapMailFrame_OnEnter)
+    MiniMapMailFrame:Unhook("OnLeave", MiniMapMailFrame_OnLeave)
 end
 
 function Module:PLAYER_ENTERING_WORLD()

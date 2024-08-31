@@ -131,7 +131,9 @@ local function ReplaceBlizzardPlayerFrame(frame)
     statusTexture:SetPoint("BOTTOMLEFT", 0, 0)
     statusTexture:SetDrawLayer("OVERLAY")
 
-    PlayerPVPTimerText:SetPoint("TOPLEFT", -10, 5)
+    local pvpTimerText = PlayerPVPTimerText
+    pvpTimerText:ClearAllPoints()
+    pvpTimerText:SetPoint("CENTER", playerFrame, "BOTTOMLEFT", 12, 5)
 
     local flashTexture = _G[playerFrame:GetName() .. 'Flash']
     flashTexture:ClearAllPoints()
@@ -143,6 +145,10 @@ local function ReplaceBlizzardPlayerFrame(frame)
     hitText:SetJustifyH("CENTER")
     hitText:SetPoint("LEFT", 5, 7)
     hitText:SetWidth(75)
+
+    local roleIconTexture = _G[playerFrame:GetName() .. "RoleIcon"]
+    roleIconTexture:ClearAllPoints()
+    roleIconTexture:SetPoint("RIGHT", levelText, "LEFT", 4)
 
     local groupIndicatorFrame = _G[playerFrame:GetName() .. 'GroupIndicator']
     local backgroundTexture = _G[playerFrame:GetName() .. 'GroupIndicator' .. 'Middle']
@@ -166,7 +172,7 @@ local function ReplaceBlizzardRuneFrame()
         if index > 1 then
             button:SetPoint('LEFT', _G['RuneButtonIndividual' .. index - 1], 'RIGHT', 4, 0)
         else
-            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -10, 6)
+            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -20, 0)
         end
 
         UpdateRune(button)
@@ -199,23 +205,23 @@ local function ReplaceBlizzardTotemFrame()
         if index > 1 then
             button:SetPoint('LEFT', _G['TotemFrameTotem' .. index - 1], 'RIGHT', 2, 0)
         else
-            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -8, 2)
+            button:SetPoint('CENTER', PlayerFrame, 'BOTTOM', -15, -4)
         end
     end
 end
 
 local function ReplaceBlizzardComboFrame()
     local comboPoints = {
-        { anchor = 'TOPRIGHT', x = 0,  y = 0 },
-        { anchor = 'TOP',      x = 9,  y = 3 },
-        { anchor = 'TOP',      x = 4,  y = 1 },
-        { anchor = 'TOP',      x = -1, y = 0 },
-        { anchor = 'TOP',      x = -7, y = 2 }
+        { anchor = 'TOPRIGHT', x = 3,  y = 2 },
+        { anchor = 'TOP',      x = 6,  y = 4 },
+        { anchor = 'TOP',      x = 3,  y = 2 },
+        { anchor = 'TOP',      x = -1, y = 2 },
+        { anchor = 'TOP',      x = -6, y = 3 }
     }
 
     local comboFrame = ComboFrame
     comboFrame:ClearAllPoints()
-    comboFrame:SetPoint("CENTER", TargetFrame, "CENTER", -31, 23)
+    comboFrame:SetPoint("CENTER", TargetFrame, "CENTER", -34, 22)
 
     for index = 1, MAX_COMBO_POINTS do
         local comboPoint = _G['ComboPoint' .. index]
@@ -225,7 +231,7 @@ local function ReplaceBlizzardComboFrame()
         else
             comboPoint:SetPoint(comboPoints[index].anchor, comboPoints[index].x, comboPoints[index].y)
         end
-        comboPoint:SetSize(16, 16)
+        comboPoint:SetSize(14, 14)
 
         for _, region in pairs { comboPoint:GetRegions() } do
             if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'BACKGROUND' then
@@ -245,7 +251,7 @@ local function ReplaceBlizzardComboFrame()
         highlightTexture:SetPoint("CENTER", comboPoint, "CENTER", 0, 0)
         highlightTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\PlayerFrame\\ClassOverlayComboPoints.BLP")
         highlightTexture:SetTexCoord(55 / 128, 75 / 128, 21 / 64, 41 / 64)
-        highlightTexture:SetSize(15, 15)
+        highlightTexture:SetSize(13, 13)
     end
 end
 
@@ -259,6 +265,7 @@ local function ReplaceBlizzardTargetFrame(frame, target)
     local borderTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Texture']
     borderTexture:ClearAllPoints()
     borderTexture:SetPoint("BOTTOMLEFT", 0, 0)
+    SetAtlasTexture(borderTexture, 'TargetFrame-TextureFrame-Normal')
     borderTexture:SetDrawLayer('BORDER')
 
     local portraitTexture = _G[targetFrame:GetName() .. 'Portrait']
@@ -279,7 +286,8 @@ local function ReplaceBlizzardTargetFrame(frame, target)
     local healthBar = _G[targetFrame:GetName() .. 'HealthBar']
     healthBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
     healthBar:ClearAllPoints()
-    healthBar:SetPoint("TOPLEFT", 5, -16)
+    healthBar:SetPoint("TOPLEFT", 5, -15)
+    healthBar:SetSize(124, 20)
 
     local statusBarTexture = healthBar:GetStatusBarTexture()
     statusBarTexture:SetAllPoints(healthBar)
@@ -288,7 +296,8 @@ local function ReplaceBlizzardTargetFrame(frame, target)
     local manaBar = _G[targetFrame:GetName() .. 'ManaBar']
     manaBar:SetFrameLevel(targetFrame:GetFrameLevel() + 1)
     manaBar:ClearAllPoints()
-    manaBar:SetPoint("TOPLEFT", 4, -36)
+    manaBar:SetPoint("TOPLEFT", 4, -37)
+    manaBar:SetSize(132, 10)
 
     statusBarTexture = manaBar:GetStatusBarTexture()
     statusBarTexture:SetAllPoints(manaBar)
@@ -296,7 +305,7 @@ local function ReplaceBlizzardTargetFrame(frame, target)
 
     local nameText = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Name']
     nameText:ClearAllPoints()
-    nameText:SetPoint("CENTER", -14, 27)
+    nameText:SetPoint("CENTER", -20, 27)
     nameText:SetDrawLayer("OVERLAY")
     nameText:SetJustifyH("LEFT")
     nameText:SetWidth(80)
@@ -327,9 +336,13 @@ local function ReplaceBlizzardTargetFrame(frame, target)
     manaText:SetPoint("CENTER", -25, -8)
     manaText:SetDrawLayer("OVERLAY")
 
+    local pvpIconTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'PVPIcon']
+    pvpIconTexture:ClearAllPoints()
+    pvpIconTexture:SetPoint('CENTER', targetFrame, "BOTTOMRIGHT", 6, 14)
+
     local leaderIconTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'LeaderIcon']
     leaderIconTexture:ClearAllPoints()
-    leaderIconTexture:SetPoint("TOPRIGHT", -3, 5)
+    leaderIconTexture:SetPoint('BOTTOM', targetFrame, "TOP", 26, -3)
 
     local flashTexture = _G[targetFrame:GetName() .. 'Flash']
     flashTexture:SetDrawLayer("OVERLAY")
@@ -337,6 +350,18 @@ local function ReplaceBlizzardTargetFrame(frame, target)
     local raidTargetIconTexture = _G['TargetFrame' .. 'TextureFrame' .. 'RaidTargetIcon']
     raidTargetIconTexture:ClearAllPoints()
     raidTargetIconTexture:SetPoint("TOPRIGHT", -20, 18)
+
+    local numericalThreatFrame = _G[targetFrame:GetName() .. 'NumericalThreat']
+    numericalThreatFrame:ClearAllPoints()
+    numericalThreatFrame:SetPoint("BOTTOM", targetFrame, "TOP", -22, -2)
+
+    for _, region in pairs { numericalThreatFrame:GetRegions() } do
+        if region:GetObjectType() == 'Texture' and region:GetDrawLayer() == 'ARTWORK' then
+            region:SetAllPoints(numericalThreatFrame)
+            SetAtlasTexture(region, 'PlayerFrame-GroupIndicator')
+            region:SetVertexColor(1, 1, 1, 1)
+        end
+    end
 
     targetFrame.ShowTest = function(self)
         local portraitTexture = _G[self:GetName() .. 'Portrait']
@@ -514,6 +539,7 @@ local function RemoveBlizzardFrames()
         PlayerAttackBackground,
         PlayerAttackIcon,
         TargetFrameBackground,
+        TargetFrameNumericalThreatBG,
         TargetFrameToTBackground,
         FocusFrameBackground,
         PlayerFrameRoleIcon,
@@ -522,14 +548,14 @@ local function RemoveBlizzardFrames()
         PlayerFrameGroupIndicatorRight
     }
 
-    for _, blizzFrame in pairs(blizzFrames) do
-        blizzFrame:SetAlpha(0)
+    for _, frame in pairs(blizzFrames) do
+        frame:SetAlpha(0)
     end
 end
 
 local function PlayerFrame_OnUpdate(self, elapsed)
     local playerRestIcon = PlayerRestIcon
-    AnimateTexCoords(playerRestIcon, 512, 512, 64, 64, 42, elapsed, 1)
+    AnimateTexCoords(playerRestIcon, 512, 512, 64, 64, 42, elapsed, 0.05)
 end
 
 local function PlayerFrame_UpdateStatus()
@@ -611,9 +637,17 @@ local function TargetFrame_CheckClassification(self, forceNormalTexture)
     local manaBar = _G[self:GetName() .. 'ManaBar']
     manaBar:SetSize(132, 10)
 
+    local nameText = _G[self:GetName() .. 'TextureFrame' .. 'Name']
+    nameText:ClearAllPoints()
+    nameText:SetPoint("CENTER", -20, 27)
+
+    local levelText = _G[self:GetName() .. 'TextureFrame' .. 'LevelText']
+    levelText:ClearAllPoints()
+    levelText:SetPoint("CENTER", -80, 27)
+
     local pvpIconTexture = _G[self:GetName() .. 'TextureFrame' .. 'PVPIcon']
     pvpIconTexture:ClearAllPoints()
-    pvpIconTexture:SetPoint('CENTER', self, "RIGHT", 6, -6)
+    pvpIconTexture:SetPoint('CENTER', self, "BOTTOMRIGHT", 6, 14)
 
     local classification = UnitClassification(self.unit)
     if classification == "worldboss" or classification == "elite" then
@@ -627,7 +661,9 @@ local function TargetFrame_CheckClassification(self, forceNormalTexture)
         if isVehicle then
             healthBar:SetSize(116, 20)
             manaBar:SetSize(123, 10)
-            pvpIconTexture:SetPoint('CENTER', self, "RIGHT", 14, -2)
+            nameText:SetPoint("CENTER", -20, 26)
+            levelText:SetPoint("CENTER", -80, 26)
+            pvpIconTexture:SetPoint('CENTER', self, "BOTTOMRIGHT", 8, 10)
 
             SetAtlasTexture(self.borderTexture, 'TargetFrame-TextureFrame-Vehicle')
         else
@@ -637,7 +673,7 @@ local function TargetFrame_CheckClassification(self, forceNormalTexture)
 
     self.threatIndicator:ClearAllPoints()
     self.threatIndicator:SetPoint("BOTTOMLEFT", 0, 0)
-    SetAtlasTexture(self.threatIndicator, 'TargetFrame-Flash')
+    SetAtlasTexture(self.threatIndicator, 'TargetFrame-Status')
 end
 
 local function FocusFrame_SetSmallSize(smallSize, onChange)
@@ -746,11 +782,11 @@ local function PlayerFrame_ToPlayerArt(self)
 
     local healthText = _G[playerFrame:GetName() .. 'HealthBarText']
     healthText:ClearAllPoints()
-    healthText:SetPoint("CENTER", 35, 9)
+    healthText:SetPoint("CENTER", 36, 8)
 
     local manaText = _G[playerFrame:GetName() .. 'ManaBarText']
     manaText:ClearAllPoints()
-    manaText:SetPoint("CENTER", 35, -8)
+    manaText:SetPoint("CENTER", 36, -8)
 
     local statusTexture = PlayerStatusTexture
     SetAtlasTexture(statusTexture, 'PlayerFrame-Status')
@@ -772,7 +808,7 @@ local function PlayerFrame_ToPlayerArt(self)
 
     local pvpIconTexture = PlayerPVPIcon
     pvpIconTexture:ClearAllPoints()
-    pvpIconTexture:SetPoint("LEFT", -10, -4)
+    pvpIconTexture:SetPoint("CENTER", playerFrame, "BOTTOMLEFT", 22, 14)
 
     for index = 1, 6 do
         local button = _G['RuneButtonIndividual' .. index]
@@ -809,7 +845,7 @@ local function PlayerFrame_ToVehicleArt(self, vehicleType)
 
     local healthText = _G[playerFrame:GetName() .. 'HealthBarText']
     healthText:ClearAllPoints()
-    healthText:SetPoint("CENTER", 40, 9)
+    healthText:SetPoint("CENTER", 40, 8)
 
     local manaText = _G[playerFrame:GetName() .. 'ManaBarText']
     manaText:ClearAllPoints()
@@ -829,7 +865,7 @@ local function PlayerFrame_ToVehicleArt(self, vehicleType)
 
     local pvpIconTexture = PlayerPVPIcon
     pvpIconTexture:ClearAllPoints()
-    pvpIconTexture:SetPoint("LEFT", -18, -2)
+    pvpIconTexture:SetPoint("CENTER", playerFrame, "BOTTOMLEFT", 20, 10)
 
     for index = 1, 6 do
         local button = _G['RuneButtonIndividual' .. index]
@@ -957,11 +993,11 @@ function Module:PLAYER_ENTERING_WORLD()
 end
 
 function Module:LoadDefaultSettings()
-    RUI.DB.profile.widgets.player = { anchor = "TOPLEFT", posX = 0, posY = -15 }
-    RUI.DB.profile.widgets.target = { anchor = "TOPLEFT", posX = 210, posY = -15 }
-    RUI.DB.profile.widgets.focus = { anchor = "TOPLEFT", posX = 105, posY = -160 }
-    RUI.DB.profile.widgets.pet = { anchor = "TOPLEFT", posX = 90, posY = -95 }
-    RUI.DB.profile.widgets.targetOfTarget = { anchor = "TOPLEFT", posX = 370, posY = -85 }
+    RUI.DB.profile.widgets.player = { anchor = "TOPLEFT", posX = 5, posY = -20 }
+    RUI.DB.profile.widgets.target = { anchor = "TOPLEFT", posX = 215, posY = -20 }
+    RUI.DB.profile.widgets.focus = { anchor = "TOPLEFT", posX = 105, posY = -165 }
+    RUI.DB.profile.widgets.pet = { anchor = "TOPLEFT", posX = 90, posY = -105 }
+    RUI.DB.profile.widgets.targetOfTarget = { anchor = "TOPLEFT", posX = 370, posY = -80 }
 end
 
 function Module:UpdateWidgets()
