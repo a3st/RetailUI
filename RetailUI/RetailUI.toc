@@ -2,7 +2,7 @@
 ## Title: RetailUI
 ## Notes: Changes your UI to look like Retail
 ## Author: delayy
-## Version: 1.2.0
+## Version: 1.2.1
 ## SavedVariables: RetailUIDB
 
 Libs.xml
