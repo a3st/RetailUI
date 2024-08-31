@@ -1185,6 +1185,12 @@ function Module:LoadDefaultSettings()
         posY = 0
     }
 
+    RUI.DB.profile.widgets['actionBar' .. VEHICLE_ACTION_BAR_ID] = {
+        anchor = "CENTER",
+        posX = 0,
+        posY = 0
+    }
+
     RUI.DB.profile.widgets['actionBar' .. MULTICAST_ACTION_BAR_ID] = {
         anchor = "CENTER",
         posX = 0,
