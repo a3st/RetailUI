@@ -12,6 +12,7 @@ Module.targetFrame = nil
 Module.targetOfTargetFrame = nil
 Module.focusFrame = nil
 Module.petFrame = nil
+Module.bossFrames = {}
 
 local function UpdateRune(button)
     local rune = button:GetID()
@@ -148,7 +149,7 @@ local function ReplaceBlizzardPlayerFrame(frame)
 
     local roleIconTexture = _G[playerFrame:GetName() .. "RoleIcon"]
     roleIconTexture:ClearAllPoints()
-    roleIconTexture:SetPoint("RIGHT", levelText, "LEFT", 4)
+    roleIconTexture:SetPoint("BOTTOM", playerFrame, "TOP", 88, 0)
 
     local groupIndicatorFrame = _G[playerFrame:GetName() .. 'GroupIndicator']
     local backgroundTexture = _G[playerFrame:GetName() .. 'GroupIndicator' .. 'Middle']
@@ -255,7 +256,9 @@ local function ReplaceBlizzardComboFrame()
     end
 end
 
-local function ReplaceBlizzardTargetFrame(frame, target)
+local function ReplaceBlizzardTargetFrame(frame, target, isBoss)
+    isBoss = isBoss or false
+
     local targetFrame = target
     targetFrame:ClearAllPoints()
     targetFrame:SetPoint("LEFT", frame, "LEFT", 0)
@@ -265,7 +268,11 @@ local function ReplaceBlizzardTargetFrame(frame, target)
     local borderTexture = _G[targetFrame:GetName() .. 'TextureFrame' .. 'Texture']
     borderTexture:ClearAllPoints()
     borderTexture:SetPoint("BOTTOMLEFT", 0, 0)
-    SetAtlasTexture(borderTexture, 'TargetFrame-TextureFrame-Normal')
+    if not isBoss then
+        SetAtlasTexture(borderTexture, 'TargetFrame-TextureFrame-Normal')
+    else
+        SetAtlasTexture(borderTexture, 'TargetFrame-TextureFrame-RareElite')
+    end
     borderTexture:SetDrawLayer('BORDER')
 
     local portraitTexture = _G[targetFrame:GetName() .. 'Portrait']
@@ -366,9 +373,6 @@ local function ReplaceBlizzardTargetFrame(frame, target)
     targetFrame.ShowTest = function(self)
         local portraitTexture = _G[self:GetName() .. 'Portrait']
         SetPortraitTexture(portraitTexture, "player")
-
-        local borderTexture = _G[self:GetName() .. 'TextureFrame' .. 'Texture']
-        SetAtlasTexture(borderTexture, 'TargetFrame-TextureFrame-Normal')
 
         local backgroundTexture = _G[self:GetName() .. 'NameBackground']
         backgroundTexture:SetVertexColor(UnitSelectionColor('player'))
@@ -539,6 +543,10 @@ local function RemoveBlizzardFrames()
         PlayerAttackBackground,
         PlayerAttackIcon,
         TargetFrameBackground,
+        Boss1TargetFrameBackground,
+        Boss2TargetFrameBackground,
+        Boss3TargetFrameBackground,
+        Boss4TargetFrameBackground,
         TargetFrameNumericalThreatBG,
         TargetFrameToTBackground,
         FocusFrameBackground,
@@ -905,6 +913,27 @@ local function PlayerFrame_UpdateArt(self)
     end
 end
 
+local function PlayerFrame_UpdateRolesAssigned()
+    local iconTexture = _G[PlayerFrame:GetName() .. "RoleIcon"]
+    local isTank, isHealer, isDamage = UnitGroupRolesAssigned("player")
+
+    if isTank then
+        SetAtlasTexture(iconTexture, 'LFGRole-Tank')
+        iconTexture:SetSize(iconTexture:GetWidth() * 0.9, iconTexture:GetHeight() * 0.9)
+        iconTexture:Show()
+    elseif isHealer then
+        SetAtlasTexture(iconTexture, 'LFGRole-Healer')
+        iconTexture:SetSize(iconTexture:GetWidth() * 0.9, iconTexture:GetHeight() * 0.9)
+        iconTexture:Show()
+    elseif isDamage then
+        SetAtlasTexture(iconTexture, 'LFGRole-Damage')
+        iconTexture:SetSize(iconTexture:GetWidth() * 0.9, iconTexture:GetHeight() * 0.9)
+        iconTexture:Show()
+    else
+        iconTexture:Hide()
+    end
+end
+
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("RUNE_TYPE_UPDATE")
@@ -929,12 +958,16 @@ function Module:OnEnable()
     self:SecureHook('UnitFrameHealthBar_Update', UnitFrameHealthBar_Update)
     self:SecureHook('UnitFrameManaBar_UpdateType', UnitFrameManaBar_UpdateType)
     self:SecureHook('PetFrame_Update', PetFrame_Update)
+    self:SecureHook('PlayerFrame_UpdateRolesAssigned', PlayerFrame_UpdateRolesAssigned)
 
     self.playerFrame = CreateUIFrame(192, 68, "PlayerFrame")
     self.targetFrame = CreateUIFrame(192, 68, "TargetFrame")
     self.focusFrame = CreateUIFrame(192, 68, "FocusFrame")
     self.petFrame = CreateUIFrame(120, 47, "PetFrame")
     self.targetOfTargetFrame = CreateUIFrame(120, 47, "TOTFrame")
+    for index = 1, 4 do
+        self.bossFrames[index] = CreateUIFrame(192, 68, "Boss" .. index .. "Frame")
+    end
 end
 
 function Module:OnDisable()
@@ -961,6 +994,7 @@ function Module:OnDisable()
     self:Unhook('UnitFrameHealthBar_Update', UnitFrameHealthBar_Update)
     self:Unhook('UnitFrameManaBar_UpdateType', UnitFrameManaBar_UpdateType)
     self:Unhook('PetFrame_Update', PetFrame_Update)
+    self:Unhook('PlayerFrame_UpdateRolesAssigned', PlayerFrame_UpdateRolesAssigned)
 end
 
 function Module:RUNE_TYPE_UPDATE(eventName, rune)
@@ -981,12 +1015,20 @@ function Module:PLAYER_ENTERING_WORLD()
 
     UpdateGroupIndicator()
 
+    for index, frame in pairs(self.bossFrames) do
+        ReplaceBlizzardTargetFrame(frame, _G['Boss' .. index .. 'TargetFrame'], true)
+    end
+
     local widgets = {
         'player',
         'target',
         'focus',
         'pet',
-        'targetOfTarget'
+        'targetOfTarget',
+        'boss' .. 1,
+        'boss' .. 2,
+        'boss' .. 3,
+        'boss' .. 4
     }
 
     CheckSettingsExists(Module, widgets)
@@ -998,6 +1040,11 @@ function Module:LoadDefaultSettings()
     RUI.DB.profile.widgets.focus = { anchor = "TOPLEFT", posX = 105, posY = -165 }
     RUI.DB.profile.widgets.pet = { anchor = "TOPLEFT", posX = 90, posY = -105 }
     RUI.DB.profile.widgets.targetOfTarget = { anchor = "TOPLEFT", posX = 370, posY = -80 }
+
+    RUI.DB.profile.widgets['boss' .. 1] = { anchor = "TOPRIGHT", posX = -100, posY = -270 }
+    for index = 2, 4 do
+        RUI.DB.profile.widgets['boss' .. index] = { anchor = "RIGHT", posX = 0, posY = 0 }
+    end
 end
 
 function Module:UpdateWidgets()
@@ -1015,6 +1062,15 @@ function Module:UpdateWidgets()
 
     widgetOptions = RUI.DB.profile.widgets.targetOfTarget
     self.targetOfTargetFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+
+    for index, frame in pairs(self.bossFrames) do
+        if index > 1 then
+            frame:SetPoint("TOP", self.bossFrames[index - 1], "BOTTOM", 0, -2)
+        else
+            widgetOptions = RUI.DB.profile.widgets['boss' .. index]
+            frame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+        end
+    end
 end
 
 function Module:ShowEditorTest()
@@ -1029,6 +1085,11 @@ function Module:ShowEditorTest()
     HideUIFrame(self.petFrame)
 
     HideUIFrame(self.targetOfTargetFrame)
+
+    HideUIFrame(self.bossFrames[1])
+    for index, _ in pairs(self.bossFrames) do
+        _G['Boss' .. index .. 'TargetFrame']:ShowTest()
+    end
 end
 
 function Module:HideEditorTest(refresh)
@@ -1048,6 +1109,12 @@ function Module:HideEditorTest(refresh)
 
     ShowUIFrame(self.targetOfTargetFrame)
     SaveUIFramePosition(self.targetOfTargetFrame, 'targetOfTarget')
+
+    ShowUIFrame(self.bossFrames[1])
+    SaveUIFramePosition(self.bossFrames[1], 'boss' .. 1)
+    for index, _ in pairs(self.bossFrames) do
+        _G['Boss' .. index .. 'TargetFrame']:HideTest()
+    end
 
     if refresh then
         self:UpdateWidgets()

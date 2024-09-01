@@ -33,7 +33,7 @@ RUI.optionsSlash = {
                 local CastingBarModule = RUI:GetModule("CastingBar")
                 local ActionBarModule  = RUI:GetModule("ActionBar")
                 local MinimapModule    = RUI:GetModule("Minimap")
-                local QuestLogModule   = RUI:GetModule("QuestLog")
+                local QuestTrackerModule   = RUI:GetModule("QuestTracker")
                 local BuffFrameModule  = RUI:GetModule("BuffFrame")
 
                 ActionBarModule:LoadDefaultSettings()
@@ -48,8 +48,8 @@ RUI.optionsSlash = {
                 MinimapModule:LoadDefaultSettings()
                 MinimapModule:UpdateWidgets()
 
-                QuestLogModule:LoadDefaultSettings()
-                QuestLogModule:UpdateWidgets()
+                QuestTrackerModule:LoadDefaultSettings()
+                QuestTrackerModule:UpdateWidgets()
 
                 BuffFrameModule:LoadDefaultSettings()
                 BuffFrameModule:UpdateWidgets()

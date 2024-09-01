@@ -15,8 +15,24 @@ local BagSlotsAsset = addonPath .. 'Textures\\UI\\BagSlots.blp'
 local BagSlotsKeyAsset = addonPath .. 'Textures\\UI\\BagSlotsKey.blp'
 local MicroMenuAsset = addonPath .. 'Textures\\UI\\MicroMenu.blp'
 local CalendarAsset = addonPath .. 'Textures\\Minimap\\Calendar.blp'
+local LFGRoleAsset = addonPath .. 'Textures\\PlayerFrame\\LFGRoleIcons.blp'
+local QuestTrackerAsset = addonPath .. 'Textures\\UI\\QuestTracker.BLP'
 
 local atlasTextures = {
+    ['QuestTracker-Header'] = {
+        asset = { QuestTrackerAsset, 1024, 512 }, texcoord = { 11, 571, 247, 317 }
+    },
+
+    ['LFGRole-Tank'] = {
+        asset = { LFGRoleAsset, 64, 32 }, texcoord = { 35, 53, 0, 17 }
+    },
+    ['LFGRole-Healer'] = {
+        asset = { LFGRoleAsset, 64, 32 }, texcoord = { 18, 35, 0, 18 }
+    },
+    ['LFGRole-Damage'] = {
+        asset = { LFGRoleAsset, 64, 32 }, texcoord = { 0, 17, 0, 17 }
+    },
+
     ['TargetFrame-TextureFrame-Normal'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 423, 633, 0, 89 }
     },

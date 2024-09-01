@@ -2,7 +2,7 @@
 ## Title: RetailUI
 ## Notes: Changes your UI to look like Retail
 ## Author: delayy
-## Version: 1.2.1
+## Version: 1.3.0
 ## SavedVariables: RetailUIDB
 
 Libs.xml
@@ -16,5 +16,5 @@ Modules\UnitFrame.lua
 Modules\EditorMode.lua
 Modules\CastingBar.lua
 Modules\Minimap.lua
-Modules\QuestLog.lua
+Modules\QuestTracker.lua
 Modules\BuffFrame.lua

@@ -7,7 +7,7 @@ local RUI = LibStub('AceAddon-3.0'):GetAddon('RetailUI')
 local moduleName = 'EditorMode'
 local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
-local UnitFrameModule, CastingBarModule, ActionBarModule, MinimapModule, QuestLogModule, BuffFrameModule
+local UnitFrameModule, CastingBarModule, ActionBarModule, MinimapModule, QuestTrackerModule, BuffFrameModule
 
 Module.editorGridFrame = nil
 
@@ -38,7 +38,7 @@ function Module:OnEnable()
     CastingBarModule     = RUI:GetModule("CastingBar")
     ActionBarModule      = RUI:GetModule("ActionBar")
     MinimapModule        = RUI:GetModule("Minimap")
-    QuestLogModule       = RUI:GetModule("QuestLog")
+    QuestTrackerModule   = RUI:GetModule("QuestTracker")
     BuffFrameModule      = RUI:GetModule("BuffFrame")
 
     self.editorGridFrame = CreateEditorGridFrame()
@@ -58,7 +58,7 @@ function Module:Show()
     UnitFrameModule:ShowEditorTest()
     CastingBarModule:ShowEditorTest()
     MinimapModule:ShowEditorTest()
-    QuestLogModule:ShowEditorTest()
+    QuestTrackerModule:ShowEditorTest()
     BuffFrameModule:ShowEditorTest()
 end
 
@@ -69,7 +69,7 @@ function Module:Hide()
     UnitFrameModule:HideEditorTest(true)
     CastingBarModule:HideEditorTest(true)
     MinimapModule:HideEditorTest(true)
-    QuestLogModule:HideEditorTest(true)
+    QuestTrackerModule:HideEditorTest(true)
     BuffFrameModule:HideEditorTest(true)
 end
 
