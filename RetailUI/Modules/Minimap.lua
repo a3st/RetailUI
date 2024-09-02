@@ -51,7 +51,7 @@ local function ReplaceBlizzardFrame(frame)
     local timeClockButton = TimeManagerClockButton
     timeClockButton:GetRegions():Hide()
     timeClockButton:ClearAllPoints()
-    timeClockButton:SetPoint("RIGHT", minimapBorderTop, "RIGHT", -5, 1)
+    timeClockButton:SetPoint("RIGHT", minimapBorderTop, "RIGHT", -5, 0)
     timeClockButton:SetWidth(30)
 
     local gameTimeFrame = GameTimeFrame
@@ -80,9 +80,9 @@ local function ReplaceBlizzardFrame(frame)
     iconTexture:SetAllPoints(eyeFrame)
     iconTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\Minimap\\EyeGroupFinderFlipbook.blp")
 
-    local minimapInstanceTexture = MiniMapInstanceDifficulty
-    minimapInstanceTexture:ClearAllPoints()
-    minimapInstanceTexture:SetPoint("TOPRIGHT", -15, -15)
+    local minimapInstanceFrame = MiniMapInstanceDifficulty
+    minimapInstanceFrame:ClearAllPoints()
+    minimapInstanceFrame:SetPoint("TOP", minimapBorderTop, 'BOTTOMRIGHT', -18, 9)
 
     local minimapTracking = MiniMapTracking
     minimapTracking:ClearAllPoints()
@@ -237,25 +237,70 @@ local function Minimap_UpdateRotationSetting()
     MinimapCompassTexture:Hide()
 end
 
-local function MiniMapMailFrame_OnEnter(self)
-    local minimapMailIconTexture = MiniMapMailIcon
-    minimapMailIconTexture:SetAllPoints(MiniMapMailFrame)
-    SetAtlasTexture(minimapMailIconTexture, 'Minimap-Mail-Highlight')
-end
+local selectedRaidDifficulty
+local allowedRaidDifficulty
 
-local function MiniMapMailFrame_OnLeave(self)
-    local minimapMailIconTexture = MiniMapMailIcon
-    minimapMailIconTexture:SetAllPoints(MiniMapMailFrame)
-    SetAtlasTexture(minimapMailIconTexture, 'Minimap-Mail-Normal')
+local function MiniMapInstanceDifficulty_OnEvent(self)
+    local _, instanceType, difficulty, _, maxPlayers, playerDifficulty, isDynamicInstance = GetInstanceInfo()
+    if (instanceType == "party" or instanceType == "raid") and not (difficulty == 1 and maxPlayers == 5) then
+        local isHeroic = false
+        if instanceType == "party" and difficulty == 2 then
+            isHeroic = true
+        elseif instanceType == "raid" then
+            if isDynamicInstance then
+                selectedRaidDifficulty = difficulty
+                if playerDifficulty == 1 then
+                    if selectedRaidDifficulty <= 2 then
+                        selectedRaidDifficulty = selectedRaidDifficulty + 2
+                    end
+                    isHeroic = true
+                end
+                -- if modified difficulty is normal then you are allowed to select heroic, and vice-versa
+                if selectedRaidDifficulty == 1 then
+                    allowedRaidDifficulty = 3
+                elseif selectedRaidDifficulty == 2 then
+                    allowedRaidDifficulty = 4
+                elseif selectedRaidDifficulty == 3 then
+                    allowedRaidDifficulty = 1
+                elseif selectedRaidDifficulty == 4 then
+                    allowedRaidDifficulty = 2
+                end
+                allowedRaidDifficulty = "RAID_DIFFICULTY" .. allowedRaidDifficulty
+            elseif difficulty > 2 then
+                isHeroic = true
+            end
+        end
+
+        MiniMapInstanceDifficultyText:SetText(maxPlayers)
+        -- the 1 looks a little off when text is centered
+        local xOffset = 0
+        if maxPlayers >= 10 and maxPlayers <= 19 then
+            xOffset = -1
+        end
+
+        local minimapInstanceTexture = MiniMapInstanceDifficultyTexture
+
+        if isHeroic then
+            SetAtlasTexture(minimapInstanceTexture, 'Minimap-GuildBanner-Heroic')
+            MiniMapInstanceDifficultyText:SetPoint("CENTER", xOffset, -6)
+        else
+            SetAtlasTexture(minimapInstanceTexture, 'Minimap-GuildBanner-Normal')
+            MiniMapInstanceDifficultyText:SetPoint("CENTER", xOffset, 2)
+        end
+        minimapInstanceTexture:SetSize(minimapInstanceTexture:GetWidth() * 0.45,
+            minimapInstanceTexture:GetHeight() * 0.45)
+        self:Show()
+    else
+        self:Hide()
+    end
 end
 
 function Module:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-    self:SecureHook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
+    MiniMapInstanceDifficulty:HookScript('OnEvent', MiniMapInstanceDifficulty_OnEvent)
 
-    MiniMapMailFrame:HookScript("OnEnter", MiniMapMailFrame_OnEnter)
-    MiniMapMailFrame:HookScript("OnLeave", MiniMapMailFrame_OnLeave)
+    self:SecureHook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
 
     self.minimapFrame = CreateUIFrame(230, 230, 'MinimapFrame')
 
@@ -270,10 +315,9 @@ end
 function Module:OnDisable()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
-    self:Unhook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
+    MiniMapInstanceDifficulty:Unhook('OnEvent', MiniMapInstanceDifficulty_OnEvent)
 
-    MiniMapMailFrame:Unhook("OnEnter", MiniMapMailFrame_OnEnter)
-    MiniMapMailFrame:Unhook("OnLeave", MiniMapMailFrame_OnLeave)
+    self:Unhook('Minimap_UpdateRotationSetting', Minimap_UpdateRotationSetting)
 end
 
 function Module:PLAYER_ENTERING_WORLD()

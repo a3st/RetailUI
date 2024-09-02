@@ -264,8 +264,8 @@ local function ReplaceBlizzardActionBarFrame(frameBar)
         SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
         local pushedTexture = button:GetPushedTexture()
-        pushedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
-        pushedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
+        pushedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+        pushedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
         SetAtlasTexture(pushedTexture, 'ActionBar-ActionButton-Pushed')
 
         local checkedTexture = button:GetCheckedTexture()
@@ -350,8 +350,8 @@ local function ReplaceBlizzardMultiActionButton(button, frameBar)
     SetAtlasTexture(highlightTexture, 'ActionBar-ActionButton-Highlight')
 
     local pushedTexture = button:GetPushedTexture()
-    pushedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
-    pushedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
+    pushedTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+    pushedTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
     SetAtlasTexture(pushedTexture, 'ActionBar-ActionButton-Pushed')
 
     local checkedTexture = button:GetCheckedTexture()
@@ -592,7 +592,7 @@ local function ReplaceBlizzardMicroMenuBarFrame(frameBar)
     local pvpButtonTexture = _G['PVPMicroButton' .. "Texture"]
     pvpButtonTexture:SetAllPoints(PVPMicroButton)
     pvpButtonTexture:SetPoint('TOPLEFT', 1, -5)
-    pvpButtonTexture:SetPoint('BOTTOMRIGHT', 9, -10)
+    pvpButtonTexture:SetPoint('BOTTOMRIGHT', 9, -7)
 
     local helpButton = HelpMicroButton
     helpButton.performanceFrame = helpButton.performanceFrame or CreateFrame('Frame', nil, helpButton)
@@ -1267,7 +1267,8 @@ function Module:ShowEditorTest()
     HideUIFrame(self.actionBars[MAIN_ACTION_BAR_ID], hideMainActionBarFrames)
 
     for index, actionBar in pairs(self.actionBars) do
-        if index ~= MAIN_ACTION_BAR_ID and index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and index ~= MULTICAST_ACTION_BAR_ID then
+        if index ~= MAIN_ACTION_BAR_ID and index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and
+            index ~= MULTICAST_ACTION_BAR_ID and index ~= VEHICLE_ACTION_BAR_ID then
             HideUIFrame(actionBar)
         end
     end
@@ -1279,7 +1280,8 @@ end
 
 function Module:HideEditorTest(refresh)
     for index, actionBar in pairs(self.actionBars) do
-        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and index ~= MULTICAST_ACTION_BAR_ID then
+        if index ~= BONUS_ACTION_BAR_ID and index ~= PET_ACTION_BAR_ID and index ~= POSSESS_ACTION_BAR_ID and index ~= MULTICAST_ACTION_BAR_ID and
+            index ~= VEHICLE_ACTION_BAR_ID then
             ShowUIFrame(actionBar)
             SaveUIFramePosition(actionBar, 'actionBar' .. index)
         end
