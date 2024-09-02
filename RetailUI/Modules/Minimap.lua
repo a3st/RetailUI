@@ -10,6 +10,24 @@ local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEv
 Module.minimapFrame = nil
 Module.borderFrame = nil
 
+local function UpdateCalendarDate()
+    local _, _, day = CalendarGetDate()
+
+    local gameTimeFrame = GameTimeFrame
+
+    local normalTexture = gameTimeFrame:GetNormalTexture()
+    normalTexture:SetAllPoints(gameTimeFrame)
+    SetAtlasTexture(normalTexture, 'Minimap-Calendar-' .. day .. '-Normal')
+
+    local highlightTexture = gameTimeFrame:GetHighlightTexture()
+    highlightTexture:SetAllPoints(gameTimeFrame)
+    SetAtlasTexture(highlightTexture, 'Minimap-Calendar-' .. day .. '-Highlight')
+
+    local pushedTexture = gameTimeFrame:GetPushedTexture()
+    pushedTexture:SetAllPoints(gameTimeFrame)
+    SetAtlasTexture(pushedTexture, 'Minimap-Calendar-' .. day .. '-Pushed')
+end
+
 local function ReplaceBlizzardFrame(frame)
     local minimapCluster = MinimapCluster
     minimapCluster:ClearAllPoints()
@@ -41,23 +59,9 @@ local function ReplaceBlizzardFrame(frame)
     gameTimeFrame:SetPoint("LEFT", minimapBorderTop, "RIGHT", 3, -1)
     gameTimeFrame:SetSize(26, 24)
     gameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
+    gameTimeFrame:GetFontString():Hide()
 
-    local dateText = gameTimeFrame:GetFontString()
-    dateText:SetAllPoints(gameTimeFrame)
-    dateText:SetPoint("TOPLEFT", -4, 4)
-    dateText:SetJustifyH("CENTER")
-
-    local normalTexture = gameTimeFrame:GetNormalTexture()
-    normalTexture:SetAllPoints(gameTimeFrame)
-    SetAtlasTexture(normalTexture, 'Minimap-Calendar-Normal')
-
-    local highlightTexture = gameTimeFrame:GetHighlightTexture()
-    highlightTexture:SetAllPoints(gameTimeFrame)
-    SetAtlasTexture(highlightTexture, 'Minimap-Calendar-Highlight')
-
-    local pushedTexture = gameTimeFrame:GetPushedTexture()
-    pushedTexture:SetAllPoints(gameTimeFrame)
-    SetAtlasTexture(pushedTexture, 'Minimap-Calendar-Pushed')
+    UpdateCalendarDate()
 
     local minimapBattlefieldFrame = MiniMapBattlefieldFrame
     minimapBattlefieldFrame:ClearAllPoints()
@@ -109,17 +113,17 @@ local function ReplaceBlizzardFrame(frame)
     local shineTexture = _G[minimapTrackingButton:GetName() .. "Shine"]
     shineTexture:SetTexture(nil)
 
-    normalTexture = minimapTrackingButton:GetNormalTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
+    local normalTexture = minimapTrackingButton:GetNormalTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
     normalTexture:SetAllPoints(minimapTrackingButton)
     SetAtlasTexture(normalTexture, 'Minimap-Tracking-Normal')
 
     minimapTrackingButton:SetNormalTexture(normalTexture)
 
-    highlightTexture = minimapTrackingButton:GetHighlightTexture()
+    local highlightTexture = minimapTrackingButton:GetHighlightTexture()
     highlightTexture:SetAllPoints(minimapTrackingButton)
     SetAtlasTexture(highlightTexture, 'Minimap-Tracking-Highlight')
 
-    pushedTexture = minimapTrackingButton:GetPushedTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
+    local pushedTexture = minimapTrackingButton:GetPushedTexture() or minimapTrackingButton:CreateTexture(nil, "BORDER")
     pushedTexture:SetAllPoints(minimapTrackingButton)
     SetAtlasTexture(pushedTexture, 'Minimap-Tracking-Pushed')
 

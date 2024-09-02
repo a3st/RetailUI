@@ -29,12 +29,12 @@ RUI.optionsSlash = {
             type = 'execute',
             order = 0,
             func = function()
-                local UnitFrameModule  = RUI:GetModule("UnitFrame")
-                local CastingBarModule = RUI:GetModule("CastingBar")
-                local ActionBarModule  = RUI:GetModule("ActionBar")
-                local MinimapModule    = RUI:GetModule("Minimap")
-                local QuestTrackerModule   = RUI:GetModule("QuestTracker")
-                local BuffFrameModule  = RUI:GetModule("BuffFrame")
+                local UnitFrameModule    = RUI:GetModule("UnitFrame")
+                local CastingBarModule   = RUI:GetModule("CastingBar")
+                local ActionBarModule    = RUI:GetModule("ActionBar")
+                local MinimapModule      = RUI:GetModule("Minimap")
+                local QuestTrackerModule = RUI:GetModule("QuestTracker")
+                local BuffFrameModule    = RUI:GetModule("BuffFrame")
 
                 ActionBarModule:LoadDefaultSettings()
                 ActionBarModule:UpdateWidgets()

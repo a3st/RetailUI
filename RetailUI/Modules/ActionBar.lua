@@ -929,7 +929,7 @@ local function MultiCastFlyoutFrame_LoadPageSpells(self)
             button:SetPoint("BOTTOM", self, "BOTTOM", 0, 0)
         end
 
-        ReplaceBlizzardFlyoutButton(button, 32, true)
+        ReplaceBlizzardFlyoutButton(button, 28, true)
     end
 end
 
@@ -947,7 +947,7 @@ local function MultiCastFlyoutFrame_LoadSlotSpells(self, slot, ...)
             button:SetPoint("BOTTOM", self, "BOTTOM", 0, 0)
         end
 
-        ReplaceBlizzardFlyoutButton(button, 32, index ~= 1)
+        ReplaceBlizzardFlyoutButton(button, 28, index ~= 1)
     end
 end
 
@@ -1086,19 +1086,19 @@ function Module:OnEnable()
     end
 
     -- Stance (Shapeshift)
-    self.actionBars[SHAPESHIFT_ACTION_BAR_ID] = CreateActionFrameBar(SHAPESHIFT_ACTION_BAR_ID, 10, 36, 4, false)
+    self.actionBars[SHAPESHIFT_ACTION_BAR_ID] = CreateActionFrameBar(SHAPESHIFT_ACTION_BAR_ID, 10, 32, 4, false)
 
     -- Possess
-    self.actionBars[POSSESS_ACTION_BAR_ID] = CreateActionFrameBar(POSSESS_ACTION_BAR_ID, 2, 36, 4, false)
+    self.actionBars[POSSESS_ACTION_BAR_ID] = CreateActionFrameBar(POSSESS_ACTION_BAR_ID, 2, 32, 4, false)
 
     -- Pet
-    self.actionBars[PET_ACTION_BAR_ID] = CreateActionFrameBar(PET_ACTION_BAR_ID, 10, 36, 4, false)
+    self.actionBars[PET_ACTION_BAR_ID] = CreateActionFrameBar(PET_ACTION_BAR_ID, 10, 32, 4, false)
 
     -- Vehicle
     self.actionBars[VEHICLE_ACTION_BAR_ID] = CreateActionFrameBar(VEHICLE_ACTION_BAR_ID, 6, 60, 4, false)
 
     -- MultiCast
-    self.actionBars[MULTICAST_ACTION_BAR_ID] = CreateActionFrameBar(MULTICAST_ACTION_BAR_ID, 6, 36, 6, false)
+    self.actionBars[MULTICAST_ACTION_BAR_ID] = CreateActionFrameBar(MULTICAST_ACTION_BAR_ID, 6, 32, 6, false)
 
     -- Micro Menu
     self.microMenuBar = CreateActionFrameBar(nil, 10, 29, 2, false, 'MicroMenuBar')
@@ -1194,7 +1194,7 @@ function Module:LoadDefaultSettings()
 
     RUI.DB.profile.widgets['actionBar' .. SHAPESHIFT_ACTION_BAR_ID] = {
         anchor = "BOTTOM",
-        posX = -74,
+        posX = -94,
         posY = 200
     }
 
