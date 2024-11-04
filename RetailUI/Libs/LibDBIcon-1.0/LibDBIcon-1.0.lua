@@ -134,7 +134,7 @@ local function updatePosition(button)
 	local minimapShape = GetMinimapShape and GetMinimapShape() or "ROUND"
 	local quadTable = minimapShapes[minimapShape]
 	if quadTable[q] then
-		x, y = x*90, y*90
+		x, y = x*80, y*80
 	else
 		local diagRadius = 103.13708498985 --math.sqrt(2*(80)^2)-10
 		x = math.max(-80, math.min(x*diagRadius, 80))
