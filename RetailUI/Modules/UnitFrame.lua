@@ -127,6 +127,11 @@ local function ReplaceBlizzardPlayerFrame(frame)
     restIconTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\PlayerFrame\\PlayerRestFlipbook.blp")
     restIconTexture:SetDrawLayer('ARTWORK')
 
+    local attackTexture = PlayerAttackIcon
+    attackTexture:ClearAllPoints()
+    attackTexture:SetPoint("BOTTOMLEFT", 50, 17)
+    SetAtlasTexture(attackTexture, 'PlayerFrame-AttackIcon')
+
     local statusTexture = PlayerStatusTexture
     statusTexture:ClearAllPoints()
     statusTexture:SetPoint("BOTTOMLEFT", 0, 0)
@@ -541,7 +546,6 @@ local function RemoveBlizzardFrames()
     local blizzFrames = {
         PlayerFrameBackground,
         PlayerAttackBackground,
-        PlayerAttackIcon,
         TargetFrameBackground,
         Boss1TargetFrameBackground,
         Boss2TargetFrameBackground,

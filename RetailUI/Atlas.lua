@@ -93,6 +93,9 @@ local atlasTextures = {
     ['PlayerFrame-GroupIndicator'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 131, 203, 491, 505 }
     },
+    ['PlayerFrame-AttackIcon'] = {
+        asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 269, 288, 490, 504 }
+    },
 
     ['PartyFrame-TextureFrame-Normal'] = {
         asset = { UnitFrameAsset, 1024, 512 }, texcoord = { 848, 968, 0, 47 }
