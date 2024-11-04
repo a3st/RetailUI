@@ -292,7 +292,7 @@ local function ReplaceBlizzardTargetFrame(frame, target, isBoss)
     backgroundTexture:SetPoint('BOTTOMRIGHT', -56, 44)
     backgroundTexture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\TargetFrame\\NameBackground.blp")
     backgroundTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
-    backgroundTexture:SetDrawLayer("BACKGROUND")
+    backgroundTexture:SetDrawLayer("BORDER")
     backgroundTexture:SetBlendMode('ADD')
 
     local healthBar = _G[targetFrame:GetName() .. 'HealthBar']
