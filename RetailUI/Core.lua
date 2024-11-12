@@ -40,7 +40,7 @@ function CreateUIFrame(width, height, frameName)
 	do
 		local texture = frame:CreateTexture(nil, 'BACKGROUND')
 		texture:SetAllPoints(frame)
-		texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
+		texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBarHorizontal.blp")
 		texture:SetTexCoord(0, 512 / 512, 14 / 2048, 85 / 2048)
 		texture:Hide()
 

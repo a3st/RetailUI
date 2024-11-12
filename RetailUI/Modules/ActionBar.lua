@@ -21,81 +21,6 @@ local function verticalString(str)
     end
 end
 
-local function CreateNineSliceFrame(width, height)
-    local nineSliceFrame = CreateFrame("Frame", nil, UIParent)
-    nineSliceFrame:SetSize(width, height)
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("TOPLEFT", 10, 7)
-        texture:SetPoint("TOPRIGHT", -10, 7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(0, 32 / 512, 145 / 2048, 177 / 2048)
-        texture:SetHorizTile(true)
-        texture:SetSize(width, 20)
-    end
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("BOTTOMLEFT", 10, -7)
-        texture:SetPoint("BOTTOMRIGHT", -10, -7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(0, 32 / 512, 97 / 2048, 143 / 2048)
-        texture:SetHorizTile(true)
-        texture:SetSize(width, 20)
-    end
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("TOPLEFT", -7, 7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(463 / 512, 497 / 512, 475 / 2048, 507 / 2048)
-        texture:SetSize(20, 20)
-    end
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("TOPLEFT", -7, -10)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 405 / 2048)
-        texture:SetSize(20, height / 2)
-    end
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("BOTTOMLEFT", -7, -7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(465 / 512, 499 / 512, 383 / 2048, 429 / 2048)
-        texture:SetSize(20, 20)
-    end
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("TOPRIGHT", 7, 7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(463 / 512, 507 / 512, 441 / 2048, 473 / 2048)
-        texture:SetSize(20, 20)
-    end
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("TOPRIGHT", 7, -10)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 359 / 2048)
-        texture:SetSize(20, height / 2)
-    end
-
-    do
-        local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
-        texture:SetPoint("BOTTOMRIGHT", 7, -7)
-        texture:SetTexture("Interface\\AddOns\\RetailUI\\Textures\\UI\\ActionBar.blp")
-        texture:SetTexCoord(465 / 512, 509 / 512, 335 / 2048, 381 / 2048)
-        texture:SetSize(20, 20)
-    end
-
-    return nineSliceFrame
-end
-
 local MainMenuBarNineSlice = nil
 
 local function CreateActionFrameBar(barID, buttonCount, buttonSize, gap, vertical, frameName)
@@ -122,9 +47,44 @@ local function CreateActionFrameBar(barID, buttonCount, buttonSize, gap, vertica
     end
 
     if barID == MAIN_ACTION_BAR_ID then
-        local nineSliceFrame = CreateNineSliceFrame(width, height)
+        local nineSliceFrame = CreateNineSliceFrame(width, height, {
+            TOP = 'ActionMainBar-Top',
+            BOTTOM = 'ActionMainBar-Bottom',
+            TOPLEFT = 'ActionMainBar-TopLeft',
+            TOPRIGHT = 'ActionMainBar-TopRight',
+            BOTTOMRIGHT = 'ActionMainBar-BottomRight',
+            BOTTOMLEFT = 'ActionMainBar-BottomLeft',
+            LEFT = 'ActionMainBar-Left',
+            RIGHT = 'ActionMainBar-Right'
+        }, 0.5)
         nineSliceFrame:SetParent(MainMenuBar)
-        nineSliceFrame:SetPoint("LEFT", frameBar, "LEFT", 0, 0)
+        nineSliceFrame:SetPoint("LEFT", frameBar, "LEFT", -1, 1)
+
+        for index = 1, buttonCount - 1 do
+            -- Up
+            do
+                local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
+                texture:SetPoint("TOPLEFT", 37 + (index - 1) * (buttonSize - 2) + (index - 1) * gap, 3)
+                SetAtlasTexture(texture, 'ActionMainBar-GapUp')
+                texture:SetSize(texture:GetWidth() * 0.5, texture:GetHeight() * 0.5)
+            end
+
+            -- Center
+            do
+                local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
+                texture:SetPoint("LEFT", 40 + (index - 1) * (buttonSize - 2) + (index - 1) * gap, 0)
+                SetAtlasTexture(texture, 'ActionMainBar-GapCenter')
+                texture:SetSize(texture:GetWidth() * 0.5, buttonSize * 0.75 - texture:GetHeight())
+            end
+
+            -- Down
+            do
+                local texture = nineSliceFrame:CreateTexture(nil, "BORDER")
+                texture:SetPoint("BOTTOMLEFT", 37 + (index - 1) * (buttonSize - 2) + (index - 1) * gap, -3)
+                SetAtlasTexture(texture, 'ActionMainBar-GapDown')
+                texture:SetSize(texture:GetWidth() * 0.5, texture:GetHeight() * 0.5)
+            end
+        end
 
         MainMenuBarNineSlice = nineSliceFrame
     end

@@ -2,7 +2,7 @@
 ## Title: RetailUI
 ## Notes: Changes your UI to look like Retail
 ## Author: delayy
-## Version: 1.3.0
+## Version: 1.4.0
 ## SavedVariables: RetailUIDB
 
 Libs.xml
@@ -10,6 +10,7 @@ Libs.xml
 Core.lua
 Config.lua
 Atlas.lua
+NineSlice.lua
 
 Modules\ActionBar.lua
 Modules\UnitFrame.lua
