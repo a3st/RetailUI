@@ -692,6 +692,32 @@ local function FocusFrame_SetSmallSize(smallSize, onChange)
     ReplaceBlizzardTargetFrame(Module.focusFrame, FocusFrame)
 end
 
+local healthBarClassColors = {
+    ["Death Knight"] = { r = 0.77, g = 0.12, b = 0.23 },
+    ["Druid"] = { r = 1, g = 0.49, b = 0.04 },
+    ["Hunter"] = { r = 0.67, g = 0.83, b = 0.45 },
+    ["Mage"] = { r = 0.25, g = 0.78, b = 0.92 },
+    ["Paladin"] = { r = 0.96, g = 0.55, b = 0.73 },
+    ["Priest"] = { r = 1, g = 1, b = 1 },
+    ["Rogue"] = { r = 1, g = 0.96, b = 0.41 },
+    ["Shaman"] = { r = 0, g = 0.44, b = 0.87 },
+    ["Warlock"] = { r = 0.53, g = 0.53, b = 0.93 },
+    ["Warrior"] = { r = 0.78, g = 0.61, b = 0.43 }
+}
+
+local function setHealthBarColor(statusBar)
+    if statusBar.unit == "target" then
+        local class = UnitClass("target")
+        if healthBarClassColors[class] then
+            statusBar:SetStatusBarColor(healthBarClassColors[class].r, healthBarClassColors[class].g, healthBarClassColors[class].b)
+        else
+            statusBar:SetStatusBarColor(0.48, 0.86, 0.15) -- if it's not a class put green color
+        end
+    else
+        statusBar:SetStatusBarColor(0.48, 0.86, 0.15)
+    end
+end
+
 local function UnitFrameHealthBar_Update(statusBar, unit)
     if not statusBar or statusBar.lockValues then
         return
@@ -706,7 +732,7 @@ local function UnitFrameHealthBar_Update(statusBar, unit)
             end
         else
             if not statusBar.lockColor then
-                statusBar:SetStatusBarColor(0.48, 0.86, 0.15)
+                setHealthBarColor(statusBar)
             end
         end
     end
@@ -756,7 +782,7 @@ local function UnitFrameManaBar_UpdateType(manaBar)
 end
 
 local function HealthBar_OnValueChanged(self, value)
-    self:SetStatusBarColor(0.48, 0.86, 0.15)
+    setHealthBarColor(self)
 end
 
 local function PetFrame_Update(self)
