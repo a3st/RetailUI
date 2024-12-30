@@ -99,6 +99,24 @@ function SaveUIFramePosition(frame, widgetName)
 	RUI.DB.profile.widgets[widgetName].posY = posY
 end
 
+function SaveUIFrameScale(input, widgetName)
+    local scale = tonumber(input) -- Convert input to a number
+	if not scale or scale <= 0 then -- validate
+		print("Invalid scale. Please provide a positive number.")
+		return
+	end
+
+	RUI.DB.profile.widgets[widgetName].scale = scale -- save the scale
+
+    local UnitFrameModule = RUI:GetModule("UnitFrame") -- update the UI to reflect the changes
+    UnitFrameModule:UpdateWidgets()
+    print(widgetName .. " Frame Scale saved as " .. GetUIFrameScale(widgetName)) -- print confirmation to a user
+end
+
+function GetUIFrameScale(widgetName)
+	return RUI.DB.profile.widgets[widgetName].scale
+end
+
 function CheckSettingsExists(self, widgets)
 	for _, widget in pairs(widgets) do
 		if RUI.DB.profile.widgets[widget] == nil then
