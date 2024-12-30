@@ -702,7 +702,7 @@ local healthBarClassColors = {
     ["Rogue"] = { r = 1, g = 0.96, b = 0.41 },
     ["Shaman"] = { r = 0, g = 0.44, b = 0.87 },
     ["Warlock"] = { r = 0.53, g = 0.53, b = 0.93 },
-    ["Warrior"] = { r = 0.78, g = 0.61, b = 0.43 }
+    ["Warrior"] = { r = 0.78, g = 0.61, b = 0.43 },
 }
 
 local function setHealthBarColor(statusBar)
@@ -1065,11 +1065,11 @@ function Module:PLAYER_ENTERING_WORLD()
 end
 
 function Module:LoadDefaultSettings()
-    RUI.DB.profile.widgets.player = { anchor = "TOPLEFT", posX = 5, posY = -20 }
-    RUI.DB.profile.widgets.target = { anchor = "TOPLEFT", posX = 215, posY = -20 }
-    RUI.DB.profile.widgets.focus = { anchor = "TOPLEFT", posX = 105, posY = -165 }
-    RUI.DB.profile.widgets.pet = { anchor = "TOPLEFT", posX = 90, posY = -105 }
-    RUI.DB.profile.widgets.targetOfTarget = { anchor = "TOPLEFT", posX = 370, posY = -80 }
+    RUI.DB.profile.widgets.player = { anchor = "TOPLEFT", posX = 5, posY = -20, scale = 1 }
+    RUI.DB.profile.widgets.target = { anchor = "TOPLEFT", posX = 215, posY = -20, scale = 1 }
+    RUI.DB.profile.widgets.focus = { anchor = "TOPLEFT", posX = 105, posY = -165, scale = 1 }
+    RUI.DB.profile.widgets.pet = { anchor = "TOPLEFT", posX = 90, posY = -105, scale = 1 }
+    RUI.DB.profile.widgets.targetOfTarget = { anchor = "TOPLEFT", posX = 370, posY = -80, scale = 1 }
 
     RUI.DB.profile.widgets['boss' .. 1] = { anchor = "TOPRIGHT", posX = -100, posY = -270 }
     for index = 2, 4 do
@@ -1080,18 +1080,38 @@ end
 function Module:UpdateWidgets()
     local widgetOptions = RUI.DB.profile.widgets.player
     self.playerFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
+    PlayerFrame:SetScale(widgetOptions.scale)  -- self.playerFrame is not working, maybe due to object copying 
 
     widgetOptions = RUI.DB.profile.widgets.target
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
     self.targetFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    TargetFrame:SetScale(widgetOptions.scale)  -- self.targetFrame is not working, maybe due to object copying 
 
     widgetOptions = RUI.DB.profile.widgets.focus
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
     self.focusFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    FocusFrame:SetScale(widgetOptions.scale) -- self.focusFrame is not working, maybe due to object copying 
 
     widgetOptions = RUI.DB.profile.widgets.pet
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
     self.petFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    PetFrame:SetScale(widgetOptions.scale)  -- self.petFrame is not working, maybe due to object copying 
 
     widgetOptions = RUI.DB.profile.widgets.targetOfTarget
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
     self.targetOfTargetFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    TargetFrameToT:SetScale(widgetOptions.scale)  -- self.targetOfTargetFrame is not working, maybe due to object copying 
 
     for index, frame in pairs(self.bossFrames) do
         if index > 1 then

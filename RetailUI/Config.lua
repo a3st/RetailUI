@@ -24,6 +24,58 @@ RUI.optionsSlash = {
             end,
             dialogHidden = true
         },
+        scale = {
+            name = "Scale",
+            order = 1,
+            type = "group",
+            args = {
+                player = {
+                    name = "Player Frame Scale",
+                    type = 'input',
+                    order = 0,
+                    set = function(info, input)
+                        SaveUIFrameScale(input, "player")
+                    end,
+                    dialogHidden = true
+                },
+                target = {
+                    name = "Target Frame Scale",
+                    type = 'input',
+                    order = 1,
+                    set = function(info, input)
+                        SaveUIFrameScale(input, "target")
+                    end,
+                    dialogHidden = true
+                },
+                focus = {
+                    name = "Focus Frame Scale",
+                    type = 'input',
+                    order = 1,
+                    set = function(info, input)
+                        SaveUIFrameScale(input, "focus")
+                    end,
+                    dialogHidden = true
+                },
+                tot = {
+                    name = "Target of Target Frame Scale",
+                    type = 'input',
+                    order = 1,
+                    set = function(info, input)
+                        SaveUIFrameScale(input, "targetOfTarget")
+                    end,
+                    dialogHidden = true
+                },
+                pet = {
+                    name = "Pet Frame Scale",
+                    type = 'input',
+                    order = 1,
+                    set = function(info, input)
+                        SaveUIFrameScale(input, "pet")
+                    end,
+                    dialogHidden = true
+                },
+            }
+        },
         default = {
             name = "Load Default Settings",
             type = 'execute',

@@ -14,6 +14,8 @@ UI inspired by the Retail version. This addon retextures the existing interface.
 - Casting Bars
 - Vehicle UI
 - Grid Layout to adjust the possition of UI elements
+- Target Health Bar class colored
+- scaling the UI
 
 ## Quick Start
 
