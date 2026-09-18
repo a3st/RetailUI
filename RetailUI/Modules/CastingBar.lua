@@ -9,6 +9,15 @@ local Module = RUI:NewModule(moduleName, 'AceConsole-3.0', 'AceHook-3.0', 'AceEv
 
 Module.playerCastingBar = nil
 
+-- The client fades the Blizzard "Flash" texture of the casting bar in on every cast, which
+-- draws the original highlight on top of the new texture. Keep it transparent instead.
+local function DisableBlizzardFlashTexture(statusBar)
+    local flashTexture = statusBar.blizzardFlashTexture
+    if flashTexture and flashTexture:GetAlpha() > 0.0 then
+        flashTexture:SetAlpha(0)
+    end
+end
+
 local function ReplaceBlizzardCastingBarFrame(castingBarFrame, attachTo)
     local statusBar = castingBarFrame
     statusBar:SetMovable(true)
@@ -71,7 +80,11 @@ local function ReplaceBlizzardCastingBarFrame(castingBarFrame, attachTo)
     castTimeText:SetJustifyH("RIGHT")
 
     local flashTexture = _G[statusBar:GetName() .. "Flash"]
-    flashTexture:SetAlpha(0)
+    flashTexture:Hide()
+
+    statusBar.blizzardFlashTexture = flashTexture
+
+    DisableBlizzardFlashTexture(statusBar)
 
     local borderShieldTexture = _G[statusBar:GetName() .. 'BorderShield']
     borderShieldTexture:ClearAllPoints()
@@ -99,6 +112,8 @@ local function ReplaceBlizzardCastingBarFrame(castingBarFrame, attachTo)
 end
 
 local function CastingBarFrame_OnUpdate(self, elapsed)
+    DisableBlizzardFlashTexture(self)
+
     local currentTime, value, remainingTime = GetTime(), 0, 0
     if self.channelingEx or self.castingEx then
         if self.castingEx then
@@ -304,6 +319,8 @@ function Module:UNIT_SPELLCAST_START(eventName, unit)
 
     statusBar:SetAlpha(1.0)
     statusBar:Show()
+
+    DisableBlizzardFlashTexture(statusBar)
 end
 
 Module.UNIT_SPELLCAST_CHANNEL_START = Module.UNIT_SPELLCAST_START
